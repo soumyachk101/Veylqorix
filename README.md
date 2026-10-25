@@ -101,12 +101,14 @@ pnpm test
 ### Run the API and dashboard
 
 ```
-node packages/api/dist/bin.js     # API on http://localhost:4173
-node apps/web/src/serve.mjs       # web app + /api proxy on http://localhost:3000
+node packages/api/dist/bin.js             # API on http://localhost:4173
+pnpm --filter @veylqorix/web dev          # Next.js dashboard on http://localhost:3000
 ```
 
-Open <http://localhost:3000/#/dashboard> — full instructions in
-[docs/dashboard.md](docs/dashboard.md).
+Open <http://localhost:3000/dashboard> — full instructions in
+[docs/dashboard.md](docs/dashboard.md). The dashboard proxies `/api/*` to the
+API via Next.js rewrites (`NEXT_PUBLIC_API_BASE`, default
+`http://localhost:4173`).
 
 ### Scan any repository from the CLI
 

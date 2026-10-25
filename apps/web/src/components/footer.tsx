@@ -1,78 +1,106 @@
 import Link from 'next/link';
-import { Logo } from './logo';
+import { ArrowRight } from 'lucide-react';
+import { Wordmark } from './logo';
+
+const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string; external?: boolean }> }> = [
+  {
+    title: 'Product',
+    links: [
+      { href: '/#product', label: 'Capabilities' },
+      { href: '/#architecture', label: 'Architecture' },
+      { href: '/#integrations', label: 'Integrations' },
+      { href: '/dashboard', label: 'Dashboard' },
+    ],
+  },
+  {
+    title: 'Docs',
+    links: [
+      { href: '/docs#api', label: 'API' },
+      { href: '/docs#cli', label: 'CLI' },
+      { href: '/docs#mcp', label: 'MCP server' },
+      { href: '/docs#github-actions', label: 'GitHub Actions' },
+      { href: '/docs#troubleshooting', label: 'Troubleshooting' },
+    ],
+  },
+  {
+    title: 'Principles',
+    links: [
+      { href: '/#architecture', label: 'Deterministic gate' },
+      { href: '/#product', label: 'Secrets redacted' },
+      { href: '/#product', label: 'Evidence-backed findings' },
+      { href: '/docs#troubleshooting', label: 'Honest limitations' },
+    ],
+  },
+];
 
 export function Footer() {
+  const year = new Date().getFullYear();
   return (
     <footer className="mt-24 border-t-4 border-line bg-surface-2">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        {/* Top: brand + CTA */}
+        <div className="grid gap-10 md:grid-cols-[1.2fr_2fr]">
           <div>
-            <div className="flex items-center gap-3">
-              <Logo className="h-8 w-8" />
-              <span className="pixel-label text-ink">VEYLQORIX</span>
-            </div>
-            <p className="mt-3 max-w-sm text-sm text-ink-dim">
+            <Wordmark withLink={false} />
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-dim">
               No Unsafe Code Gets Through. Dependency auditing, secret detection, static analysis, and a
-              policy-driven quality gate — surfaced through CLI, MCP, and a live dashboard.
+              policy-driven quality gate — surfaced through CLI, MCP, GitHub Actions, and a live dashboard.
             </p>
+            <Link href="/dashboard" className="btn-primary mt-6 text-sm">
+              Open the dashboard
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 text-sm">
-            <nav aria-label="Product">
-              <h3 className="pixel-label-sm mb-3 text-ink-dim">Product</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/#product">
-                    Capabilities
-                  </Link>
-                </li>
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/#architecture">
-                    Architecture
-                  </Link>
-                </li>
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/#integrations">
-                    Integrations
-                  </Link>
-                </li>
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/dashboard">
-                    Dashboard
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-            <nav aria-label="Docs">
-              <h3 className="pixel-label-sm mb-3 text-ink-dim">Docs</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/docs#api">
-                    API
-                  </Link>
-                </li>
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/docs#github-actions">
-                    GitHub Actions
-                  </Link>
-                </li>
-                <li>
-                  <Link className="font-semibold text-ink-dim hover:text-ink" href="/docs#troubleshooting">
-                    Troubleshooting
-                  </Link>
-                </li>
-              </ul>
-            </nav>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+            {COLUMNS.map((col) => (
+              <nav key={col.title} aria-label={col.title}>
+                <h3 className="pixel-label-sm mb-4 text-ink-dim">{col.title}</h3>
+                <ul className="space-y-2.5">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <Link
+                        href={l.href}
+                        className="text-sm font-semibold text-ink-dim transition-colors hover:text-ink focus-visible:text-ink"
+                      >
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t-2 border-line-soft pt-5 text-xs text-ink-dim sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            Veylqorix is released under the MIT license. Real claims only: it scans the code you point it
-            at and blocks what your policy says to block.
-          </p>
-          <p className="pixel-label-sm" aria-hidden="true">
-            VEYLQORIX / {new Date().getFullYear()}
+        {/* Divider */}
+        <div className="mt-12 border-t-2 border-line-soft pt-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="max-w-2xl text-xs leading-relaxed text-ink-dim">
+                Veylqorix is released under the MIT license. Real claims only: it scans the code you point
+                it at and blocks what your policy says to block. Scanner unavailability is reported, never
+                green-washed.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://github.com/ion-design/ditto.site"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded border-2 border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-dim transition-colors hover:text-ink"
+              >
+                <Github className="h-4 w-4" aria-hidden="true" />
+                Design reference
+              </a>
+            </div>
+          </div>
+          <p className="mt-6 flex items-center gap-2 text-xs text-ink-faint">
+            <span className="pixel-label-sm text-teal-deep" aria-hidden="true">
+              VEYLQORIX / {year}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>No Unsafe Code Gets Through.</span>
           </p>
         </div>
       </div>
