@@ -29,9 +29,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@npmcli/audit-report": "7.0.2",
-    "@npmcli/package-json": "6.1.1",
-    "@npmcli/arborist": "9.0.6",
     "semver": "7.7.3",
     "zod": "4.6.7"
   }
