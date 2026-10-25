@@ -46,7 +46,7 @@ export function Hero() {
       <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left: value proposition */}
         <div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="pixel-label rounded bg-navy px-3 py-1.5 text-mint" aria-hidden="true">
               AI-native security
             </span>
