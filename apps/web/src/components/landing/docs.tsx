@@ -38,6 +38,35 @@ export function Docs() {
         </div>
 
         <div className="grid gap-5">
+          <div id="cli" className="pixel-box scroll-mt-24 rounded p-5">
+            <h3 className="text-lg font-extrabold text-ink">CLI &amp; git hooks</h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
+              <code className="font-mono text-[13px]">veylq scan</code>, <code className="font-mono text-[13px]">veylq check</code>,{' '}
+              <code className="font-mono text-[13px]">veylq report</code>, and{' '}
+              <code className="font-mono text-[13px]">veylq config validate</code>. Exit codes are
+              deterministic: <code className="font-mono text-[13px]">0</code> pass, <code className="font-mono text-[13px]">1</code>{' '}
+              blocking findings, <code className="font-mono text-[13px]">2</code> incomplete coverage.
+              <code className="font-mono text-[13px]"> veylq hooks install</code> writes pre-commit and
+              pre-push hooks; <code className="font-mono text-[13px]">VEYLQORIX_OVERRIDE</code> is the
+              explicit, auditable escape hatch.
+            </p>
+          </div>
+
+          <div id="mcp" className="pixel-box scroll-mt-24 rounded p-5">
+            <h3 className="text-lg font-extrabold text-ink">MCP server</h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
+              Six tools — <code className="font-mono text-[13px]">scan_repository</code>,{' '}
+              <code className="font-mono text-[13px]">scan_dependencies</code>,{' '}
+              <code className="font-mono text-[13px]">scan_secrets</code>,{' '}
+              <code className="font-mono text-[13px]">run_security_checks</code>,{' '}
+              <code className="font-mono text-[13px]">get_findings</code>,{' '}
+              <code className="font-mono text-[13px]">validate_fix</code> — all backed by the same core
+              engine. Filesystem access is confined to the roots you configure via{' '}
+              <code className="font-mono text-[13px]">VEYLQORIX_ROOTS</code>; no shell is exposed to the
+              agent.
+            </p>
+          </div>
+
           <div id="github-actions" className="pixel-box scroll-mt-24 rounded p-5">
             <h3 className="text-lg font-extrabold text-ink">GitHub Actions gate</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-dim">

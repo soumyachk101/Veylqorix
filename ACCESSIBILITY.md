@@ -29,7 +29,7 @@ audience, including people with disabilities.
 
 ## Known limitations
 
-- The dashboard is a small static app; it is not yet audited against a formal
+- The dashboard (Next.js) is not yet audited against a formal
   WCAG level (a WCAG 2.1 AA audit is on the roadmap).
 - The API has no screen-reader-oriented alternative view; clients that need
   one should consume the CLI's Markdown or SARIF output instead.
