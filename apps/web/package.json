@@ -3,9 +3,32 @@
   "version": "0.1.0",
   "description": "Veylqorix landing page and security dashboard: premium, accessible, real scan data from the Veylqorix API.",
   "license": "MIT",
-  "type": "module",
+  "private": true,
   "scripts": {
-    "start": "node src/serve.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "lucide-react": "^0.454.0",
+    "next": "15.3.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
