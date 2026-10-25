@@ -1,7 +1,5 @@
-node_modules
-dist
-.turbo
+node_modules/
+dist/
+.turbo/
 *.log
-auto_sync.log
 .DS_Store
-auto_sync.log
