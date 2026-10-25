@@ -31,7 +31,7 @@ function request(port: number, method: string, urlPath: string, body?: unknown):
         let data = '';
         res.on('data', (c) => (data += c));
         res.on('end', () => {
-          let json: unknown = null;
+          let json: unknown;
           try {
             json = data ? JSON.parse(data) : null;
           } catch {

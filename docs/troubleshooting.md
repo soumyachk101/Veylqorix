@@ -39,3 +39,16 @@ The banner in the top-right of the dashboard says which mode is active:
 
 Run the command from inside a Git work tree. The installer requires `.git/` to
 be present; it will not create a repo for you.
+
+## Honest limitations
+
+For the "what can't Veylqorix do" questions — scanner unavailable / degraded
+coverage, and the advisory-gate question — see [FAQ: Honest
+limitations](faq.md#honest-limitations-read-this-first). The short version:
+
+- **Scanner unavailable** is never green-washed. A skipped or errored scanner
+  degrades coverage and makes the gate INCOMPLETE (exit 2), not PASS.
+- **The gate is advisory until you enforce it.** The `veylqorix-gate` workflow
+  only blocks a merge when the calling repo requires its status check via
+  branch protection or a ruleset. Git hooks are a local convenience, not a
+  boundary. See `docs/github-actions.md` for the enforcement steps.

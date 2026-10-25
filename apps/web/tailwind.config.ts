@@ -23,6 +23,8 @@ const config: Config = {
         ink: 'var(--color-ink)',
         'ink-dim': 'var(--color-ink-dim)',
         'ink-faint': 'var(--color-ink-faint)',
+        'gold-faint': 'var(--color-gold-faint)',
+        'coral-faint': 'var(--color-coral-faint)',
       },
       fontFamily: {
         pixel: ['var(--font-pixel)', 'monospace'],

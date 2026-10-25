@@ -127,7 +127,7 @@ export interface Policy {
   exceptions: PolicyException[];
 }
 
-/** Full detail payload of GET /api/scan/:id. */
+/** Full detail payload of GET /api/scan/:id (matches packages/api route handler). */
 export interface ScanDetail {
   id: string;
   repoId: string;
@@ -139,34 +139,25 @@ export interface ScanDetail {
   findings?: Finding[];
   scanners?: Pick<ScannerResult, 'scanner' | 'status' | 'notes' | 'error'>[];
   detection?: ProjectDetection;
-  policy?: ResolvedPolicy;
-  startedAt?: string;
-  root?: string;
-  durationMs?: number;
-  checks?: CheckResult[];
 }
 
-export interface ResolvedPolicy {
-  policy: Policy;
-  notes: string[];
+/** Payload of GET /api/repo/:id/latest. */
+export interface LatestPayload {
+  id: string;
+  status: 'RUNNING' | 'DONE' | 'ERROR';
+  gate?: GateDecision;
+  coverage?: CoverageLevel;
+  exitCode?: number;
+  findings?: Finding[];
+  scanners?: Pick<ScannerResult, 'scanner' | 'status' | 'notes' | 'error'>[];
+  detection?: ProjectDetection;
+  startedAt?: string;
 }
 
 /** Payload of GET /api/repo/:id/latest. */
 export interface RepoLatest {
   repository: Repository;
-  latest:
-    | null
-    | {
-        id: string;
-        status: 'RUNNING' | 'DONE' | 'ERROR';
-        gate?: GateDecision;
-        coverage?: CoverageLevel;
-        exitCode?: number;
-        findings?: Finding[];
-        scanners?: ScannerResult[];
-        detection?: ProjectDetection;
-        startedAt?: string;
-      };
+  latest: LatestPayload | null;
 }
 
 export const SEVERITY_RANK: Record<Severity, number> = {

@@ -166,3 +166,21 @@ export function exitCodeFor(decision: GateDecision, coverage: CoverageLevel): nu
   if (coverage === 'LIMITED') return 2;
   return 0;
 }
+
+/**
+ * Strict exit-code mapping used when the caller passes `strict: true`.
+ *
+ * The default mapping (`exitCodeFor`) already exits non-zero for recorded
+ * blocking reasons and degraded coverage. The strict mapping makes that
+ * guarantee independent of the policy flags: ANY recorded blocking reason
+ * (content findings, failed checks, scanner errors, skipped mandatory
+ * scanners) forces exit 1, and ANY completeness gap (incomplete reasons or
+ * LIMITED/NONE coverage) forces exit 2, even when the policy has relaxed
+ * `blockOnScannerError` / `blockOnSkippedCheck` / `blockOnTestFailure`.
+ * A degraded audit therefore never exits 0 in strict mode.
+ */
+export function strictExitCode(decision: GateDecision, coverage: CoverageLevel): number {
+  if (decision.blockingReasons.length > 0) return 1;
+  if (decision.incompleteReasons.length > 0 || coverage === 'LIMITED' || coverage === 'NONE') return 2;
+  return 0;
+}

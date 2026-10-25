@@ -16,13 +16,18 @@ import type {
   ScanRecordSummary,
 } from './types';
 
-const BASE =
-  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) ||
-  (typeof window !== 'undefined' && window.location.port === '3000' ? '' : '');
-
-/** The API base the dashboard talks to. Empty string = same origin (dev proxy). */
+/**
+ * Browser-side base for API requests.
+ *
+ * - `NEXT_PUBLIC_API_BASE` (set at build time) always wins — use it when the
+ *   app and API live on different origins and no proxy is in front.
+ * - Otherwise the browser talks to the same origin: in dev, the Next.js dev
+ *   server proxies `/api/*` to the Veylqorix API (see `rewrites` in
+ *   next.config.mjs, default `http://localhost:4173`), and a deployed app
+ *   behind a gateway does the same. `empty string = same origin`.
+ */
 export function apiBase(): string {
-  return BASE;
+  return (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || '';
 }
 
 export class ApiError extends Error {

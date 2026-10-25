@@ -2,6 +2,42 @@
 
 All notable changes to Veylqorix are documented here.
 
+## 0.1.1 (2026-10-25)
+
+Next.js dashboard, MCP tooling, CLI/hooks hardening, CI pinning.
+
+### API (`packages/api`)
+- New read routes for the dashboard: `GET /api/scans` (list, optional
+  `?repoId` filter), `GET /api/scans/:id` (scan detail), and
+  `GET /api/reports/:scanId` with `?format=markdown|json|sarif` serving the
+  report as a downloadable attachment (202 while running, 404 unknown scan,
+  400 unknown format).
+- All error responses are structured JSON; registered/scanned paths are
+  validated against `allowedRoots`; secrets stay redacted in every response.
+- New integration suite `tests/integration/api-routes.test.ts`: register the
+  `secret-repo` fixture, run a real scan, verify the redacted secret finding,
+  and verify the SARIF report round-trip.
+
+### CI (`.github`)
+- Added `.github/workflows/ci.yml`: `pnpm install` → `pnpm -r build` →
+  `pnpm test` → `pnpm typecheck` → `pnpm lint`, with every action pinned to a
+  commit SHA.
+- `veylqorix-gate.yml`: all action pins corrected to the real tag commit SHAs
+  (verified against GitHub), SARIF now included in the uploaded artifact, and
+  an enforcement comment documenting that the gate blocks merges only when a
+  branch-protection rule requires its status check.
+
+### Docs & configuration
+- New `docs/mcp.md` (MCP setup + example `.mcp.json`), `docs/cli.md`
+  (commands, options, exit codes, hooks install), `docs/dashboard.md`
+  (run API + web app), and `docs/faq.md` (honest "scanner unavailable" /
+  "advisory gate" limitations, cross-linked from `docs/troubleshooting.md`).
+- README quick start now covers build → test → run API → open dashboard, plus
+  an integrations table (CLI, MCP, GitHub Actions, Skills, Dashboard) with
+  verified status.
+- `.env.example` covers the API, web, and MCP environment variables
+  (including `NEXT_PUBLIC_API_BASE`), with no real credentials.
+
 ## 0.1.0 (2026-10-25)
 
 First public build of the Veylqorix security platform.
