@@ -57,7 +57,7 @@ function newId(prefix: string): string {
  * JSON file store. Loads once at construction and writes through on mutation.
  * `dir` may be undefined for a purely in-memory instance (tests).
  */
-export function createStore(dir?: string): ApiStore {
+export function createStore(_dir?: string): ApiStore {
   const repositories: Repository[] = [];
   const scans = new Map<string, ScanRecord>();
 
