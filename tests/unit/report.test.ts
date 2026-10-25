@@ -101,11 +101,15 @@ describe('toSarif', () => {
     expect(run.tool.driver.name).toBe('Veylqorix');
   });
 
-  it('never includes raw secret values, only redacted snippets', () => {
+  it('never includes raw secret values, only redacted or safe content', () => {
     const text = toSarif(sampleAudit());
-    expect(text).not.toContain('this-never-matches');
-    // The redacted snippet is present, the full value is not (there is none in the sample).
-    expect(text).toContain('redacted');
+    // SARIF carries titles, remediation, and advisory references — it must
+    // never leak a raw secret value.
+    expect(text).not.toContain('AKIA0123456789ABCDEF');
+    expect(text).not.toContain('ghp_0123456789abcdefghijklmnopqrstuvwxyz0123456789');
+    // The safe content is present.
+    expect(text).toContain('A token was committed');
+    expect(text).toContain('Revoke and rotate the token.');
   });
 
   it('is deterministic', () => {

@@ -26,7 +26,7 @@ function isExceptionActive(exc: PolicyException, now: Date = new Date()): boolea
   return true;
 }
 
-/** Minimal `*`, `?`, and `**` glob used to scope exceptions to paths. */
+/** Minimal `*`, `?`, and `**` glob used to scope exceptions to paths. `*` stays within a path segment; `**` crosses segments. */
 export function globMatch(pattern: string, value: string): boolean {
   const regex =
     '^' +
@@ -34,7 +34,7 @@ export function globMatch(pattern: string, value: string): boolean {
       .replace(/[.+^${}()|[\]\\]/g, '\\$&')
       .replace(/\*\*/g, '§§')
       .replace(/\*/g, '[^/]*')
-      .replace(/§§/g, '[^/]*')
+      .replace(/§§/g, '.*')
       .replace(/\?/g, '.') +
     '$';
   return new RegExp(regex).test(value);

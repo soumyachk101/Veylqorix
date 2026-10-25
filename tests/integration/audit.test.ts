@@ -3,13 +3,17 @@ import { runAudit, makeFinding } from '@veylqorix/core';
 
 describe('runAudit', () => {
   it('passes on the clean fixture with no blocking findings', async () => {
+    // Offline mode would SKIP the (mandatory) dependency scanner, so we pass
+    // an explicit empty mock to keep coverage FULL while staying offline.
     const result = await runAudit({
       root: 'tests/fixtures/clean-repo',
       online: false,
       skipQualityChecks: true,
+      mocks: { dependencies: [] },
     });
     expect(result.gate.result).toBe('PASS');
     expect(result.exitCode).toBe(0);
+    expect(result.coverage).toBe('FULL');
   });
 
   it('fails on the secret fixture with a blocking exposed secret', async () => {
