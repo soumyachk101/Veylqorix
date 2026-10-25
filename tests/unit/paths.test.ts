@@ -4,7 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { validatePath, PathValidationError, relativeToRoot } from '@veylqorix/core';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'veylqorix-paths-'));
+const tmpRaw = fs.mkdtempSync(path.join(os.tmpdir(), 'veylqorix-paths-'));
+// macOS tmpdir is /var (a symlink to /private/var); validatePath canonicalizes
+// roots, so we must hand it a canonical path too.
+const tmp = fs.realpathSync(tmpRaw);
 const inner = path.join(tmp, 'nested');
 fs.mkdirSync(inner);
 fs.writeFileSync(path.join(inner, 'file.txt'), 'data');

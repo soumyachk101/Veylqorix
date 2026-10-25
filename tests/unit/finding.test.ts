@@ -6,7 +6,7 @@ describe('findingId', () => {
     const a = findingId('dependencies', 'npm-audit', 'pnpm-lock.yaml', 'lodash', '4.17.20');
     const b = findingId('dependencies', 'npm-audit', 'pnpm-lock.yaml', 'lodash', '4.17.20');
     expect(a).toBe(b);
-    expect(a).toMatch(/^DEP-[0-9A-F]{8}$/);
+    expect(a).toMatch(/^DEPENDENCIES-[0-9A-F]{8}$/);
   });
 
   it('changes when any stable input changes', () => {
