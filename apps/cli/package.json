@@ -1,0 +1,18 @@
+{
+  "name": "@veylqorix/cli",
+  "version": "0.1.0",
+  "description": "Veylqorix command-line interface: run security audits and quality gates from the terminal or CI.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "veylqorix": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@veylqorix/core": "0.1.0"
+  }
+}
