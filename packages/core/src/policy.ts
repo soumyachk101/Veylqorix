@@ -47,10 +47,21 @@ export function globMatch(pattern: string, value: string): boolean {
  * unbounded set of findings.
  */
 export function resolvePolicy(input?: Partial<Policy>): ResolvedPolicy {
+  // Explicit `undefined` overrides in a partial policy must not clobber the
+  // defaults: callers (MCP tools, CLI) pass partials where most fields are
+  // undefined. Merge field-by-field so only defined values win.
+  const pick = <K extends keyof Policy>(field: K): Policy[K] | undefined =>
+    input && Object.prototype.hasOwnProperty.call(input, field) ? input[field] : undefined;
+
   const policy: Policy = {
-    ...DEFAULT_POLICY,
-    ...input,
-    exceptions: (input?.exceptions ?? []).filter((e) => isExceptionActive(e)),
+    blockOnSeverity: pick('blockOnSeverity') ?? DEFAULT_POLICY.blockOnSeverity,
+    blockOnSecrets: pick('blockOnSecrets') ?? DEFAULT_POLICY.blockOnSecrets,
+    blockOnTestFailure: pick('blockOnTestFailure') ?? DEFAULT_POLICY.blockOnTestFailure,
+    blockOnScannerError: pick('blockOnScannerError') ?? DEFAULT_POLICY.blockOnScannerError,
+    blockOnSkippedCheck: pick('blockOnSkippedCheck') ?? DEFAULT_POLICY.blockOnSkippedCheck,
+    reportOnSeverity: pick('reportOnSeverity') ?? DEFAULT_POLICY.reportOnSeverity,
+    maxExceptions: pick('maxExceptions') ?? DEFAULT_POLICY.maxExceptions,
+    exceptions: (pick('exceptions') ?? []).filter((e) => isExceptionActive(e)),
   };
 
   const notes: string[] = [];
