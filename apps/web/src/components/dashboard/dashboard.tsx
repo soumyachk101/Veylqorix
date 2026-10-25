@@ -356,7 +356,7 @@ export default function Dashboard() {
             Scan Control
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <HealthPill health={health} onRetry={() => void checkHealth()} />
           <button
             type="button"
