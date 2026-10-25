@@ -167,7 +167,7 @@ export function createServer(options: ApiOptions = {}): http.Server {
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
-    const path = url.pathname;
+    const pathname = url.pathname;
     const method = req.method ?? 'GET';
 
     if (method === 'OPTIONS') {
@@ -181,15 +181,15 @@ export function createServer(options: ApiOptions = {}): http.Server {
 
     try {
       // --- Health ---
-      if (path === '/api/health' && method === 'GET') {
+      if (pathname === '/api/health' && method === 'GET') {
         return send(res, 200, { ok: true, time: new Date().toISOString() });
       }
 
       // --- Repositories ---
-      if (path === '/api/repositories' && method === 'GET') {
+      if (pathname === '/api/repositories' && method === 'GET') {
         return send(res, 200, { repositories: store.listRepositories() });
       }
-      if (path === '/api/repositories' && method === 'POST') {
+      if (pathname === '/api/repositories' && method === 'POST') {
         const body = await readJson(req);
         const p = typeof body.path === 'string' ? body.path : undefined;
         if (!p) return send(res, 400, { error: '`path` is required.' });
@@ -203,7 +203,7 @@ export function createServer(options: ApiOptions = {}): http.Server {
       }
 
       // --- Scans ---
-      if (path === '/api/scan' && method === 'POST') {
+      if (pathname === '/api/scan' && method === 'POST') {
         const body = await readJson(req);
         const repoId = typeof body.repoId === 'string' ? body.repoId : undefined;
         const repo =
@@ -231,7 +231,7 @@ export function createServer(options: ApiOptions = {}): http.Server {
       }
 
       // --- Single scan: /api/scan/:id[/findings|report] ---
-      const scanMatch = path.match(/^\/api\/scan\/([^/]+)(\/(findings|report))?$/);
+      const scanMatch = pathname.match(/^\/api\/scan\/([^/]+)(\/(findings|report))?$/);
       if (scanMatch && method === 'GET') {
         const scan = store.getScan(scanMatch[1] as string);
         if (!scan) return send(res, 404, { error: 'Scan not found.' });
@@ -277,7 +277,7 @@ export function createServer(options: ApiOptions = {}): http.Server {
       }
 
       // --- Per-repo: /api/repo/:id/latest | /history ---
-      const repoMatch = path.match(/^\/api\/repo\/([^/]+)\/(latest|history)$/);
+      const repoMatch = pathname.match(/^\/api\/repo\/([^/]+)\/(latest|history)$/);
       if (repoMatch && method === 'GET') {
         const repo = store.getRepository(repoMatch[1] as string);
         if (!repo) return send(res, 404, { error: 'Repository not found.' });
@@ -311,7 +311,7 @@ export function createServer(options: ApiOptions = {}): http.Server {
         });
       }
 
-      return send(res, 404, { error: `No route for ${method} ${path}.` });
+      return send(res, 404, { error: `No route for ${method} ${pathname}.` });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return send(res, 500, { error: message });
