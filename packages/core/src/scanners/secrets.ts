@@ -147,7 +147,6 @@ function shouldScan(file: string, extraExtensions?: string[], exclude?: string[]
 export async function scanSecrets(root: string, options: SecretScanOptions = {}): Promise<ScannerResult> {
   const startedAt = Date.now();
   const notes: string[] = [];
-  const emptyFindings: Finding[] = [];
 
   if (options.mockFindings !== undefined) {
     return {

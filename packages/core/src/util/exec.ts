@@ -119,7 +119,7 @@ export function extractJson(text: string): Record<string, unknown> | undefined {
   // Find balanced braces from the last `{` that is the start of a complete object.
   const matches = [...cleaned.matchAll(/\{/g)].map((m) => m.index as number);
   for (let i = matches.length - 1; i >= 0; i--) {
-    const start = matches[i];
+    const start = matches[i] as number;
     let depth = 0;
     let inString = false;
     let escaped = false;

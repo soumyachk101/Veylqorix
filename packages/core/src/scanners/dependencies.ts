@@ -272,18 +272,15 @@ async function pipAudit(
   // Prefer a virtual environment's pip-audit if one exists, otherwise try the
   // system-wide `pip-audit` binary. Never modify the user's environment.
   const candidates = ['pip-audit'];
-  let result;
-  let spawnError: ExecError | undefined;
+  let result: Awaited<ReturnType<typeof execFileAsync>> | undefined;
   for (const binary of candidates) {
     try {
       result = await execFileAsync(binary, ['--format', 'json', '-r', 'requirements.txt'], {
         cwd: options.cwd,
         timeoutMs: options.timeoutMs ?? 120_000,
       });
-      spawnError = undefined;
       break;
-    } catch (error) {
-      spawnError = error instanceof ExecError ? error : undefined;
+    } catch {
       result = undefined;
     }
   }

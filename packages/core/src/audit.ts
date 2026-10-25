@@ -1,5 +1,5 @@
 import { detectProject } from './detect.js';
-import { exitCodeFor } from './gate/index.js';
+import { evaluateGate, exitCodeFor } from './gate/index.js';
 import { resolvePolicy } from './policy.js';
 import {
   dependencyScanner,

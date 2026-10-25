@@ -1,13 +1,11 @@
-import {
-  SEVERITY_ORDER,
-  type CheckResult,
-  type Finding,
-  type GateDecision,
-  type Policy,
-  type PolicyException,
-  type ScannerResult,
-  type CoverageLevel,
-  type ResolvedPolicy,
+import type {
+  CheckResult,
+  CoverageLevel,
+  Finding,
+  GateDecision,
+  PolicyException,
+  ResolvedPolicy,
+  ScannerResult,
 } from '../types.js';
 import { globMatch } from '../policy.js';
 
@@ -68,56 +66,58 @@ export function evaluateGate(options: {
   const failedChecks = checks.filter((c) => c.status === 'FAIL');
   const erroredChecks = checks.filter((c) => c.status === 'ERROR');
 
+  // Reasons are recorded in two buckets:
+  // - `blockingReasons` surfaces every actionable concern for the report.
+  // - `hardFailReasons` holds only the genuine content violations that force a
+  //   hard FAIL: blocking findings, and failed/errored required checks or
+  //   scanners when their strict flags are on. A skipped mandatory scanner is
+  //   a *completeness gap*, not a content violation: under strict mode it is
+  //   reported for visibility but degrades coverage to INCOMPLETE rather than
+  //   forcing FAIL, so a degraded audit is never mistaken for a clean pass.
   const blockingReasons: string[] = [];
+  const hardFailReasons: string[] = [];
   for (const f of blockingFindings) {
-    blockingReasons.push(
-      `${f.secret ? 'Exposed secret' : `${f.severity} finding`} ${f.id} (${f.scanner}/${f.ruleId}): ${f.title}`,
-    );
+    const reason = `${f.secret ? 'Exposed secret' : `${f.severity} finding`} ${f.id} (${f.scanner}/${f.ruleId}): ${f.title}`;
+    blockingReasons.push(reason);
+    hardFailReasons.push(reason);
   }
   if (p.blockOnTestFailure) {
     for (const c of failedChecks) {
-      blockingReasons.push(`Required check '${c.id}' failed: ${c.command}`);
+      const reason = `Required check '${c.id}' failed: ${c.command}`;
+      blockingReasons.push(reason);
+      hardFailReasons.push(reason);
     }
   }
   if (p.blockOnScannerError) {
     for (const s of scannerErrors) {
-      blockingReasons.push(`Required scanner '${s.scanner}' errored: ${s.error?.message}`);
+      const reason = `Required scanner '${s.scanner}' errored: ${s.error?.message}`;
+      blockingReasons.push(reason);
+      hardFailReasons.push(reason);
     }
   }
   if (p.blockOnSkippedCheck) {
+    for (const c of erroredChecks) {
+      const reason = `Required check '${c.id}' errored: ${c.error?.message}`;
+      blockingReasons.push(reason);
+      hardFailReasons.push(reason);
+    }
     for (const s of skippedMandatory) {
-      blockingReasons.push(`Mandatory scanner '${s.scanner}' was skipped: ${s.notes[0]}`);
+      blockingReasons.push(`Mandatory scanner '${s.scanner}' was skipped: ${s.notes[0] ?? 'no note'}`);
     }
   }
 
-  // Coverage: degrade based on what actually ran.
-  const ranCleanly =
-    scannerErrors.length === 0 &&
-    skippedMandatory.length === 0 &&
-    erroredChecks.length === 0;
-
+  // Coverage degrades whenever something that should have run did not.
+  const completenessGaps =
+    scannerErrors.length > 0 || skippedMandatory.length > 0 || erroredChecks.length > 0;
   let coverage: CoverageLevel;
-  if (scannerErrors.length === 0 && skippedMandatory.length === 0) {
+  if (!completenessGaps) {
     coverage = 'FULL';
-  } else if (scannerErrors.length > 0 || skippedMandatory.length > 0) {
-    coverage = skippedMandatory.length > 0 && scannerErrors.length > 0 ? 'PARTIAL' : 'LIMITED';
   } else {
-    coverage = 'NONE';
+    coverage = skippedMandatory.length > 0 && scannerErrors.length > 0 ? 'PARTIAL' : 'LIMITED';
   }
 
-  if (ranCleanly && blockingReasons.length === 0) {
-    return {
-      result: 'PASS',
-      blockingReasons,
-      reportedFindings,
-      incompleteReasons: [],
-      coverage,
-      appliedExceptions,
-    };
-  }
-
-  // A mandatory scanner that errored or was skipped prevents a clean PASS even
-  // without blocking findings, because the audit is incomplete.
+  // Incomplete-coverage reasons: every gap, recorded regardless of the strict
+  // flags, because they describe what could not be verified.
   const incompleteReasons: string[] = [];
   for (const s of scannerErrors) {
     incompleteReasons.push(`Scanner '${s.scanner}' errored: ${s.error?.message}`);
@@ -130,9 +130,9 @@ export function evaluateGate(options: {
   }
 
   let result: GateDecision['result'];
-  if (blockingReasons.length > 0) {
+  if (hardFailReasons.length > 0) {
     result = 'FAIL';
-  } else if (incompleteReasons.length > 0) {
+  } else if (completenessGaps) {
     result = 'INCOMPLETE';
   } else {
     result = 'PASS';

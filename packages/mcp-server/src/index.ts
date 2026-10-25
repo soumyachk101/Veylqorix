@@ -43,7 +43,9 @@ export function createServer(options: McpServerOptions): McpServer {
       return validatePath(requested, roots, { allowMissing: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Invalid path';
-      throw new Error(`PATH_ERROR: ${message}`);
+      const wrapped = new Error(`PATH_ERROR: ${message}`);
+      if (error instanceof Error) wrapped.cause = error;
+      throw wrapped;
     }
   }
 

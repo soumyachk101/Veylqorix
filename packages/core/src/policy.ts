@@ -1,12 +1,12 @@
 import {
   CONFIDENCE_ORDER,
   SEVERITY_ORDER,
-  type Finding,
+  type Confidence,
   type Policy,
   type PolicyException,
   type ResolvedPolicy,
   type Severity,
-} from '../types.js';
+} from './types.js';
 
 /** The default policy: critical/high and secrets block, medium/low report. */
 export const DEFAULT_POLICY: Policy = {
@@ -23,13 +23,6 @@ export const DEFAULT_POLICY: Policy = {
 function isExceptionActive(exc: PolicyException, now: Date = new Date()): boolean {
   if (exc.expires && exc.expires < now.toISOString()) return false;
   if (typeof exc.reason !== 'string' || exc.reason.trim().length === 0) return false;
-  return true;
-}
-
-/** Findings a given active exception suppresses, applying the path scope when present. */
-function exceptionMatches(exc: PolicyException, finding: Finding): boolean {
-  if (exc.ruleId !== finding.ruleId) return false;
-  if (exc.pathGlob && !globMatch(exc.pathGlob, finding.location?.file ?? '')) return false;
   return true;
 }
 
@@ -78,11 +71,19 @@ export function resolvePolicy(input?: Partial<Policy>): ResolvedPolicy {
   return { policy, notes };
 }
 
+/** Minimal finding shape required for deterministic ordering. */
+export interface FindingLike {
+  severity: Severity;
+  confidence: Confidence;
+  ruleId: string;
+  location?: { file?: string };
+}
+
 /**
  * Compare two findings using a deterministic ordering used when sorting
  * reports and when exceptions are applied to specific findings.
  */
-export function compareFindings(a: Finding, b: Finding): number {
+export function compareFindings(a: FindingLike, b: FindingLike): number {
   const sev = SEVERITY_ORDER[b.severity] - SEVERITY_ORDER[a.severity];
   if (sev !== 0) return sev;
   const conf = CONFIDENCE_ORDER[a.confidence] - CONFIDENCE_ORDER[b.confidence];
@@ -91,6 +92,6 @@ export function compareFindings(a: Finding, b: Finding): number {
   return (a.location?.file ?? '').localeCompare(b.location?.file ?? '');
 }
 
-export function sortBySeverity<T extends { severity: Severity; id: string }>(items: T[]): T[] {
+export function sortBySeverity<T extends FindingLike>(items: T[]): T[] {
   return [...items].sort((a, b) => compareFindings(a, b));
 }

@@ -1,6 +1,5 @@
 import { makeFinding } from '../finding.js';
 import type {
-  CheckResult,
   Finding,
   ProjectDetection,
   ScannerResult,
@@ -64,10 +63,11 @@ export async function runScannerSafely(
 }
 
 export class TimeoutError extends Error {
+  /** Error-code string; mirrors the convention used by NodeJS.ErrnoException. */
+  readonly code = 'ETIMEDOUT';
   constructor(message: string) {
     super(message);
     this.name = 'TimeoutError';
-    this.code = 'ETIMEDOUT';
   }
 }
 

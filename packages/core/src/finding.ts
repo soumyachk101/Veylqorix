@@ -1,7 +1,7 @@
 import {
   createHash,
 } from 'node:crypto';
-import type { Finding } from '../types.js';
+import type { Finding } from './types.js';
 
 /**
  * Produce a deterministic, collision-resistant finding id from stable inputs.

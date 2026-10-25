@@ -153,7 +153,7 @@ export function detectProject(root: string): ProjectDetection {
   try {
     gitRepository = fs.existsSync(path.join(root, '.git'));
   } catch {
-    gitRepository = false;
+    /* .git may not be readable; treat as not a git repository. */
   }
 
   return {
