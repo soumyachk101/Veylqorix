@@ -9,6 +9,7 @@ import {
   exitCodeFor,
   type AuditOptions,
   type AuditResultWithExit,
+  type Policy,
 } from '@veylqorix/core';
 
 export interface McpServerOptions {
@@ -94,7 +95,7 @@ export function createServer(options: McpServerOptions): McpServer {
             onlyScanners: args.onlyScanners,
             skipQualityChecks: args.skipQualityChecks,
             policy: {
-              blockOnSeverity: args.blockOnSeverity as AuditOptions['policy']?.blockOnSeverity,
+              blockOnSeverity: args.blockOnSeverity as Policy['blockOnSeverity'],
               blockOnSecrets: args.blockOnSecrets,
             },
           }),
@@ -274,7 +275,7 @@ export function createServer(options: McpServerOptions): McpServer {
           auditOptionsFor({
             root: args.root,
             policy: {
-              blockOnSeverity: args.blockOnSeverity as AuditOptions['policy']?.blockOnSeverity,
+              blockOnSeverity: args.blockOnSeverity as Policy['blockOnSeverity'],
               blockOnSecrets: args.blockOnSecrets,
             },
           }),

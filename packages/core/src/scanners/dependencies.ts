@@ -127,9 +127,25 @@ async function npmAudit(
     }
 
     const parsed = extractJson(result.stdout);
-    const auditData = parsed as
-      | { vulnerabilities?: Record<string, Record<string, { name?: string; severity?: string; via?: unknown[]; cves?: string[]; ghSA?: string; url?: string; range?: string; title?: string }> } >
-      | undefined;
+    interface NpmAuditReport {
+      vulnerabilities?: Record<
+        string,
+        Record<
+          string,
+          {
+            name?: string;
+            severity?: string;
+            via?: unknown[];
+            cves?: string[];
+            ghSA?: string;
+            url?: string;
+            range?: string;
+            title?: string;
+          }
+        >
+      >;
+    }
+    const auditData = parsed as NpmAuditReport | undefined;
 
     const findings: Finding[] = [];
     const vulnerabilities = auditData?.vulnerabilities;

@@ -1,0 +1,6 @@
+node_modules
+dist
+.turbo
+*.log
+auto_sync.log
+.DS_Store
