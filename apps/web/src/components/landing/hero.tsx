@@ -16,13 +16,37 @@ function SeverityChip({ label, tone }: { label: string; tone: 'crit' | 'high' | 
   );
 }
 
+/** One row of the mock terminal: stacks vertically on narrow phones,
+ *  title-left/meta-right on wider screens. */
+function TerminalRow({
+  chip,
+  tone,
+  title,
+  meta,
+}: {
+  chip: string;
+  tone: 'crit' | 'high' | 'med' | 'ok';
+  title: string;
+  meta: string;
+}) {
+  return (
+    <div className="rounded border-2 border-line bg-screen-2 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <SeverityChip label={chip} tone={tone} />
+        <span className="text-screen-ink">{title}</span>
+      </div>
+      <p className="mt-1.5 break-words text-xs text-screen-dim">{meta}</p>
+    </div>
+  );
+}
+
 export function Hero() {
   return (
     <section aria-labelledby="hero" className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-16">
       <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left: value proposition */}
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="pixel-label rounded bg-navy px-3 py-1.5 text-mint" aria-hidden="true">
               AI-native security
             </span>
@@ -86,27 +110,9 @@ export function Hero() {
             </p>
 
             <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <SeverityChip label="CRIT" tone="crit" />
-                  <span className="text-screen-ink">Exposed AWS key</span>
-                </div>
-                <span className="text-screen-dim">config.js:12 · AKIA…CDEF (redacted)</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <SeverityChip label="HIGH" tone="high" />
-                  <span className="text-screen-ink">vulnerable dep</span>
-                </div>
-                <span className="text-screen-dim">lodash@4.17.15 → 4.17.21</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <SeverityChip label="MED" tone="med" />
-                  <span className="text-screen-ink">license risk</span>
-                </div>
-                <span className="text-screen-dim">GPL dep in MIT app</span>
-              </div>
+              <TerminalRow chip="CRIT" tone="crit" title="Exposed AWS key" meta="config.js:12 · AKIA…CDEF (redacted)" />
+              <TerminalRow chip="HIGH" tone="high" title="vulnerable dep" meta="lodash@4.17.15 → 4.17.21" />
+              <TerminalRow chip="MED" tone="med" title="license risk" meta="GPL dep in MIT app" />
             </div>
 
             <p className="mt-4 flex items-center gap-2 text-mint">
