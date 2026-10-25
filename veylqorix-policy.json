@@ -1,0 +1,10 @@
+{
+  "blockOnSeverity": ["CRITICAL", "HIGH"],
+  "blockOnSecrets": true,
+  "blockOnTestFailure": true,
+  "blockOnScannerError": true,
+  "blockOnSkippedCheck": true,
+  "reportOnSeverity": ["MEDIUM", "LOW"],
+  "maxExceptions": 5,
+  "exceptions": []
+}
