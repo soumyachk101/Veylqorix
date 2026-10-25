@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from './index.js';
@@ -9,8 +10,10 @@ import { createServer } from './index.js';
  * client. This exercises argument validation, path confinement, secret
  * redaction, and structured error paths without a stdio process.
  */
+const here = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(here, '..', '..', '..');
+
 describe('Veylqorix MCP server', () => {
-  const repoRoot = path.resolve(__dirname, '..', '..');
   const fixtures = path.join(repoRoot, 'tests', 'fixtures');
   const cleanRoot = path.join(fixtures, 'clean-repo');
 
