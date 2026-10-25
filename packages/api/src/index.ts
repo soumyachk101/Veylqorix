@@ -116,6 +116,8 @@ export function createServer(options: ApiOptions = {}): http.Server {
   const running = new Map<string, Promise<void>>();
 
   function send(res: http.ServerResponse, status: number, body: unknown) {
+    // Reports are returned as plain-text documents (markdown / sarif / json);
+    // everything else is structured JSON.
     const text = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
     res.writeHead(status, {
       'Content-Type': typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json; charset=utf-8',
