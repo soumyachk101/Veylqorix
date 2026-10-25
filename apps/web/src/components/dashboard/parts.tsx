@@ -23,8 +23,12 @@ export function Panel({
   return (
     <section className={`pixel-box rounded p-5 ${className}`}>
       {(label || right) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {label ? <h2 className="pixel-label-sm text-ink-dim">{label}</h2> : <span />}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          {label ? (
+            <h2 className="pixel-label-sm min-w-0 break-words text-ink-dim">{label}</h2>
+          ) : (
+            <span />
+          )}
           {right}
         </div>
       )}
