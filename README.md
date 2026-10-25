@@ -20,14 +20,38 @@ pnpm build
 pnpm test
 ```
 
-Run a scan on any repository:
+Run the API and open the dashboard:
+
+```
+node packages/api/dist/bin.js      # API on http://localhost:4173
+node apps/web/src/serve.mjs       # web app + /api proxy on http://localhost:3000
+```
+
+Open <http://localhost:3000/#/dashboard> and click **Dashboard**. (See
+[docs/dashboard.md](docs/dashboard.md).)
+
+Run a scan from the CLI on any repository:
 
 ```
 node apps/cli/dist/index.js scan --root /path/to/repo --json
 ```
 
-Exit codes: `0` PASS · `1` FAIL (blocking findings) · `2` INCOMPLETE (coverage
-degraded) · `64` usage error · `65` bad root · `70` unexpected error.
+Exit codes: `0` PASS · `1` FAIL (blocking findings) · `2` INCOMPLETE
+(coverage degraded) · `64` usage error · `65` bad root · `70` unexpected error.
+
+## Integrations
+
+| Surface | Package / path | Status (verified) | Docs |
+|---------|----------------|-------------------|------|
+| CLI (`veylqorix`) | `apps/cli` | Works: real scans, deterministic exit codes, safe dry-run hook installer. **Not published to npm yet** — run from `dist/`. | [docs/cli.md](docs/cli.md) |
+| MCP server | `packages/mcp-server` | Works: six tools, root-confinement + redaction. Requires `pnpm build`; configure via `.mcp.json`. | [docs/mcp.md](docs/mcp.md) |
+| GitHub Actions gate | `.github/workflows/veylqorix-gate.yml` | Works: real scan + SARIF upload, all actions pinned to SHAs. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
+| Agent skills | `packages/skills` | Works: portable `SKILL.md` + MCP configs for Claude Code, Codex, Cursor. | [packages/skills](packages/skills) |
+| Dashboard | `apps/web` + `packages/api` | Works: live scan data from the API, clearly-labeled demo fallback when the API is down. | [docs/dashboard.md](docs/dashboard.md) |
+
+Honest note: the gate and the CLI hooks are **advisory** until enforcement
+(branch protection, or a published CLI) is in place. See
+[docs/faq.md](docs/faq.md#honest-limitations-read-this-first).
 
 ## CLI
 

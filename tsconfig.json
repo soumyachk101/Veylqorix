@@ -19,5 +19,11 @@
     "noEmit": true
   },
   "include": ["apps/*/src", "packages/*/src"],
-  "exclude": ["node_modules", "apps/*/dist", "packages/*/dist"]
+  "exclude": [
+    "node_modules",
+    "apps/*/dist",
+    "packages/*/dist",
+    "apps/web/src",
+    "apps/web/**/.next"
+  ]
 }

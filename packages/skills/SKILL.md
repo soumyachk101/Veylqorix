@@ -39,8 +39,10 @@ Use this skill when the user:
 
 ### 2. Run the appropriate checks
 
-Prefer the Veylqorix CLI when it is installed; otherwise run the underlying
-tools directly and apply the same interpretation rules below.
+Prefer the Veylqorix CLI when it is installed; otherwise the MCP server
+exposes the same engine (`@veylqorix/mcp-server`) as tools. Run the underlying
+tools directly only when neither is available, and apply the same
+interpretation rules below.
 
 ```
 node <veylqorix-cli> scan --root <repo> --json          # full audit
@@ -48,6 +50,19 @@ node <veylqorix-cli> scan --staged --root <repo>        # git-staged files only
 node <veylqorix-cli> check --root <repo>                 # quality checks only
 node <veylqorix-cli> report --root <repo>                 # markdown report
 ```
+
+MCP tools (when the veylqorix server is connected):
+- `scan_repository` — full audit: dependency, secret, and license scanners,
+  quality checks, and the gate. Structured findings + gate decision.
+- `scan_dependencies` — dependency scanner only (npm audit / pip-audit). An
+  unavailable scanner comes back SKIPPED/ERROR with a note, never a pass.
+- `scan_secrets` — offline secret-pattern scan; values are redacted in output.
+- `run_security_checks` — quality checks only (type, lint, tests). Commands
+  are chosen from the project's own config; callers cannot inject commands.
+- `get_findings` — list current findings (fast, no quality checks), with a
+  result cap.
+- `validate_fix` — re-run scanners and check that specific finding ids no
+  longer appear. This is the only way to verify a fix actually worked.
 
 The exit code is authoritative: **0 = PASS, 1 = FAIL (blocking findings),
 2 = INCOMPLETE (coverage degraded)** — never treat 2 as a pass.
@@ -90,6 +105,11 @@ run showing it.
 ```
 node <veylqorix-cli> scan --root <repo> --scanners <the one you fixed> --json
 ```
+
+With the MCP server connected, call `validate_fix` with the finding ids you
+fixed. It re-runs the scanners and tells you which ids are still present.
+A fix is verified **only** when its id is reported resolved — if the scanner
+that would report it did not complete, the fix is unverified, not fixed.
 
 ### 7. Report honestly
 
@@ -142,6 +162,39 @@ Never say "all clear" when `coverage` is not FULL or a scanner errored.
 - **Do** get explicit approval before any destructive operation (rewriting
   history, deleting a key, force-pushing) or before publishing anything
   externally.
+
+## Approval before consequential operations
+
+The scanning tools are read-only: they do not modify files or execute
+caller-supplied commands. But *you* may propose or apply changes. Get explicit
+user approval before:
+- committing, pushing, rewriting history, or deleting anything;
+- rotating or deleting a detected credential;
+- applying a fix you were not asked to apply, or publishing results anywhere.
+
+A fix that changes code (pinning a version, moving a secret to an env var)
+only counts when you re-ran the scanner afterwards and it no longer reports the
+finding — never announce a fix based on the edit alone.
+
+## MCP server safety model
+
+When tools come from `@veylqorix/mcp-server`:
+- **Workspace confinement**: the server is started with a set of allowed
+  workspace roots; every tool resolves its `root` argument against them and
+  rejects `..` traversal and symlink escapes before touching the filesystem.
+  If a tool returns `PATH_ERROR`, the requested path was outside the allowed
+  roots — stop and report it, do not try to "fix" the path yourself.
+- **No shell execution**: command selection is hardcoded on the server side
+  from the detected project config. Callers cannot supply or inject commands
+  through any tool argument.
+- **Timeouts and output caps**: every scanner, check, and tool result is
+  bounded; oversized output is truncated and a truncated result is always
+  labeled as truncated.
+- **Redaction**: secret values are masked in every tool result. Quote the
+  redacted form only (e.g. `AKIA…CDEF (20 chars, redacted)`).
+- **Honest availability**: when a scanner cannot run (offline, missing
+  binary), the tool reports `SKIPPED` or `ERROR` with a note. Treat that as
+  "could not verify", not as a pass.
 
 ## Limitations
 

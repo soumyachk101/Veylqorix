@@ -3,39 +3,141 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import {
   runAudit,
-  toJson,
-  toMarkdown,
   validatePath,
-  exitCodeFor,
   type AuditOptions,
   type AuditResultWithExit,
+  type CheckResult,
+  type Finding,
   type Policy,
+  type ScannerResult,
 } from '@veylqorix/core';
 
 export interface McpServerOptions {
   /** Absolute workspace roots that tools may access. */
   roots: string[];
-  /** Per-tool timeout in milliseconds. */
+  /** Per-scanner / per-check timeout in milliseconds. */
   timeoutMs?: number;
   /** Run external scanners; false forces offline mode. */
   online?: boolean;
+}
+
+const SCANNER_NAMES = ['dependencies', 'secrets', 'licenses'] as const;
+const SEVERITY_NAMES = ['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
+
+/** Upper bounds so a single tool call can never return an unbounded payload. */
+const DEFAULT_FINDING_LIMIT = 100;
+const MAX_FINDING_LIMIT = 500;
+const MAX_FINDINGS_PER_RESPONSE = 200;
+const MAX_TEXT_CHARS = 60_000;
+
+/** Shared parameter descriptions, so every tool documents confinement the same way. */
+const ROOT_PARAM = z.string().min(1).describe(
+  'Project directory to audit. Resolved inside the server\'s configured workspace roots; `..` traversal, symlink escapes, and roots with no configured roots are rejected.',
+);
+
+/**
+ * Defense-in-depth redaction: scanners already mask secret values in
+ * findings, but this second pass also scrubs scanner notes, check output,
+ * and error messages so no raw credential ever reaches the client.
+ */
+const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement?: string }> = [
+  { pattern: /\bAKIA[0-9A-Z]{16}\b/g },
+  { pattern: /\bgh[pousr]_[A-Za-z0-9]{36,255}\b/g },
+  { pattern: /\bxox[baprs]-[A-Za-z0-9-]{10,255}\b/g },
+  { pattern: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/g },
+  { pattern: /\bsk-[A-Za-z0-9]{20,}\b/g },
+  { pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g },
+  { pattern: /\b[a-z]{1,5}\d{20,32}\b/g },
+  { pattern: /\b[a-z]{32}@[a-z0-9.-]+\.[a-z]{2,}\b/g },
+  { pattern: /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/g, replacement: '[REDACTED-PRIVATE-KEY]' },
+];
+
+/** Mask a matched secret value, keeping just enough characters to identify it. */
+function maskSecret(value: string): string {
+  if (value.length <= 8) return '****';
+  return `${value.slice(0, 4)}…${value.slice(-4)} [redacted ${value.length} chars]`;
+}
+
+/** Scrub a string with the redaction patterns above. */
+export function redactText(text: string): string {
+  let out = text;
+  for (const { pattern, replacement } of REDACTION_PATTERNS) {
+    pattern.lastIndex = 0;
+    out = out.replace(pattern, (match) => replacement ?? maskSecret(match));
+  }
+  return out;
+}
+
+/** Recursively redact every string inside a serialized value. */
+function redactDeep(value: unknown): unknown {
+  if (typeof value === 'string') return redactText(value);
+  if (Array.isArray(value)) return value.map(redactDeep);
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value)) out[key] = redactDeep(v);
+    return out;
+  }
+  return value;
+}
+
+function capText(text: string): string {
+  if (text.length <= MAX_TEXT_CHARS) return text;
+  return `${text.slice(0, MAX_TEXT_CHARS)}\n[... truncated to ${MAX_TEXT_CHARS} chars]`;
+}
+
+function capFindings(findings: Finding[], limit: number): { items: Finding[]; total: number; truncated: boolean } {
+  const total = findings.length;
+  const items = findings.slice(0, limit);
+  return { items, total, truncated: total > limit };
+}
+
+/** A tool result in the shape the MCP SDK hands to the client. */
+export interface ToolResult {
+  [key: string]: unknown;
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+  structuredContent?: Record<string, unknown>;
+}
+
+/**
+ * Apply the output caps and the redaction pass to a tool result before it is
+ * handed to the client.
+ */
+function sanitizeResult(result: ToolResult): ToolResult {
+  result.content = result.content.map((c) => ({ ...c, text: capText(redactText(c.text)) }));
+  if (result.structuredContent) {
+    result.structuredContent = redactDeep(result.structuredContent) as Record<string, unknown>;
+  }
+  return result;
 }
 
 /**
  * Build the Veylqorix MCP server.
  *
  * Every tool validates its arguments with Zod and restricts filesystem access
- * to the configured workspace roots. Paths are canonicalized and checked for
- * traversal and symlink escapes before they are used. All findings returned to
- * the client have secret values redacted by the scanners, and scanner
- * execution errors are surfaced as structured ERRORs, never as success.
+ * to the configured workspace roots (canonicalized, `..`-traversal and
+ * symlink escapes are rejected before any filesystem access). Scanner and
+ * check executions run without a shell, under per-item timeouts, and with
+ * truncated output. Secret values are redacted in every returned payload.
+ * Scanner unavailability (offline mode, missing binary) is reported as
+ * SKIPPED/ERROR with a note, never as a pass.
  */
 export function createServer(options: McpServerOptions): McpServer {
-  const { roots, timeoutMs = 120_000, online = true } = options;
+  if (!Array.isArray(options.roots) || options.roots.length === 0) {
+    throw new Error('createServer: at least one workspace root is required');
+  }
+  const roots = options.roots;
+  const online = options.online ?? true;
+  const timeoutMs =
+    Number.isFinite(options.timeoutMs) && (options.timeoutMs as number) > 0
+      ? (options.timeoutMs as number)
+      : 120_000;
+
   const server = new McpServer({
     name: 'veylqorix',
     version: '0.1.0',
-    description: 'Security audit tools: dependency, secret, and quality scanning with a quality gate.',
+    description:
+      'Security audit tools: dependency, secret, and license scanning plus quality checks, gated by a quality gate.',
   });
 
   function validateRoot(requested: string): string {
@@ -49,291 +151,355 @@ export function createServer(options: McpServerOptions): McpServer {
     }
   }
 
-  function auditOptionsFor(args: {
+  interface AuditArgs {
     root: string;
-    policy?: AuditOptions['policy'];
+    policy?: Partial<Policy>;
     onlyScanners?: string[];
     skipQualityChecks?: boolean;
-  }): AuditOptions {
-    const root = validateRoot(args.root);
+    includeTests?: boolean;
+  }
+
+  function auditOptionsFor(args: AuditArgs): AuditOptions {
     return {
-      root,
+      root: validateRoot(args.root),
       policy: args.policy,
       onlyScanners: args.onlyScanners,
       skipQualityChecks: args.skipQualityChecks,
+      includeTests: args.includeTests,
       online,
       scannerTimeoutMs: timeoutMs,
     };
   }
 
-  function errorContent(message: string, errorCode: string) {
-    return {
-      content: [{ type: 'text' as const, text: message }],
-      isError: true,
-      structuredContent: { error: { code: errorCode, message } },
-    };
+  /** Catch a tool failure and return a structured error result. */
+  async function withErrorFallback(
+    action: () => Promise<ToolResult>,
+    fallbackCode: string,
+    fallbackMessage: string,
+  ): Promise<ToolResult> {
+    try {
+      return sanitizeResult(await action());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : fallbackMessage;
+      if (message.startsWith('PATH_ERROR')) {
+        return {
+          content: [{ type: 'text', text: message }],
+          isError: true,
+          structuredContent: { error: { code: 'PATH_ERROR', message } },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: message }],
+        isError: true,
+        structuredContent: { error: { code: fallbackCode, message: redactText(message) } },
+      };
+    }
   }
 
-  // 1. scan_project
+  const scannerSummaries = (result: AuditResultWithExit) =>
+    result.scanners.map((s) => ({
+      scanner: s.scanner,
+      status: s.status,
+      findingCount: s.findings.length,
+      notes: s.notes,
+      error: s.error,
+    }));
+
+  // 1. scan_repository — full audit: every scanner + quality checks + gate.
   server.registerTool(
-    'scan_project',
+    'scan_repository',
     {
-      title: 'Scan project',
+      title: 'Scan repository',
       description:
-        'Run the full security audit: dependency, secret, and license scanners plus the quality gate. Returns structured findings and a gate decision.',
+        'Run the full security audit: dependency, secret, and license scanners plus the quality gate, and quality checks (type, lint, tests). Returns structured findings and a gate decision. Commands are chosen by the server from the project config; no shell is executed by a caller.',
       inputSchema: {
-        root: z.string().describe('Absolute path to the project root, inside a configured workspace root'),
-        onlyScanners: z.array(z.string()).optional().describe('Restrict the audit to these scanner names: dependencies, secrets, licenses'),
-        skipQualityChecks: z.boolean().optional().describe('Skip running quality checks (type, lint, tests)'),
-        blockOnSeverity: z.array(z.enum(['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])).optional().describe('Severities that block the gate; default CRITICAL and HIGH'),
-        blockOnSecrets: z.boolean().optional().describe('Whether exposed secrets block the gate; default true'),
+        root: ROOT_PARAM,
+        onlyScanners: z.array(z.enum(SCANNER_NAMES)).optional().describe(
+          'Restrict the audit to these scanners: dependencies, secrets, licenses. Default: all.',
+        ),
+        skipQualityChecks: z.boolean().optional().describe('Skip quality checks (type, lint, tests). Default false.'),
+        includeTests: z.boolean().optional().describe('Include test/build runs in the quality checks. Default true.'),
+        blockOnSeverity: z.array(z.enum(SEVERITY_NAMES)).optional().describe(
+          'Severities that block the gate; default CRITICAL and HIGH.',
+        ),
+        blockOnSecrets: z.boolean().optional().describe('Whether exposed secrets block the gate; default true.'),
       },
     },
-    async (args) => {
-      try {
+    async (args) =>
+      withErrorFallback(async () => {
         const result = await runAudit(
           auditOptionsFor({
             root: args.root,
             onlyScanners: args.onlyScanners,
             skipQualityChecks: args.skipQualityChecks,
+            includeTests: args.includeTests,
             policy: {
-              blockOnSeverity: args.blockOnSeverity as Policy['blockOnSeverity'],
+              blockOnSeverity: args.blockOnSeverity,
               blockOnSecrets: args.blockOnSecrets,
             },
           }),
         );
-        return serializeAudit(result, 'scan_project');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Audit failed';
-        if (message.startsWith('PATH_ERROR')) {
-          return errorContent(message, 'PATH_ERROR');
-        }
-        return errorContent(message, 'AUDIT_FAILED');
-      }
-    },
+        const capped = capFindings(result.findings, MAX_FINDINGS_PER_RESPONSE);
+        return {
+          content: [{ type: 'text', text: summarizeGate(result) }],
+          structuredContent: {
+            gate: result.gate,
+            coverage: result.coverage,
+            exitCode: result.exitCode,
+            durationMs: result.durationMs,
+            scanners: scannerSummaries(result),
+            findings: capped.items,
+            totalFindings: capped.total,
+            findingsTruncated: capped.truncated,
+            checks: result.checks,
+          },
+        };
+      }, 'AUDIT_FAILED', 'Audit failed'),
   );
 
-  // 2. check_dependencies
+  // 2. scan_dependencies — dependency scanner only.
   server.registerTool(
-    'check_dependencies',
+    'scan_dependencies',
     {
-      title: 'Check dependencies',
+      title: 'Scan dependencies',
       description:
-        'Run dependency vulnerability scanning for a project (npm audit for Node, pip-audit for Python). Offline mode reports coverage as incomplete.',
+        'Run dependency vulnerability scanning for the project type (npm audit for Node, pip-audit for Python). Offline mode or a missing binary reports SKIPPED/ERROR with a note — an unavailable scanner is reported, never passed over.',
       inputSchema: {
-        root: z.string().describe('Absolute path to the project root'),
+        root: ROOT_PARAM,
       },
     },
-    async (args) => {
-      try {
-        const result = await runAudit(
-          auditOptionsFor({ root: args.root, onlyScanners: ['dependencies'] }),
-        );
-        const dep = result.scanners.find((s) => s.scanner === 'dependencies');
+    async (args) =>
+      withErrorFallback(async () => {
+        const result = await runAudit(auditOptionsFor({ root: args.root, onlyScanners: ['dependencies'] }));
+        const dep = result.scanners.find((s) => s.scanner.startsWith('dependencies'));
         if (!dep) {
-          return errorContent('No dependency scanner was applicable to this project type.', 'NOT_APPLICABLE');
+          return {
+            content: [{ type: 'text', text: 'No dependency scanner was applicable to this project type.' }],
+            isError: true,
+            structuredContent: { error: { code: 'NOT_APPLICABLE', message: 'No dependency scanner applicable.' } },
+          };
         }
+        const capped = capFindings(dep.findings, MAX_FINDINGS_PER_RESPONSE);
+        const unavailable = dep.status === 'SKIPPED' || dep.status === 'ERROR';
         return {
-          content: [{ type: 'text' as const, text: summarizeDependency(dep) }],
+          content: [{ type: 'text', text: summarizeDependency(dep, unavailable) }],
           structuredContent: {
+            scanner: dep.scanner,
             status: dep.status,
-            findings: dep.findings,
+            available: !unavailable,
+            findings: capped.items,
+            totalFindings: capped.total,
+            findingsTruncated: capped.truncated,
             notes: dep.notes,
             error: dep.error,
             coverage: result.coverage,
           },
         };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Dependency check failed';
-        if (message.startsWith('PATH_ERROR')) return errorContent(message, 'PATH_ERROR');
-        return errorContent(message, 'AUDIT_FAILED');
-      }
-    },
+      }, 'AUDIT_FAILED', 'Dependency check failed'),
   );
 
-  // 3. detect_secrets
+  // 3. scan_secrets — secret scanner only.
   server.registerTool(
-    'detect_secrets',
+    'scan_secrets',
     {
-      title: 'Detect secrets',
+      title: 'Scan secrets',
       description:
-        'Scan project files for known secret patterns. Values are redacted in all returned output. No source code leaves the machine.',
+        'Scan project files for known secret patterns. Runs fully offline against local files; no source code leaves the machine. Matched values are redacted in all returned output.',
       inputSchema: {
-        root: z.string().describe('Absolute path to the project root'),
+        root: ROOT_PARAM,
       },
     },
-    async (args) => {
-      try {
-        const result = await runAudit(
-          auditOptionsFor({ root: args.root, onlyScanners: ['secrets'] }),
-        );
+    async (args) =>
+      withErrorFallback(async () => {
+        const result = await runAudit(auditOptionsFor({ root: args.root, onlyScanners: ['secrets'] }));
         const sec = result.scanners.find((s) => s.scanner === 'secrets');
         if (!sec) {
-          return errorContent('The secrets scanner was not run.', 'SCANNER_ERROR');
+          return {
+            content: [{ type: 'text', text: 'The secrets scanner was not run.' }],
+            isError: true,
+            structuredContent: { error: { code: 'SCANNER_ERROR', message: 'The secrets scanner was not run.' } },
+          };
         }
+        const capped = capFindings(sec.findings, MAX_FINDINGS_PER_RESPONSE);
         return {
-          content: [{ type: 'text' as const, text: summarizeSecrets(sec) }],
+          content: [{ type: 'text', text: summarizeSecrets(sec) }],
           structuredContent: {
+            scanner: sec.scanner,
             status: sec.status,
-            findings: sec.findings,
+            findings: capped.items,
+            totalFindings: capped.total,
+            findingsTruncated: capped.truncated,
             notes: sec.notes,
             error: sec.error,
+            coverage: result.coverage,
           },
         };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Secret detection failed';
-        if (message.startsWith('PATH_ERROR')) return errorContent(message, 'PATH_ERROR');
-        return errorContent(message, 'AUDIT_FAILED');
-      }
-    },
+      }, 'AUDIT_FAILED', 'Secret detection failed'),
   );
 
-  // 4. run_quality_checks
+  // 4. run_security_checks — quality checks only (no scanners).
   server.registerTool(
-    'run_quality_checks',
+    'run_security_checks',
     {
-      title: 'Run quality checks',
+      title: 'Run security checks',
       description:
-        'Run applicable static-analysis and test checks (TypeScript, ESLint, pytest, project test scripts). Each check is reported as PASS, FAIL, SKIPPED, or ERROR.',
+        'Run the applicable quality checks (TypeScript, ESLint, Ruff, project test scripts). The command set is chosen by the server from the project\'s own configuration; a caller cannot inject commands and no shell is executed. Each check is reported as PASS, FAIL, SKIPPED, or ERROR, with truncated output.',
       inputSchema: {
-        root: z.string().describe('Absolute path to the project root'),
-        includeTests: z.boolean().optional().describe('Include test and build runs; default true'),
+        root: ROOT_PARAM,
+        includeTests: z.boolean().optional().describe('Include test and build runs; default true.'),
       },
     },
-    async (args) => {
-      try {
-        const result = await runAudit({
-          root: validateRoot(args.root),
-          onlyScanners: [],
-          skipQualityChecks: false,
-          online,
-          scannerTimeoutMs: timeoutMs,
-          includeTests: args.includeTests,
-        });
+    async (args) =>
+      withErrorFallback(async () => {
+        const result = await runAudit(
+          auditOptionsFor({
+            root: args.root,
+            onlyScanners: [],
+            skipQualityChecks: false,
+            includeTests: args.includeTests,
+          }),
+        );
         return {
-          content: [{ type: 'text' as const, text: summarizeChecks(result.checks) }],
+          content: [{ type: 'text', text: summarizeChecks(result.checks) }],
           structuredContent: {
             checks: result.checks,
             failed: result.checks.filter((c) => c.status === 'FAIL'),
             errored: result.checks.filter((c) => c.status === 'ERROR'),
-          },
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Quality checks failed';
-        if (message.startsWith('PATH_ERROR')) return errorContent(message, 'PATH_ERROR');
-        return errorContent(message, 'AUDIT_FAILED');
-      }
-    },
-  );
-
-  // 5. get_audit_report
-  server.registerTool(
-    'get_audit_report',
-    {
-      title: 'Get audit report',
-      description:
-        'Run the audit and return a Markdown report plus a structured gate decision. Secret values are redacted in the report.',
-      inputSchema: {
-        root: z.string().describe('Absolute path to the project root'),
-        format: z.enum(['markdown', 'json']).optional().describe('Report format; default markdown'),
-      },
-    },
-    async (args) => {
-      try {
-        const result = await runAudit(auditOptionsFor({ root: args.root }));
-        const report = args.format === 'json' ? toJson(result) : toMarkdown(result);
-        return {
-          content: [{ type: 'text' as const, text: report }],
-          structuredContent: {
             gate: result.gate,
             coverage: result.coverage,
-            findings: result.findings,
+            exitCode: result.exitCode,
           },
         };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Report generation failed';
-        if (message.startsWith('PATH_ERROR')) return errorContent(message, 'PATH_ERROR');
-        return errorContent(message, 'REPORT_FAILED');
-      }
-    },
+      }, 'CHECKS_FAILED', 'Quality checks failed'),
   );
 
-  // 6. verify_quality_gate
+  // 5. get_findings — fast, checks-free findings listing.
   server.registerTool(
-    'verify_quality_gate',
+    'get_findings',
     {
-      title: 'Verify quality gate',
+      title: 'Get findings',
       description:
-        'Run the audit and return the gate decision (PASS, FAIL, INCOMPLETE) with a deterministic exit code. A scanner error or skipped mandatory check forces INCOMPLETE, never PASS.',
+        'Run the scanners without quality checks and return the current findings, capped to a limit. Use this to list what is unresolved after remediation. Secret values are redacted.',
       inputSchema: {
-        root: z.string().describe('Absolute path to the project root'),
-        blockOnSeverity: z.array(z.enum(['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])).optional(),
-        blockOnSecrets: z.boolean().optional(),
+        root: ROOT_PARAM,
+        onlyScanners: z.array(z.enum(SCANNER_NAMES)).optional().describe(
+          'Restrict to these scanners: dependencies, secrets, licenses. Default: all.',
+        ),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_FINDING_LIMIT)
+          .optional()
+          .describe(`Maximum findings to return; default ${DEFAULT_FINDING_LIMIT}.`),
       },
     },
-    async (args) => {
-      try {
-        const result: AuditResultWithExit = await runAudit(
+    async (args) =>
+      withErrorFallback(async () => {
+        const result = await runAudit(
           auditOptionsFor({
             root: args.root,
-            policy: {
-              blockOnSeverity: args.blockOnSeverity as Policy['blockOnSeverity'],
-              blockOnSecrets: args.blockOnSecrets,
-            },
+            onlyScanners: args.onlyScanners,
+            skipQualityChecks: true,
           }),
         );
-        const exitCode = exitCodeFor(result.gate, result.coverage);
+        const limit = args.limit ?? DEFAULT_FINDING_LIMIT;
+        const capped = capFindings(result.findings, limit);
         return {
           content: [
             {
-              type: 'text' as const,
-              text: `Gate result: ${result.gate.result} (exit code ${exitCode}, coverage ${result.coverage})`,
+              type: 'text',
+              text: `Findings: ${capped.total} total (${capped.items.length} returned)` +
+                (capped.truncated ? `, truncated to limit ${limit}` : '') +
+                `. Gate: ${result.gate.result}, coverage ${result.coverage}.`,
             },
           ],
           structuredContent: {
-            result: result.gate.result,
-            exitCode,
+            findings: capped.items,
+            totalFindings: capped.total,
+            findingsTruncated: capped.truncated,
+            limit,
+            gate: result.gate,
             coverage: result.coverage,
-            blockingReasons: result.gate.blockingReasons,
-            incompleteReasons: result.gate.incompleteReasons,
-            appliedExceptions: result.gate.appliedExceptions,
+            scanners: scannerSummaries(result),
           },
         };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Gate verification failed';
-        if (message.startsWith('PATH_ERROR')) return errorContent(message, 'PATH_ERROR');
-        return errorContent(message, 'AUDIT_FAILED');
-      }
+      }, 'FINDINGS_FAILED', 'Finding retrieval failed'),
+  );
+
+  // 6. validate_fix — re-run the relevant scanners and verify specific finding ids.
+  server.registerTool(
+    'validate_fix',
+    {
+      title: 'Validate fix',
+      description:
+        'Re-run scanners after a fix and verify that the given finding ids no longer appear. A fix is verified only by a fresh run: any requested id still present is unresolved. Reports new findings introduced by the change and which scanners could not run.',
+      inputSchema: {
+        root: ROOT_PARAM,
+        scanners: z.array(z.enum(SCANNER_NAMES)).optional().describe(
+          'Scanners to re-run; default all (dependencies, secrets, licenses). Findings are only checkable within the scanners that are run.',
+        ),
+        findingIds: z.array(z.string().min(1)).optional().describe(
+          'Finding ids to verify as resolved (stable, deterministic ids from earlier scan results).',
+        ),
+      },
     },
+    async (args) =>
+      withErrorFallback(async () => {
+        const scanners = args.scanners ?? [...SCANNER_NAMES];
+        const requested = args.findingIds ?? [];
+        const result = await runAudit(
+          auditOptionsFor({
+            root: args.root,
+            onlyScanners: scanners,
+            skipQualityChecks: true,
+          }),
+        );
+        const present = new Set(result.findings.map((f) => f.id));
+        const requestedSet = new Set(requested);
+        const checked = requested.map((id) => ({ id, stillPresent: present.has(id) }));
+        const unresolved = checked.filter((c) => c.stillPresent).map((c) => c.id);
+        const newFindings = capFindings(
+          result.findings.filter((f) => !requestedSet.has(f.id)),
+          MAX_FINDINGS_PER_RESPONSE,
+        );
+        const unverifiable = result.scanners.find((s) => s.status === 'SKIPPED' || s.status === 'ERROR');
+        const notes: string[] = [
+          'A fix is verified only when its finding id is absent from this fresh run.',
+          `Findings are checkable only within the requested scanners: ${scanners.join(', ')}.`,
+        ];
+        if (unverifiable) {
+          notes.push(
+            `Scanner '${unverifiable.scanner}' did not complete (${unverifiable.status}); findings it would have reported cannot be verified as resolved.`,
+          );
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text:
+                requested.length === 0
+                  ? `Fresh run: ${newFindings.total} finding(s) currently present. Gate: ${result.gate.result}, coverage ${result.coverage}.`
+                  : `Checked ${requested.length} finding id(s): ${requested.length - unresolved.length} resolved, ${unresolved.length} still present.${unverifiable ? ` Note: ${unverifiable.scanner} scanner unavailable.` : ''}`,
+            },
+          ],
+          structuredContent: {
+            checked,
+            unresolved,
+            newFindings: newFindings.items,
+            totalNewFindings: newFindings.total,
+            scanners: scannerSummaries(result),
+            gate: result.gate,
+            coverage: result.coverage,
+            exitCode: result.exitCode,
+            unverifiableScanner: unverifiable ? unverifiable.scanner : null,
+            notes,
+          },
+        };
+      }, 'VALIDATION_FAILED', 'Fix validation failed'),
   );
 
   return server;
-}
-
-function serializeAudit(result: AuditResultWithExit, toolName: string) {
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: summarizeGate(result),
-      },
-    ],
-    structuredContent: {
-      tool: toolName,
-      gate: result.gate,
-      coverage: result.coverage,
-      exitCode: result.exitCode,
-      scanners: result.scanners.map((s) => ({
-        scanner: s.scanner,
-        status: s.status,
-        findingCount: s.findings.length,
-        notes: s.notes,
-        error: s.error,
-      })),
-      findings: result.findings,
-      checks: result.checks,
-    },
-  };
 }
 
 function summarizeGate(result: AuditResultWithExit): string {
@@ -355,28 +521,21 @@ function summarizeGate(result: AuditResultWithExit): string {
   return lines.join('\n');
 }
 
-function summarizeDependency(dep: {
-  status: string;
-  findings: { id: string; severity: string; title: string }[];
-  notes: string[];
-  error?: { message: string };
-}) {
-  const lines = [`Dependency scan: ${dep.status}`];
+function summarizeDependency(dep: ScannerResult, unavailable: boolean): string {
+  const lines = [`Dependency scan (${dep.scanner}): ${dep.status}`];
   if (dep.findings.length > 0) {
     lines.push(`${dep.findings.length} vulnerable package(s):`);
     for (const f of dep.findings.slice(0, 20)) lines.push(`  - [${f.severity}] ${f.title}`);
   }
   if (dep.error) lines.push(`Error: ${dep.error.message}`);
   if (dep.notes.length > 0) lines.push(`Notes: ${dep.notes.join(' ')}`);
+  if (unavailable) {
+    lines.push('The dependency scanner did not complete; treat dependency coverage as incomplete. This is not a pass.');
+  }
   return lines.join('\n');
 }
 
-function summarizeSecrets(sec: {
-  status: string;
-  findings: { id: string; severity: string; title: string }[];
-  notes: string[];
-  error?: { message: string };
-}) {
+function summarizeSecrets(sec: ScannerResult): string {
   const lines = [`Secret scan: ${sec.status}`];
   if (sec.findings.length > 0) {
     lines.push(`${sec.findings.length} potential secret(s) detected (values redacted):`);
@@ -387,8 +546,11 @@ function summarizeSecrets(sec: {
   return lines.join('\n');
 }
 
-function summarizeChecks(checks: { id: string; status: string; command: string; reason?: string; error?: { message: string } }[]) {
-  const lines = [`Quality checks: ${checks.length} run`];
+function summarizeChecks(checks: CheckResult[]): string {
+  const lines = [`Quality checks: ${checks.length} listed`];
+  if (checks.length === 0) {
+    lines.push('  No applicable quality checks were detected in this project.');
+  }
   for (const c of checks) {
     const detail = c.reason ?? c.error?.message ?? '';
     lines.push(`  - ${c.id}: ${c.status}${detail ? ` — ${detail}` : ''}`);

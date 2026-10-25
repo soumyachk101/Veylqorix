@@ -2,7 +2,12 @@
 
 Base URL (default): `http://localhost:4173`
 
-All request/response bodies are JSON. `Content-Type: application/json`.
+All request/response bodies are JSON unless stated otherwise.
+`Content-Type: application/json`. Every error is structured JSON:
+`{ "error": "<message>" }` with the appropriate HTTP status. Paths are
+resolved and validated against `VEYLQORIX_ALLOWED_ROOTS` when set (a `403`
+means the path is outside the allowed roots). Secret values are redacted in
+every response.
 
 ## Endpoints
 
@@ -45,8 +50,27 @@ clients can poll on a stable field.
 Return only the findings array for a completed scan.
 
 ### `GET /api/scan/:id/report`
-Return the scan report. Query params: `?format=markdown` (default),
-`?format=json`, `?format=sarif`.
+Return the scan report inline. Query params: `?format=markdown` (default),
+`?format=json`, `?format=sarif`. For a downloadable file, use
+`GET /api/reports/:scanId` instead.
+
+### `GET /api/scans`
+List scans, newest first. Optional `?repoId=<id>` filters to one repository.
+Each entry is a summary: `id`, `repoId`, `status`, `createdAt`, `gate`
+(`PASS`/`FAIL`/`INCOMPLETE` when complete), `coverage`, `exitCode`,
+`findingCount`, and `error` (only when `ERROR`).
+
+### `GET /api/scans/:id`
+Full detail for one scan (same payload as `GET /api/scan/:id`, plus
+`createdAt`). Poll until `status` is `DONE` or `ERROR`.
+
+### `GET /api/reports/:scanId`
+Downloadable report document. Query param `?format=markdown` (default),
+`?format=json`, `?format=sarif`. Responds with the document body and a
+`Content-Disposition: attachment` header so it downloads as a file
+(`veylqorix-report-<scanId>.md` / `.json` / `.sarif`). Returns `202` while the
+scan is still running, `404` for an unknown scan id, and `400` for an unknown
+format. Secret values are redacted in every format.
 
 ### `GET /api/repo/:id/latest`
 Return the most recent completed scan for a repository.

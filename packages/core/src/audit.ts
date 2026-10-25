@@ -1,5 +1,5 @@
 import { detectProject } from './detect.js';
-import { evaluateGate, exitCodeFor } from './gate/index.js';
+import { evaluateGate, exitCodeFor, strictExitCode } from './gate/index.js';
 import { resolvePolicy } from './policy.js';
 import {
   dependencyScanner,
@@ -42,10 +42,18 @@ export interface AuditOptions {
   skipQualityChecks?: boolean;
   /** Restrict the secret scanner to exactly these root-relative files (e.g. staged Git changes). */
   stagedFiles?: string[];
+  /**
+   * When true, a degraded audit (any side-recorded blocking reason or LIMITED
+   * coverage) exits non-zero instead of looking like a clean pass. The gate
+   * decision is unchanged; only the exit code mapping is stricter.
+   */
+  strict?: boolean;
 }
 
 export interface AuditResultWithExit extends AuditResult {
   exitCode: number;
+  /** The exit code under the default (non-strict) mapping, for comparison. */
+  softExitCode?: number;
 }
 
 /**
@@ -138,9 +146,9 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
     policy,
   });
 
-  const exitCode = exitCodeFor(gate, gate.coverage);
+  const exitCode = options.strict ? strictExitCode(gate, gate.coverage) : exitCodeFor(gate, gate.coverage);
 
-  return {
+  const result: AuditResultWithExit = {
     root,
     startedAt: startedAt.toISOString(),
     durationMs: Date.now() - startedAt.getTime(),
@@ -153,6 +161,8 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
     policy,
     exitCode,
   };
+  if (options.strict) result.softExitCode = exitCodeFor(gate, gate.coverage);
+  return result;
 }
 
-export { exitCodeFor };
+export { exitCodeFor, strictExitCode };

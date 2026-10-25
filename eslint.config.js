@@ -5,7 +5,16 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/*.d.ts', 'tests/fixtures/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/*.d.ts',
+      'tests/fixtures/**',
+      // Generated Next.js output / type stubs.
+      'apps/web/.next/**',
+      'apps/web/next-env.d.ts',
+      '**/.next/types/**',
+    ],
   },
   {
     files: ['**/*.ts'],

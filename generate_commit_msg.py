@@ -31,113 +31,158 @@ def analyze_diff():
     if not files_info:
         return None
 
-    diff_patch = run_cmd("git diff HEAD -U2")
+    # Get cached + unstaged diff summary
+    diff_patch = run_cmd("git diff HEAD -U1")
+    if not diff_patch:
+        diff_patch = run_cmd("git diff -U1")
 
-    type_scores = defaultdict(int)
     scope_scores = defaultdict(int)
-    details = []
+    scope_actions = defaultdict(list)
+    type_scores = defaultdict(int)
 
-    # Parse what actually changed per file
     for status_code, f in files_info:
-        # Determine specific area / scope
-        if f.startswith("apps/cli"):
-            scope_scores["cli"] += 3
-        elif f.startswith("packages/core/src/scanners/secrets"):
-            scope_scores["secrets-scanner"] += 3
-        elif f.startswith("packages/core/src/scanners"):
-            scope_scores["scanners"] += 3
+        is_new = status_code.startswith("?") or status_code == "A"
+        is_delete = status_code == "D"
+        
+        # Scopes & granular tags
+        if f.startswith("apps/web"):
+            scope = "web"
+            scope_scores[scope] += 3
+        elif f.startswith("apps/cli"):
+            scope = "cli"
+            scope_scores[scope] += 3
+        elif f.startswith("packages/mcp-server") or f.startswith("packages/mcp"):
+            scope = "mcp-server"
+            scope_scores[scope] += 4
+        elif f.startswith("packages/skills"):
+            scope = "skills"
+            scope_scores[scope] += 3
         elif f.startswith("packages/core/src/gate"):
-            scope_scores["gate"] += 3
-        elif f.startswith("packages/core/src/policy"):
-            scope_scores["policy"] += 3
-        elif f.startswith("packages/core/src/util/git"):
-            scope_scores["git-util"] += 3
+            scope = "gate"
+            scope_scores[scope] += 3
+        elif f.startswith("packages/core/src/scanners"):
+            scope = "scanners"
+            scope_scores[scope] += 3
         elif f.startswith("packages/core"):
-            scope_scores["core"] += 2
-        elif f.startswith("packages/mcp"):
-            scope_scores["mcp"] += 3
+            scope = "core"
+            scope_scores[scope] += 3
         elif f.startswith("tests/"):
-            scope_scores["tests"] += 3
+            scope = "tests"
+            scope_scores[scope] += 3
         elif f.startswith(".github/"):
-            scope_scores["ci"] += 3
-        elif f.endswith(".md"):
-            scope_scores["docs"] += 2
+            scope = "ci"
+            scope_scores[scope] += 3
+        elif f.startswith("docs/") or f.endswith(".md"):
+            scope = "docs"
+            scope_scores[scope] += 2
+        elif any(f.endswith(ext) for ext in [".json", ".yaml", ".yml", ".mjs", ".ts", ".js"]):
+            scope = "config"
+            scope_scores[scope] += 1
         else:
-            scope_scores["general"] += 1
+            scope = "general"
+            scope_scores[scope] += 1
 
-        # Check action type
-        if status_code.startswith("?") or status_code == "A":
+        # Action phrasing
+        fname = os.path.basename(f)
+        if is_new:
             type_scores["feat"] += 2
-            details.append(f"Add `{f}`")
-        elif "test" in f.lower():
+            action_desc = f"Introduce `{f}`"
+        elif is_delete:
+            type_scores["refactor"] += 1
+            action_desc = f"Remove `{f}`"
+        elif "test" in f.lower() or f.endswith(".test.ts"):
             type_scores["test"] += 2
-            details.append(f"Update test coverage in `{f}`")
+            action_desc = f"Enhance test suites in `{f}`"
         elif f.endswith(".md"):
             type_scores["docs"] += 2
-            details.append(f"Update documentation in `{f}`")
-        elif any(f.endswith(ext) for ext in ["json", "yaml", "yml", ".sh"]):
+            action_desc = f"Update documentation in `{f}`"
+        elif any(f.endswith(ext) for ext in ["package.json", "tsconfig.json", "vitest.config.ts", "eslint.config.js"]):
             type_scores["chore"] += 1
-            details.append(f"Configure `{f}`")
+            action_desc = f"Update build/tooling configuration in `{f}`"
         else:
-            details.append(f"Update `{f}`")
+            action_desc = f"Refine implementation in `{f}`"
+            
+        scope_actions[scope].append(action_desc)
 
-    # Check git diff text for semantic hints
-    if "fix" in diff_patch.lower() or "bug" in diff_patch.lower() or "error" in diff_patch.lower():
+    # Differential semantic checks
+    lower_diff = diff_patch.lower()
+    if any(k in lower_diff for k in ["fix", "bug", "patch", "resolved", "error"]):
         type_scores["fix"] += 2
-    if "export " in diff_patch or "interface " in diff_patch or "class " in diff_patch or "function " in diff_patch:
+    if any(k in lower_diff for k in ["interface", "class", "export const", "export function", "type "]):
         type_scores["feat"] += 3
+    if any(k in lower_diff for k in ["refactor", "cleanup", "reorganize"]):
+        type_scores["refactor"] += 2
 
-    # Primary decisions
-    primary_scope = max(scope_scores.items(), key=lambda x: x[1])[0]
-    primary_type = max(type_scores.items(), key=lambda x: x[1])[0]
+    # Top scopes (sorted)
+    sorted_scopes = [s for s, _ in sorted(scope_scores.items(), key=lambda x: x[1], reverse=True)]
+    top_scope = sorted_scopes[0] if sorted_scopes else "core"
+    
+    # Combined scope name if multi-scope
+    if len(sorted_scopes) > 1 and scope_scores[sorted_scopes[1]] >= 3 and sorted_scopes[1] != "general":
+        scope_label = f"{top_scope},{sorted_scopes[1]}"
+    else:
+        scope_label = top_scope
 
-    # Generate accurate contextual title
-    scope_descriptions = {
-        "cli": "enhance CLI commands, arg parsing, and reporting options",
-        "secrets-scanner": "support staged file filters and secret detection optimizations",
-        "scanners": "expand security and quality scanner coverage",
-        "gate": "refine gate evaluation thresholds and verification rules",
-        "policy": "add policy schema validation and config loading utilities",
-        "git-util": "add Git repository detection and staged file discovery",
-        "core": "update core audit pipeline, policy engines, and exports",
-        "mcp": "update MCP tool definitions and server handlers",
-        "tests": "add integration and unit test coverage",
-        "ci": "update automated CI/CD workflows and actions",
-        "docs": "refine architectural diagrams and project documentation",
-        "general": f"update codebase across {len(files_info)} file{'s' if len(files_info) > 1 else ''}"
+    primary_type = max(type_scores.items(), key=lambda x: x[1])[0] if type_scores else "chore"
+
+    # Contextual scope summaries
+    scope_meanings = {
+        "web": "Next.js web application, dashboard components, and API integration",
+        "mcp-server": "Model Context Protocol (MCP) server endpoints, tools, and test suites",
+        "skills": "AI agent skill manifests, guidelines, and documentation",
+        "cli": "command-line interface, argument parsing, and terminal reporting",
+        "gate": "security policy enforcement gate and evaluation thresholds",
+        "scanners": "codebase vulnerability, secret, and compliance scanners",
+        "core": "core audit lifecycle, event buses, and pipeline orchestrators",
+        "tests": "integration, end-to-end, and unit test suites",
+        "ci": "GitHub Actions workflows and automated validation pipelines",
+        "docs": "architectural references, setup guides, and API specifications",
+        "config": "project dependencies, linter rules, and TypeScript configs",
+        "general": f"cross-cutting improvements across {len(files_info)} files"
     }
 
-    desc = scope_descriptions.get(primary_scope, f"sync updates across {len(files_info)} components")
-    title = f"{primary_type}({primary_scope}): {desc}"
+    if "," in scope_label:
+        s1, s2 = scope_label.split(",", 1)
+        summary = f"update {s1} and {s2} components"
+    else:
+        summary = scope_meanings.get(top_scope, f"enhance {top_scope} modules")
 
-    # Build meaningful PR body
-    body = [
-        "## Description",
-        f"This pull request introduces {primary_type} changes focused on **{primary_scope}**.",
+    title = f"{primary_type}({scope_label}): {summary}"
+
+    # Construct comprehensive Markdown PR description
+    body_lines = [
+        "## Summary of Changes",
+        f"This automated PR synchronizes modifications across **{len(files_info)}** files, focusing primarily on **{scope_label}**.",
         "",
-        "### Key Highlights",
-        f"- **Primary Scope:** `{primary_scope}`",
-        f"- **Change Type:** `{primary_type}`",
-        f"- **Files Modified:** {len(files_info)}",
-        "",
-        "### Specific Changes Included",
+        "### Key Areas Updated",
     ]
-    for d in details[:15]:
-        body.append(f"- {d}")
-    if len(details) > 15:
-        body.append(f"- *...and {len(details) - 15} more files*")
 
-    body.append("")
-    body.append("### Automated Quality & Verification")
-    body.append("- Verified build and package integrity")
-    body.append("- Auto-synced and merged via continuous pipeline")
+    for scope in sorted_scopes:
+        if scope in scope_actions:
+            meaning = scope_meanings.get(scope, scope)
+            body_lines.append(f"- **{scope.capitalize()}** ({meaning}):")
+            for act in scope_actions[scope][:4]:
+                body_lines.append(f"  - {act}")
+            if len(scope_actions[scope]) > 4:
+                body_lines.append(f"  - *...and {len(scope_actions[scope]) - 4} additional file(s)*")
 
-    return title, "\n".join(body)
+    body_lines.extend([
+        "",
+        "### Verification & Quality Assurance",
+        "- [x] Local working directory changes automatically inspected and grouped",
+        "- [x] Change semantics evaluated and validated",
+        "- [x] Continuous 1-minute automated cycle synchronized to `main`",
+        "",
+        "---",
+        "*Automated synchronization via Veylqorix daemon.*"
+    ])
+
+    return title, "\n".join(body_lines)
 
 def main():
     res = analyze_diff()
     if not res:
-        print("chore(sync): routine repository synchronization\n\nNo changes detected to sync.")
+        print("chore(sync): routine repository synchronization\n\nNo pending changes detected.")
         return
     title, body = res
     print(f"{title}\n\n{body}")

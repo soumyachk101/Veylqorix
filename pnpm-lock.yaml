@@ -58,13 +58,13 @@ importers:
         version: 19.1.0(react@19.1.0)
     devDependencies:
       '@testing-library/jest-dom':
-        specifier: ^6.6.3
+        specifier: ^6.10.0
         version: 6.10.0(@testing-library/dom@10.4.2)
       '@testing-library/react':
         specifier: ^16.3.0
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@testing-library/user-event':
-        specifier: ^14.6.1
+        specifier: ^14.6.0
         version: 14.6.8(@testing-library/dom@10.4.2)
       '@types/node':
         specifier: ^22.15.0

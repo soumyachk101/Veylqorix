@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const apiBase = process.env.VEYLQORIX_API_BASE ?? 'http://localhost:4173';
+const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4173';
 
 const nextConfig = {
   reactStrictMode: true,
