@@ -18,6 +18,7 @@ export {
 } from './scanners/registry.js';
 export { dependencyScanner, type DependencyScanOptions } from './scanners/dependencies.js';
 export { listStagedFiles, isGitRepository } from './util/git.js';
+export { installHooks, uninstallHooks, runStagedScan, type HookInstallOptions, type HookInstallResult } from './util/hooks.js';
 export {
   validatePolicyObject,
   validatePolicyFile,
