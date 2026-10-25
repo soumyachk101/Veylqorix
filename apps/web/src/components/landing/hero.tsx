@@ -1,46 +1,124 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, FileSearch } from 'lucide-react';
+import { ArrowRight, FileSearch, ShieldCheck, Crosshair, Lock, PlayCircle } from 'lucide-react';
+
+/** A tiny severity chip matching the dashboard's language. */
+function SeverityChip({ label, tone }: { label: string; tone: 'crit' | 'high' | 'med' | 'ok' }) {
+  const map = {
+    crit: 'bg-coral text-screen',
+    high: 'bg-gold text-screen',
+    med: 'bg-mint text-screen',
+    ok: 'bg-teal text-screen',
+  } as const;
+  return (
+    <span className={`pixel-label-sm rounded px-2 py-1 ${map[tone]}`}>{label}</span>
+  );
+}
 
 export function Hero() {
   return (
-    <section aria-labelledby="hero" className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
-      <div className="pixel-box press rounded p-6 sm:p-10">
-        <p className="pixel-label text-teal-deep" aria-hidden="true">
-          01 / No Unsafe Code Gets Through
-        </p>
-        <h1 id="hero" className="text-pixel-shadow mt-4 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-6xl">
-          No Unsafe Code Gets Through.
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg text-ink-dim sm:text-xl">
-          Veylqorix is an AI-native code security platform. It audits dependencies, detects and redacts
-          secrets, runs static analysis, and enforces a policy-driven quality gate — from your editor agent
-          to your CI pipeline.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <Link
-            href="/dashboard"
-            className="pixel-box press flex items-center gap-2 rounded bg-navy px-6 py-3 font-bold text-screen-ink"
+    <section aria-labelledby="hero" className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-16">
+      <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        {/* Left: value proposition */}
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="pixel-label rounded bg-navy px-3 py-1.5 text-mint" aria-hidden="true">
+              AI-native security
+            </span>
+            <span className="pixel-label text-teal-deep" aria-hidden="true">
+              01 / No Unsafe Code Gets Through
+            </span>
+          </div>
+
+          <h1
+            id="hero"
+            className="text-pixel-shadow mt-6 max-w-2xl text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-6xl"
           >
-            Open Dashboard
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-          <Link
-            href="/dashboard"
-            className="pixel-box press flex items-center gap-2 rounded bg-surface px-6 py-3 font-bold text-ink"
-          >
-            <FileSearch className="h-4 w-4 text-teal-deep" aria-hidden="true" />
-            See a live scan report
-          </Link>
+            No Unsafe Code <span className="text-teal-deep">Gets Through.</span>
+          </h1>
+
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-dim sm:text-xl">
+            Veylqorix independently verifies code before it is committed, merged, or shipped — auditing
+            dependencies, redacting secrets, running static analysis, and enforcing a policy-driven gate,
+            from your editor agent to your CI pipeline.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href="/dashboard" className="btn-primary text-base">
+              Open Dashboard
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <Link href="/dashboard" className="btn-secondary text-base">
+              <FileSearch className="h-5 w-5 text-teal-deep" aria-hidden="true" />
+              See a live scan report
+            </Link>
+          </div>
+
+          {/* Trust/proof line — honest, no invented claims */}
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t-2 border-line-soft pt-6 text-sm text-ink-dim">
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-teal-deep" aria-hidden="true" />
+              Deterministic policy gate
+            </span>
+            <span className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-teal-deep" aria-hidden="true" />
+              Secrets redacted by default
+            </span>
+            <span className="flex items-center gap-2">
+              <Crosshair className="h-4 w-4 text-teal-deep" aria-hidden="true" />
+              Evidence for every finding
+            </span>
+          </div>
         </div>
-        <p className="mt-5 text-sm text-ink-dim">
-          The dashboard reads real scan data from the Veylqorix API. Start the API with{' '}
-          <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[13px] text-ink">
-            pnpm --filter @veylqorix/api start
-          </code>{' '}
-          and register a repository to run a scan.
-        </p>
+
+        {/* Right: a mock "scan result" screen in the pixel-box language */}
+        <div className="pixel-box--screen press rounded p-5 sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="pixel-label-sm text-mint">veylq / security-report</span>
+            <span className="pixel-label-sm text-coral">GATE · FAIL</span>
+          </div>
+
+          <div className="mt-4 space-y-2 font-mono text-[13px] leading-relaxed text-screen-ink">
+            <p className="text-screen-dim">$ veylq scan --staged --strict</p>
+            <p>
+              <span className="text-mint">23 findings</span> · 2 critical · 5 high · 8 med · 9 low
+            </p>
+
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <SeverityChip label="CRIT" tone="crit" />
+                  <span className="text-screen-ink">Exposed AWS key</span>
+                </div>
+                <span className="text-screen-dim">config.js:12 · AKIA…CDEF (redacted)</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <SeverityChip label="HIGH" tone="high" />
+                  <span className="text-screen-ink">vulnerable dep</span>
+                </div>
+                <span className="text-screen-dim">lodash@4.17.15 → 4.17.21</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded border-2 border-line bg-screen-2 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <SeverityChip label="MED" tone="med" />
+                  <span className="text-screen-ink">license risk</span>
+                </div>
+                <span className="text-screen-dim">GPL dep in MIT app</span>
+              </div>
+            </div>
+
+            <p className="mt-4 flex items-center gap-2 text-mint">
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+              fix &amp; re-run to verify — a fix isn't confirmed without a rescan
+            </p>
+          </div>
+
+          <p className="mt-4 border-t-2 border-line-soft pt-3 font-mono text-[11px] text-screen-dim">
+            Sample output. The dashboard reads real results from the Veylqorix API.
+          </p>
+        </div>
       </div>
     </section>
   );
