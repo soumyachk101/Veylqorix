@@ -36,9 +36,12 @@ import {
   listStagedFiles,
   validatePolicyFile,
   findPolicyFile,
+  installHooks,
+  uninstallHooks,
   type AuditOptions,
   type Policy,
 } from '@veylqorix/core';
+import { fileURLToPath } from 'node:url';
 
 const USAGE = `Veylqorix CLI
 
@@ -79,15 +82,26 @@ interface ParsedArgs {
   staged: boolean;
   policyFile?: string;
   policy?: Partial<Policy>;
+
+  prePush: boolean;
+  force: boolean;
+  yes: boolean;
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
   const first = argv[0];
   const isConfig = first === 'config' && argv[1] === 'validate';
-  const command = isConfig ? 'config' : (first ?? 'scan');
+  const isHooks = first === 'hooks' && (argv[1] === 'install' || argv[1] === 'uninstall');
+  const command = isConfig ? 'config' : isHooks ? 'hooks' : (first ?? 'scan');
   // For `config validate`, the positional after `validate` is the policy file.
   // For everything else, the positional after the command is the root.
-  const flags = isConfig ? argv.slice(2) : (argv.slice(1).filter((a) => a !== 'validate') as string[]);
+  // `config validate <file>`: positional is the policy file.
+  // `hooks install|uninstall`: no positional root.
+  // Everything else: the positional after the command is the root.
+  let flags: string[];
+  if (isConfig) flags = argv.slice(2);
+  else if (isHooks) flags = argv.slice(2);
+  else flags = argv.slice(1);
 
   const parsed: ParsedArgs = {
     command,
@@ -96,6 +110,9 @@ function parseArgs(argv: string[]): ParsedArgs {
     json: false,
     noTests: false,
     staged: false,
+    prePush: false,
+    force: false,
+    yes: false,
   };
 
   const valueFlag = new Set(['--report-out', '--sarif-out', '--scanners', '--block-on', '--root', '--policy']);
@@ -129,6 +146,10 @@ function parseArgs(argv: string[]): ParsedArgs {
       }
       case '--no-tests': parsed.noTests = true; break;
       case '--staged': parsed.staged = true; break;
+      case '--pre-push': parsed.prePush = true; break;
+      case '--force': parsed.force = true; break;
+      case '-y':
+      case '--yes': parsed.yes = true; break;
       case '-h':
       case '--help':
         console.log(USAGE);
@@ -151,7 +172,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   return parsed;
 }
 
-const KNOWN_COMMANDS = new Set(['scan', 'check', 'report', 'config', 'audit', 'deps', 'secrets', 'checks', 'gate']);
+const KNOWN_COMMANDS = new Set(['scan', 'check', 'report', 'config', 'hooks', 'audit', 'deps', 'secrets', 'checks', 'gate']);
 function isKnownCommand(word: string): boolean {
   return KNOWN_COMMANDS.has(word);
 }
@@ -242,6 +263,50 @@ async function main(): Promise<void> {
     process.exit(64);
   }
   const command = normalizeCommand(parsed.command);
+
+  if (command === 'hooks') {
+    const sub = process.argv[3] === 'uninstall' ? 'uninstall' : 'install';
+    const cliPath = path.resolve(fileURLToPath(import.meta.url));
+    if (!parsed.yes) {
+      // Dry run: print the exact hook scripts; nothing is written without --yes.
+      const gitDir = path.join(parsed.root, '.git');
+      console.log('Dry run: Veylqorix will write the following hooks (git config is never touched).');
+      for (const kind of parsed.prePush ? ['pre-commit', 'pre-push'] : ['pre-commit']) {
+        console.log(`--- ${gitDir}/hooks/${kind} ---`);
+        const scanArgs = kind === 'pre-commit' ? 'scan --staged --no-tests --scanners secrets' : 'scan --no-tests';
+        console.log(
+          '#!/bin/sh\n# VeylqORIX-HOOK:v1\n' +
+            `# ${kind}: local convenience gate; GitHub-side enforcement is the authoritative boundary.\n` +
+            'if [ "$VEYLQORIX_OVERRIDE" = "1" ]; then echo "veylqorix: VeyLQORIX_OVERRIDE=1; skipping ' + kind + '" >&2; exit 0; fi\n' +
+            'DIR=$(git rev-parse --show-toplevel) || exit 0\n' +
+            `exec node ${JSON.stringify(cliPath)} ${scanArgs} --root "$DIR"\n` +
+            'exit $?\n',
+        );
+      }
+      console.log('\nRe-run with --yes to install. Emergency override: VeyLQORIX_OVERRIDE=1 <git command>.');
+      process.exit(0);
+    }
+    const outcome =
+      sub === 'install'
+        ? await installHooks({
+            repoRoot: parsed.root,
+            cliPath,
+            prePush: parsed.prePush,
+            force: parsed.force,
+            extraFlags: parsed.offline ? ['--offline'] : [],
+          })
+        : await uninstallHooks(parsed.root, parsed.prePush);
+    for (const msg of outcome.installed) console.log(`  installed: ${msg}`);
+    for (const msg of outcome.backedUp) console.log(`  backed up: ${msg}`);
+    for (const msg of outcome.skipped) console.log(`  skipped: ${msg}`);
+    for (const msg of outcome.errors) console.error(`  error: ${msg}`);
+    if (sub === 'install' && outcome.installed.length > 0 && outcome.errors.length === 0) {
+      console.log('\nManual alternative and testing steps:');
+      for (const line of outcome.manualInstructions) console.log(`  ${line}`);
+    }
+    process.exit(outcome.errors.length > 0 ? 64 : 0);
+    return;
+  }
 
   if (command === 'config') {
     const target = parsed.policyFile;
