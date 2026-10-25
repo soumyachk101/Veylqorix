@@ -76,13 +76,20 @@ export function Footer() {
         {/* Divider */}
         <div className="mt-12 border-t-2 border-line-soft pt-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="max-w-2xl text-xs leading-relaxed text-ink-dim">
-                Veylqorix is released under the MIT license. Real claims only: it scans the code you point
-                it at and blocks what your policy says to block. Scanner unavailability is reported, never
-                green-washed.
-              </p>
-            </div>
+            <p className="max-w-2xl text-xs leading-relaxed text-ink-dim">
+              Veylqorix is released under the MIT license. Real claims only: it scans the code you point
+              it at and blocks what your policy says to block. Scanner unavailability is reported, never
+              green-washed.
+            </p>
+            <a
+              href="https://github.com/soumyachk101/Veylqorix"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 self-start rounded border-2 border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-dim transition-colors hover:text-ink"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+              GitHub
+            </a>
           </div>
           <p className="mt-6 flex items-center gap-2 text-xs text-ink-faint">
             <span className="pixel-label-sm text-teal-deep" aria-hidden="true">
