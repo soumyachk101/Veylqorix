@@ -4,3 +4,4 @@ dist
 *.log
 auto_sync.log
 .DS_Store
+auto_sync.log
