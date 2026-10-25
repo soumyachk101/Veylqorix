@@ -3,3 +3,5 @@ dist/
 .turbo/
 *.log
 .DS_Store
+.vercel
+.env*
