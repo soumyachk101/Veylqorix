@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Github } from 'lucide-react';
 import { Wordmark } from './logo';
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string; external?: boolean }> }> = [
@@ -82,17 +82,6 @@ export function Footer() {
                 it at and blocks what your policy says to block. Scanner unavailability is reported, never
                 green-washed.
               </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <a
-                href="https://github.com/ion-design/ditto.site"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded border-2 border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-dim transition-colors hover:text-ink"
-              >
-                <Github className="h-4 w-4" aria-hidden="true" />
-                Design reference
-              </a>
             </div>
           </div>
           <p className="mt-6 flex items-center gap-2 text-xs text-ink-faint">
