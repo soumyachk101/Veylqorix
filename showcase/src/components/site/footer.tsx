@@ -10,8 +10,8 @@ export function Footer() {
       <div className="pixel-box p-5 sm:p-6">
         <div className="grid gap-6 sm:grid-cols-3">
           <div className="min-w-0">
-            <p className="pixel-label text-navy">Veylqorix</p>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
+            <img src="/logo-icon.png" alt="Veylqorix" className="h-9 w-auto" />
+            <p className="mt-3 text-sm leading-relaxed text-ink-dim">
               A universal code-security and quality platform that verifies
               AI-generated and human-written code before it ships.
             </p>
