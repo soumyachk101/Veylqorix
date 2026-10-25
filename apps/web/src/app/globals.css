@@ -60,6 +60,20 @@ pre {
   max-width: 100%;
 }
 
+/*
+ * Grid and flex tracks size to at least their content's min-content width.
+ * An unbreakable line inside a mono <pre> is that min-content width for its
+ * whole card, so on phones the entire page would grow past the viewport.
+ * Letting every grid/flex child shrink to 0 means the inner scroll region
+ * (the <pre>, the table) scrolls instead of the body.
+ */
+[class*='grid'] > * {
+  min-width: 0;
+}
+[class*='flex'] > * {
+  min-width: 0;
+}
+
 @layer components {
   /* --- Signature: pixel-box card --- */
   .pixel-box {
