@@ -1,0 +1,38 @@
+{
+  "name": "@veylqorix/core",
+  "version": "0.1.0",
+  "description": "Security audit engine: project detection, scanners, policy evaluation, quality gate, and report generation.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./scanners/*": {
+      "types": "./dist/scanners/*.d.ts",
+      "import": "./dist/scanners/*.js"
+    },
+    "./gate": {
+      "types": "./dist/gate.d.ts",
+      "import": "./dist/gate.js"
+    },
+    "./report": {
+      "types": "./dist/report.d.ts",
+      "import": "./dist/report.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@npmcli/audit-report": "7.0.2",
+    "@npmcli/package-json": "6.1.1",
+    "@npmcli/arborist": "9.0.6",
+    "semver": "7.7.3",
+    "zod": "4.6.7"
+  }
+}
