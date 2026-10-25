@@ -48,7 +48,14 @@ function request(port: number, method: string, urlPath: string, body?: unknown):
 }
 
 function listen(server: http.Server): Promise<number> {
-  return new Promise((r) => server.listen(0, () => r()));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, () => {
+      const a = server.address();
+      if (!a || typeof a === 'string') return reject(new Error('server.address() is unavailable'));
+      resolve(a.port);
+    });
+  });
 }
 
 function close(server: http.Server): Promise<void> {
