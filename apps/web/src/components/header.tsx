@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Wordmark } from './logo';
 
