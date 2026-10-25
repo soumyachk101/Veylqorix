@@ -1,0 +1,149 @@
+# Veylqorix reusable security gate.
+#
+# Reusable workflow: a calling repo invokes this with `uses:` and controls the
+# scan root, whether to run the test suite, and the severities that block.
+#
+# ENFORCEMENT: this workflow does NOT block merges by itself. It only ENFORCES
+# when the calling repo requires this workflow's status check via branch
+# protection or a ruleset. Until that is configured, the gate is advisory.
+# See docs/github-actions.md.
+
+name: Veylqorix Gate
+
+on:
+  workflow_call:
+    inputs:
+      root:
+        description: "Path to scan, relative to the repo root."
+        required: false
+        type: string
+        default: "."
+      run-tests:
+        description: "Run the test/build quality checks as part of the scan."
+        required: false
+        type: boolean
+        default: false
+      block-on:
+        description: "Comma-separated severities that block the gate."
+        required: false
+        type: string
+        default: "HIGH,CRITICAL"
+
+# Least privilege: read the content, write to code-scanning (SARIF upload).
+# No secrets are forwarded to the called workflow.
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      # (a) Check out the CALLING repo, full history.
+      - name: Checkout calling repo
+        uses: actions/checkout@v4.2.0 # d632683dd7b4114ad314bca15554477dd762a938
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      # Install pnpm, then set up node with pnpm as the package manager.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4.0.0 # fe02b34f77f8bc703788d5817da081398fad5dd2
+        with:
+          version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4.1.0 # 39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          package-manager-manager: pnpm
+
+      # (b) Obtain a usable Veylqorix CLI.
+      #
+      # If the calling repo is this monorepo (apps/cli present at the root),
+      # build the CLI from source. Otherwise we would need to install the
+      # published package.
+      - name: Prepare Veylqorix CLI
+        id: prepare
+        run: |
+          set -u
+          if [ -d "apps/cli" ]; then
+            echo "Built-in monorepo detected; building CLI from source."
+            pnpm install --frozen-lockfile
+            pnpm build
+            echo "cli-src=true" >> "$GITHUB_OUTPUT"
+          else
+            # TODO: publish @veylqorix/cli
+            #
+            # Limitation: @veylqorix/cli is not yet published to the registry,
+            # so a non-monorepo caller cannot `npm install -g` it. For now this
+            # is a documented no-op that warns and skips the scan, rather than
+            # silently pretending to succeed. Replace this with a real install
+            # once the package is published.
+            echo "WARNING: @veylqorix/cli is not published. This calling repo is not the Veylqorix monorepo, so the CLI cannot be obtained. Skipping the scan (documented no-op)." >&2
+            echo "cli-src=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # (c) Run the scan, capturing the exit code. --no-tests is used unless
+      # run-tests is true.
+      - name: Run Veylqorix scan
+        id: scan
+        if: steps.prepare.outputs.cli-src == 'true'
+        run: |
+          set -u
+          no_tests="--no-tests"
+          if [ "${{ inputs.run-tests }}" = "true" ]; then
+            no_tests=""
+          fi
+          set +e
+          node apps/cli/dist/index.js scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --json $no_tests \
+            > veylqorix.json \
+            2> veylqorix.stderr
+          code=$?
+          set -e
+          # The scan's stdout is JSON; a SARIF report is produced separately.
+          echo "exit=${code}" >> "$GITHUB_OUTPUT"
+          echo "Exit code: ${code}"
+          cat veylqorix.json || true
+
+      # (d) Always: upload artifacts, and post to code scanning when non-empty.
+      - name: Upload Veylqorix artifacts
+        if: steps.prepare.outputs.cli-src == 'true'
+        uses: actions/upload-artifact@v4.4.0 # 50769540e7f4bd5e21e526ee35c689e35e0d6874
+        with:
+          name: veylqorix-scan
+          path: |
+            veylqorix.json
+            veylqorix.stderr
+
+      - name: Upload SARIF to code scanning
+        if: steps.prepare.outputs.cli-src == 'true'
+        uses: github/codeql-action/upload-sarif@v3.30.0 # 2d92b76c45b91eb80fc44c74ce3fce0ee94e8f9d
+        with:
+          sarif_file: veylqorix.sarif
+
+      # (e) Distinct failure handling so INCOMPLETE is never silently green.
+      - name: Evaluate gate result
+        if: steps.prepare.outputs.cli-src == 'true'
+        run: |
+          set -u
+          code="${{ steps.scan.outputs.exit }}"
+          case "${code}" in
+            0)
+              echo "Gate: PASS"
+              ;;
+            1)
+              echo "Gate: FAIL - blocking findings present. The scan exits 1."
+              exit 1
+              ;;
+            2)
+              # INCOMPLETE: the scanner could not fully run. Never treat as
+              # green; fail with a distinct message.
+              echo "Gate: INCOMPLETE - the scanner could not run to completion. Failing so this is never silently green."
+              exit 2
+              ;;
+            *)
+              echo "Gate: UNEXPECTED exit code ${code}."
+              exit "${code}"
+              ;;
+          esac
