@@ -78,7 +78,20 @@ export async function scanLicenses(options: LicenseScanOptions): Promise<Scanner
     notes.push('No license was declared in any manifest.');
   } else {
     notes.push(`License '${licenseDeclared}' declared in ${licenseSource ?? 'manifest'}.`);
-    const risky = DUAL_LICS
+    if (DUAL_LICENSING_RISK.some((r) => licenseDeclared?.toUpperCase().includes(r))) {
+      findings.push(
+        makeFinding({
+          scanner: 'licenses',
+          ruleId: 'copyleft-license-declared',
+          title: `Declared license ${licenseDeclared} may carry copyleft obligations`,
+          severity: 'MEDIUM',
+          confidence: 'MEDIUM',
+          file: licenseSource ?? 'manifest',
+          evidence: { snippet: licenseDeclared },
+          remediation: 'Review whether the copyleft license is compatible with your distribution model; consider a permissive license if the project is meant to be used as a library.',
+        }),
+      );
+    }
   }
   // Coverage note: we do not determine transitive dependency licenses offline.
   notes.push(
