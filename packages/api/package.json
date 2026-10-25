@@ -1,0 +1,29 @@
+{
+  "name": "@veylqorix/api",
+  "version": "0.1.0",
+  "description": "Veylqorix REST API: repository registration, scan execution, finding retrieval, and report generation. Backs the web dashboard with real scan data.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "veylqorix-api": "dist/bin.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/bin.js"
+  },
+  "dependencies": {
+    "@veylqorix/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5"
+  }
+}
