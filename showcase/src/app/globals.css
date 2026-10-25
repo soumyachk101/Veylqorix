@@ -47,6 +47,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Component classes live in @layer components so Tailwind utility classes
+ * (bg-navy, text-screen-ink, ...) can still override them. Without this layer
+ * these rules sit after @tailwind utilities and win the cascade, which made
+ * e.g. `.pixel-box { background: white }` squash `bg-navy` and leave button
+ * text unreadable.
+ */
 pre {
   /* Never let a code sample force the page to scroll horizontally —
      the pre itself scrolls when it is too wide. */
