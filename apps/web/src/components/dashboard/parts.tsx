@@ -150,7 +150,7 @@ export function ErrorState({ title, detail, onRetry }: { title: string; detail?:
         <button
           type="button"
           onClick={onRetry}
-          className="pixel-box press mt-4 rounded bg-navy px-4 py-2 text-sm font-bold text-screen-ink"
+          className="btn-primary mt-4 text-sm"
         >
           Retry
         </button>

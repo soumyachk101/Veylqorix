@@ -18,8 +18,8 @@ Requires Node 20.18+ and pnpm 9+.
 - `packages/mcp-server` — MCP tools (adapters over core, no scanner logic).
 - `packages/api` — REST API that runs real scans for the dashboard.
 - `packages/skills` — the portable AI-agent skill + MCP client configs.
-- `apps/web` — landing page and dashboard (no build step; static + a tiny
-  Node server that proxies `/api`).
+- `apps/web` — Next.js landing page and dashboard; proxies `/api` to the
+  server via Next.js rewrites (`NEXT_PUBLIC_API_BASE`).
 - `tests/` — unit tests and integration fixtures (fake data only, never real
   credentials).
 

@@ -296,7 +296,7 @@ pnpm install
 pnpm build        # build all packages
 pnpm typecheck    # strict TypeScript, zero errors
 pnpm lint         # zero-warning ESLint
-pnpm test         # vitest: 69 tests across 9 files
+pnpm test         # vitest unit + integration suite
 ```
 
 The suite covers the gate logic, finding normalization, secret redaction, path
