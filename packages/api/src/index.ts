@@ -278,6 +278,90 @@ export function createServer(options: ApiOptions = {}): http.Server {
         return send(res, 200, detail);
       }
 
+      // --- Scan list: /api/scans (optional ?repoId filter) ---
+      if (pathname === '/api/scans' && method === 'GET') {
+        const repoId = url.searchParams.get('repoId') ?? undefined;
+        const scans = store.listScans(repoId).map((s) => ({
+          id: s.id,
+          repoId: s.repoId,
+          status: s.status,
+          createdAt: s.createdAt,
+          gate: s.result?.gate?.result,
+          coverage: s.result?.coverage,
+          exitCode: s.exitCode,
+          findingCount: s.result?.findings.length,
+          error: s.status === 'ERROR' ? s.error : undefined,
+        }));
+        return send(res, 200, { scans });
+      }
+
+      // --- Scan detail: /api/scans/:id (alias of /api/scan/:id, plus createdAt) ---
+      const scansDetailMatch = pathname.match(/^\/api\/scans\/([^/]+)$/);
+      if (scansDetailMatch && method === 'GET') {
+        const scan = store.getScan(scansDetailMatch[1] as string);
+        if (!scan) return send(res, 404, { error: 'Scan not found.' });
+        const detail: Record<string, unknown> = {
+          id: scan.id,
+          repoId: scan.repoId,
+          status: scan.status,
+          createdAt: scan.createdAt,
+          error: scan.status === 'ERROR' ? scan.error : undefined,
+        };
+        if (scan.status === 'DONE' && scan.result) {
+          detail.gate = scan.result.gate;
+          detail.coverage = scan.result.coverage;
+          detail.exitCode = scan.exitCode;
+          detail.findings = scan.result.findings;
+          detail.scanners = scan.result.scanners.map((s) => ({
+            scanner: s.scanner,
+            status: s.status,
+            findingCount: s.findings.length,
+            notes: s.notes,
+            error: s.error,
+          }));
+          detail.detection = scan.result.detection;
+        }
+        return send(res, 200, detail);
+      }
+
+      // --- Report download: /api/reports/:scanId?format=markdown|json|sarif ---
+      // Serves the full report document with a Content-Disposition header so it
+      // downloads as a file. `format` defaults to markdown.
+      const reportMatch = pathname.match(/^\/api\/reports\/([^/]+)$/);
+      if (reportMatch && method === 'GET') {
+        const scan = store.getScan(reportMatch[1] as string);
+        if (!scan) return send(res, 404, { error: 'Scan not found.' });
+        if (scan.status !== 'DONE' || !scan.result) {
+          return send(res, 202, {
+            status: scan.status,
+            message: 'Scan not complete yet. Poll GET /api/scans/' + scan.id,
+          });
+        }
+        const fmt = url.searchParams.get('format') ?? 'markdown';
+        let document: string;
+        let contentType: string;
+        if (fmt === 'json') {
+          document = toJson(scan.result);
+          contentType = 'application/json; charset=utf-8';
+        } else if (fmt === 'sarif') {
+          document = toSarif(scan.result);
+          contentType = 'application/json; charset=utf-8';
+        } else if (fmt === 'markdown') {
+          document = toMarkdown(scan.result);
+          contentType = 'text/markdown; charset=utf-8';
+        } else {
+          return send(res, 400, { error: 'Unsupported format. Use ?format=markdown|json|sarif.' });
+        }
+        const filename = `veylqorix-report-${scan.id}.${fmt === 'json' ? 'json' : fmt === 'sarif' ? 'sarif' : 'md'}`;
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Content-Length': Buffer.byteLength(document),
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Access-Control-Allow-Origin': '*',
+        });
+        return res.end(document);
+      }
+
       // --- Per-repo: /api/repo/:id/latest | /history ---
       const repoMatch = pathname.match(/^\/api\/repo\/([^/]+)\/(latest|history)$/);
       if (repoMatch && method === 'GET') {
