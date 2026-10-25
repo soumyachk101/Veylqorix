@@ -227,23 +227,6 @@ select:focus-visible {
   border-radius: 4px;
 }
 
-/* Restrained motion: subtle press + hover on interactive boxes. */
-.press {
-  transition:
-    transform 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.press:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.16);
-}
-
-.press:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 rgba(15, 44, 64, 0);
-}
-
 @keyframes blink {
   0%,
   49% {

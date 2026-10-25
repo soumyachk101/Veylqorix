@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Press_Start_2P, Hanken_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { SmoothScroll } from '@/components/smooth-scroll';
 
 const pixel = Press_Start_2P({
   weight: '400',
