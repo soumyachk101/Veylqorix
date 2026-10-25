@@ -1,0 +1,43 @@
+digraph VeylqorixArchitecture {
+  graph [rankdir=TB, bgcolor="#FBFAF7", pad="0.42", nodesep="0.42", ranksep="0.55", splines=ortho, fontname="Inter", label="Veylqorix  |  System architecture\nIndependent security verification before code ships", labelloc=t, labeljust=l, fontsize=24, fontcolor="#17213A"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=11, margin="0.18,0.12", color="#D6DAE4", fontcolor="#17213A", penwidth=1.4];
+  edge [color="#6A768C", penwidth=1.4, arrowsize=0.7];
+
+  subgraph cluster_clients {
+    label="DEVELOPER & AI ENTRY POINTS"; color="#44CDBB"; fontcolor="#245B55"; fontsize=13; style="rounded"; penwidth=1.4;
+    agents [label="AI Coding Agents\nClaude Code • Codex • Cursor", fillcolor="#DDF7F3", color="#44CDBB"];
+    cli [label="Veylq CLI\nLocal commands", fillcolor="#DDF7F3", color="#44CDBB"];
+    hooks [label="Git Hooks\nPre-commit / Pre-push", fillcolor="#DDF7F3", color="#44CDBB"];
+    actions [label="GitHub Actions\nPull-request security gate", fillcolor="#DDF7F3", color="#44CDBB"];
+  }
+  subgraph cluster_adapters {
+    label="INTEGRATION LAYER"; color="#9B84F3"; fontcolor="#4E4673"; fontsize=13; style="rounded"; penwidth=1.4;
+    skill [label="Portable Skill\nInstructions & verified workflow", fillcolor="#F0EBFF", color="#9B84F3"];
+    mcp [label="MCP Server\nValidated tool interface", fillcolor="#F0EBFF", color="#9B84F3"];
+    api [label="Backend API\nAuth • scan jobs • results", fillcolor="#F0EBFF", color="#9B84F3"];
+  }
+  core [label="RUST CORE ENGINE\nOrchestration • normalized findings • policy evaluation\nTimeouts • structured errors • evidence handling", fillcolor="#D7F7F0", color="#45CDBB", penwidth=2.2, fontsize=13];
+  subgraph cluster_scanners {
+    label="SCANNER ADAPTERS (EXISTING TOOLS, NOT REIMPLEMENTED)"; color="#45CDBB"; fontcolor="#245B55"; fontsize=13; style="rounded"; penwidth=1.4;
+    deps [label="Dependency Audit\nCargo audit • OSV / ecosystem tools", fillcolor="#D7F7F0", color="#45CDBB"];
+    secrets [label="Secret Detection\nGitleaks or equivalent", fillcolor="#D7F7F0", color="#45CDBB"];
+    sast [label="Static Analysis\nClippy • Semgrep • Ruff / Bandit", fillcolor="#D7F7F0", color="#45CDBB"];
+    tests [label="Quality Checks\nTests • lint • build • type checks", fillcolor="#D7F7F0", color="#45CDBB"];
+  }
+  subgraph cluster_outputs {
+    label="RESULTS & ENFORCEMENT"; color="#E3BE45"; fontcolor="#735A0B"; fontsize=13; style="rounded"; penwidth=1.4;
+    policy [label="Policy Gate\nSeverity thresholds • baseline • overrides", fillcolor="#FFF3C8", color="#E3BE45"];
+    reports [label="Reports\nJSON • SARIF • redacted evidence", fillcolor="#FFF3C8", color="#E3BE45"];
+    db [label="Persistence\nScan history • findings • config", fillcolor="#FFF3C8", color="#E3BE45"];
+    dashboard [label="Web Dashboard\nReal scan status • findings • trends", fillcolor="#FFF3C8", color="#E3BE45", penwidth=2];
+  }
+  {rank=same; agents; cli; hooks; actions}
+  {rank=same; skill; mcp; api}
+  {rank=same; deps; secrets; sast; tests}
+  {rank=same; policy; reports; db; dashboard}
+  agents -> skill; agents -> mcp; cli -> core; hooks -> cli; actions -> cli;
+  skill -> mcp [style=dashed, label="invoke", fontcolor="#4E4673", fontsize=9];
+  mcp -> core; api -> core; core -> deps; core -> secrets; core -> sast; core -> tests;
+  deps -> policy; secrets -> policy; sast -> policy; tests -> policy;
+  policy -> reports; policy -> db; db -> dashboard; reports -> dashboard;
+}

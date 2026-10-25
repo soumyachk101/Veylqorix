@@ -1,0 +1,30 @@
+digraph AIIntegrations {
+  graph [rankdir=LR, bgcolor="#FBFAF7", pad="0.42", nodesep="0.46", ranksep="0.78", splines=ortho, fontname="Inter", label="Veylqorix  |  AI agent integration model\nOne security engine, multiple compatible entry points", labelloc=t, labeljust=l, fontsize=24, fontcolor="#17213A"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=12, margin="0.22,0.16", color="#D6DAE4", fontcolor="#17213A", penwidth=1.3];
+  edge [color="#6A768C", fontname="Inter", fontcolor="#46536A", fontsize=10, penwidth=1.35, arrowsize=0.72];
+
+  clients [label="AI Coding Agents\nClaude Code • OpenAI Codex • Cursor\nOther compatible agents", fillcolor="#DDF7F3", color="#44CDBB", width=2.7];
+
+  subgraph cluster_surfaces {
+    label="SUPPORTED INTEGRATION SURFACES"; color="#9B84F3"; fontcolor="#46536A"; fontsize=12; style="rounded"; penwidth=1.2;
+    skill [label="Portable Skill\nWorkflow instructions • evidence rules", fillcolor="#F0EBFF", color="#9B84F3"];
+    mcp [label="MCP Server\nValidated tools • structured results", fillcolor="#F0EBFF", color="#9B84F3"];
+    plugin [label="Plugin / Extension\nOnly where the host supports it", fillcolor="#FBE4E8", color="#EF8B9B"];
+    {rank=same; skill; mcp; plugin;}
+  }
+
+  cli [label="Veylq CLI\nLocal use • automation • Git hooks", fillcolor="#FFF3C8", color="#E3BE45"];
+  core [label="Shared Rust Core\nSame scanner orchestration\nSame policy evaluation\nNo duplicated security rules", fillcolor="#DDF7F3", color="#44CDBB", penwidth=2.0, fontsize=13, width=2.7];
+  findings [label="Normalized Findings\nSeverity • redacted evidence\nRemediation • JSON / SARIF", fillcolor="#F0EBFF", color="#9B84F3"];
+  dashboard [label="Reports & Dashboard API\nScan status • history • findings", fillcolor="#FFF3C8", color="#E3BE45"];
+
+  clients -> skill;
+  clients -> mcp;
+  clients -> plugin;
+  skill -> mcp [style=dashed, label="guides agent workflow", color="#9B84F3", fontcolor="#46536A"];
+  mcp -> core;
+  plugin -> core;
+  cli -> core;
+  clients -> cli [label="local workflow", color="#6A768C", fontcolor="#46536A"];
+  core -> findings -> dashboard;
+}

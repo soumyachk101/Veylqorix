@@ -1,0 +1,17 @@
+digraph GitHubGate {
+  graph [rankdir=TB, bgcolor="#FBFAF7", pad="0.42", nodesep="0.42", ranksep="0.5", splines=ortho, fontname="Inter", label="Veylqorix  |  GitHub pull-request security gate\nCI enforcement is independent of local hooks", labelloc=t, labeljust=l, fontsize=24, fontcolor="#17213A"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=11, margin="0.18,0.12", color="#D6DAE4", fontcolor="#17213A", penwidth=1.4];
+  edge [color="#6A768C", penwidth=1.4, arrowsize=0.7];
+  dev [label="Developer / AI Agent\nChanges code locally", fillcolor="#DDF7F3", color="#44CDBB"];
+  local [label="Local Veylq CLI + Git Hook\nFast feedback before push\nConvenience layer — can be bypassed", fillcolor="#F0EBFF", color="#9B84F3"];
+  push [label="Push branch / open Pull Request", fillcolor="#DDF7F3", color="#44CDBB"];
+  ci [label="GitHub Actions Workflow\nPinned actions • least-privilege permissions", fillcolor="#D7F7F0", color="#45CDBB", penwidth=2];
+  scan [label="Run required checks\nDependency audit • secrets • static analysis • tests", fillcolor="#D7F7F0", color="#45CDBB"];
+  gate [shape=diamond, label="Policy\npasses?", fillcolor="#FFF3C8", color="#E3BE45", margin="0.12,0.08"];
+  green [label="Required Check: PASS\nEligible to merge if all other rules pass", fillcolor="#DFF5E8", color="#58B98A"];
+  red [label="Required Check: FAIL\nMerge blocked only when repository rules require it", fillcolor="#FBE4E8", color="#EF8B9B"];
+  artifacts [label="Publish Safe Results\nJSON / SARIF • artifacts • redacted annotations", fillcolor="#F0EBFF", color="#9B84F3"];
+  dev -> local -> push -> ci -> scan -> gate;
+  gate -> green [label="yes", fontcolor="#256344", fontsize=9]; gate -> red [label="no / required scanner error", fontcolor="#8A3545", fontsize=9];
+  green -> artifacts; red -> artifacts;
+}
