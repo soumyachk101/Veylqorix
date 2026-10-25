@@ -3,9 +3,11 @@
  * clearly-labeled demo dataset (development only, never presented as live).
  */
 (() => {
-  const API_BASE = (() => {
-    try { return new URL('http://localhost:4173').toString().replace(/\/$/, ''); } catch { return ''; }
-  })();
+  // Same-origin when served by the Veylqorix web server (which proxies
+  // /api to the API); direct-to-API when opened over file://.
+  const API_BASE = window.location.protocol.startsWith('http')
+    ? ''
+    : 'http://localhost:4173';
 
   /* ---------------- icons (inline SVG, consistent set) ---------------- */
   const ICONS = {
