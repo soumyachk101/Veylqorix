@@ -42,6 +42,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
 
+  apps/web: {}
+
   packages/api:
     dependencies:
       '@veylqorix/core':
@@ -72,6 +74,8 @@ importers:
       zod:
         specifier: 4.6.7
         version: 4.6.7
+
+  packages/skills: {}
 
 packages:
 
