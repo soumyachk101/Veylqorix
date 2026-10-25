@@ -1,0 +1,11 @@
+{
+  "name": "@veylqorix/web",
+  "version": "0.1.0",
+  "description": "Veylqorix landing page and security dashboard: premium, accessible, real scan data from the Veylqorix API.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node src/serve.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
