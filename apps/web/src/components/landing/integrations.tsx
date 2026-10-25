@@ -54,7 +54,7 @@ export function Integrations() {
         block a merge.
       </SectionTitle>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[repeat(3,minmax(0,1fr))]">
         <div className="pixel-box press rounded p-5">
           <div className="pixel-box-flat flex h-12 w-12 items-center justify-center rounded font-mono text-sm font-bold text-ink">
             MCP
