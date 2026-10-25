@@ -1,0 +1,12 @@
+{
+  "mcp_servers": {
+    "veylqorix": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/to/Veylqorix/packages/mcp-server/dist/bin.js"],
+      "env": {
+        "VEYLQORIX_ROOTS": "/ABSOLUTE/PATH/to/your/project",
+        "VEYLQORIX_TIMEOUT_MS": "120000"
+      }
+    }
+  }
+}
