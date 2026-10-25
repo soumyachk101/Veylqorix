@@ -4,5 +4,8 @@ self.__BUILD_MANIFEST = {
     "beforeFiles": [],
     "fallback": []
   },
-  "sortedPages": []
+  "sortedPages": [
+    "/_app",
+    "/_error"
+  ]
 };self.__BUILD_MANIFEST_CB && self.__BUILD_MANIFEST_CB()
