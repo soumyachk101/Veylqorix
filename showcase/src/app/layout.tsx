@@ -32,6 +32,18 @@ export const metadata: Metadata = {
   },
   description:
     'Veylqorix is a universal code-security and quality platform that verifies AI-generated and human-written code before it ships. The build story, changelog, and a full tour of the platform.',
+  icons: {
+    icon: '/logo-icon.png',
+    apple: '/logo-icon.png',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Veylqorix',
+    title: 'Veylqorix — No Unsafe Code Gets Through',
+    description:
+      'Universal code-security and quality platform: verify AI-generated and human-written code before it ships.',
+    images: [{ url: '/logo.png', width: 2172, height: 724, alt: 'Veylqorix logo' }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
