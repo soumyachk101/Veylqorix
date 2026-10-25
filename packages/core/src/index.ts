@@ -1,6 +1,6 @@
 export * from './types.js';
 export * from './policy.js';
-export * from './finding.js';
+export { findingId, makeFinding } from './finding.js';
 export * from './detect.js';
 export { runAudit, type AuditOptions, type AuditResultWithExit } from './audit.js';
 export { exitCodeFor, evaluateGate } from './gate/index.js';
