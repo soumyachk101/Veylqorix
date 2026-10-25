@@ -1,0 +1,6 @@
+{
+  "name": "failing-tests-repo",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": { "test": "node tests.js" }
+}
