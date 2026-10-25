@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Github } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Wordmark } from './logo';
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string; external?: boolean }> }> = [
