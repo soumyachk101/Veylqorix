@@ -250,25 +250,29 @@ export function createServer(options: ApiOptions = {}): http.Server {
           if (fmt === 'sarif') return send(res, 200, toSarif(result));
           return send(res, 200, toMarkdown(result));
         }
-        // /api/scan/:id
-        const summary =
-          scan.status === 'DONE' && scan.result
-            ? {
-                gate: scan.result.gate,
-                coverage: scan.result.coverage,
-                exitCode: scan.exitCode,
-                findings: scan.result.findings,
-                scanners: scan.result.scanners.map((s) => ({
-                  scanner: s.scanner,
-                  status: s.status,
-                  findingCount: s.findings.length,
-                  notes: s.notes,
-                  error: s.error,
-                })),
-                detection: scan.result.detection,
-              }
-            : { status: scan.status, error: scan.error };
-        return send(res, 200, { id: scan.id, repoId: scan.repoId, ...summary });
+        // /api/scan/:id — `status` is always present so clients can poll on
+        // a single, stable field.
+        const detail: Record<string, unknown> = {
+          id: scan.id,
+          repoId: scan.repoId,
+          status: scan.status,
+          error: scan.error,
+        };
+        if (scan.status === 'DONE' && scan.result) {
+          detail.gate = scan.result.gate;
+          detail.coverage = scan.result.coverage;
+          detail.exitCode = scan.exitCode;
+          detail.findings = scan.result.findings;
+          detail.scanners = scan.result.scanners.map((s) => ({
+            scanner: s.scanner,
+            status: s.status,
+            findingCount: s.findings.length,
+            notes: s.notes,
+            error: s.error,
+          }));
+          detail.detection = scan.result.detection;
+        }
+        return send(res, 200, detail);
       }
 
       // --- Per-repo: /api/repo/:id/latest | /history ---
