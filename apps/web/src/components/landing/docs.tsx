@@ -21,7 +21,7 @@ export function Docs() {
         <code className="font-mono text-[0.9em]">docs/troubleshooting.md</code>.
       </SectionTitle>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[repeat(2,minmax(0,1fr))]">
         <div id="api" className="pixel-box scroll-mt-24 rounded p-5">
           <h3 className="text-lg font-extrabold text-ink">API</h3>
           <p className="mt-1 text-sm text-ink-dim">Default base URL: <code className="font-mono text-[13px]">http://localhost:4173</code>. JSON in, JSON out. No auth — put a gateway in front for untrusted networks, and set <code className="font-mono text-[13px]">VEYLQORIX_ALLOWED_ROOTS</code> to restrict scannable paths.</p>
