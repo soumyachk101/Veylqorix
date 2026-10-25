@@ -5,6 +5,7 @@ export * from './detect.js';
 export { runAudit, type AuditOptions, type AuditResultWithExit } from './audit.js';
 export { exitCodeFor, evaluateGate } from './gate/index.js';
 export { toJson, toMarkdown } from './report/index.js';
+export { globMatch } from './policy.js';
 export { toSarif } from './report/sarif.js';
 export { validatePath, relativeToRoot, PathValidationError, type WorkspaceRoots } from './util/paths.js';
 export {
