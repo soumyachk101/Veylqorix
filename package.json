@@ -11,13 +11,14 @@
     "build": "pnpm -r build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint . --ext .ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "cli": "node apps/cli/dist/index.js"
+    "lint": "eslint . --ext .ts --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "26.6.5",
+    "@typescript-eslint/eslint-plugin": "8.72.0",
+    "@typescript-eslint/parser": "8.72.0",
     "eslint": "10.13.0",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
