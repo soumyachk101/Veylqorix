@@ -44,67 +44,177 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- Signature: pixel-box card --- */
-.pixel-box {
-  border: 4px solid var(--color-line);
-  background: var(--color-surface);
-  border-radius: 6px;
-  box-shadow: var(--shadow-pixel);
-}
+/*
+ * Component classes live in @layer components so Tailwind utility classes
+ * (bg-navy, text-screen-ink, ...) can still override them. Without this layer
+ * these rules sit after @tailwind utilities and win the cascade, which made
+ * e.g. `.pixel-box { background: white }` squash `bg-navy` and leave button
+ * text unreadable.
+ */
+@layer components {
+  /* --- Signature: pixel-box card --- */
+  .pixel-box {
+    border: 4px solid var(--color-line);
+    background: var(--color-surface);
+    border-radius: 6px;
+    box-shadow: var(--shadow-pixel);
+  }
 
-.pixel-box-flat {
-  border: 4px solid var(--color-line);
-  background: var(--color-surface);
-  border-radius: 6px;
-}
+  .pixel-box-flat {
+    border: 4px solid var(--color-line);
+    background: var(--color-surface);
+    border-radius: 6px;
+  }
 
-.pixel-box--screen {
-  border: 4px solid var(--color-line);
-  background: var(--color-screen);
-  border-radius: 6px;
-  box-shadow: var(--shadow-pixel);
-  color: var(--color-screen-ink);
-}
+  .pixel-box--screen {
+    border: 4px solid var(--color-line);
+    background: var(--color-screen);
+    border-radius: 6px;
+    box-shadow: var(--shadow-pixel);
+    color: var(--color-screen-ink);
+  }
 
-/* Pixel display label: Press Start 2P, ~10px, uppercase, letterspaced. */
-.pixel-label {
-  font-family: var(--font-pixel);
-  font-size: 10px;
-  line-height: 1.6;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
+  /* Pixel display label: Press Start 2P, ~10px, uppercase, letterspaced. */
+  .pixel-label {
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    line-height: 1.6;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 
-.pixel-label-sm {
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  line-height: 1.7;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
+  .pixel-label-sm {
+    font-family: var(--font-pixel);
+    font-size: 8px;
+    line-height: 1.7;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 
-.text-pixel-shadow {
-  text-shadow: var(--text-shadow-pixel);
-}
+  .text-pixel-shadow {
+    text-shadow: var(--text-shadow-pixel);
+  }
 
-/* Pixel-block bar: hard-segmented severity meter. */
-.pixel-blocks {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 4px;
-}
+  /* Pixel-block bar: hard-segmented severity meter. */
+  .pixel-blocks {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 4px;
+  }
 
-.pixel-blocks > span {
-  aspect-ratio: 1;
-  border: 2px solid var(--color-line);
-  border-radius: 2px;
-  background: var(--color-surface-2);
-}
+  .pixel-blocks > span {
+    aspect-ratio: 1;
+    border: 2px solid var(--color-line);
+    border-radius: 2px;
+    background: var(--color-surface-2);
+  }
 
-.pixel-blocks > span[data-filled] {
-  background: var(--block-color, var(--color-teal));
-  border-color: var(--color-ink);
+  .pixel-blocks > span[data-filled] {
+    background: var(--block-color, var(--color-teal));
+    border-color: var(--color-ink);
+  }
+
+  /* Restrained motion: subtle press + hover on interactive boxes. */
+  .press {
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .press:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.16);
+  }
+
+  .press:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 rgba(15, 44, 64, 0);
+  }
+
+  /*
+   * Primary button: dark navy surface so screen-ink text always stays
+   * readable. Declared as a component class; utilities may still override.
+   */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 4px solid var(--color-line);
+    border-radius: 6px;
+    background: var(--color-navy);
+    color: var(--color-screen-ink);
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-pixel);
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .btn-primary:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.16);
+  }
+
+  .btn-primary:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 rgba(15, 44, 64, 0);
+  }
+
+  /* Secondary button: white surface, dark ink text. */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 4px solid var(--color-line);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-pixel);
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .btn-secondary:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.16);
+  }
+
+  .btn-secondary:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 rgba(15, 44, 64, 0);
+  }
+
+  /* Dark-variant button for use on screen (navy) surfaces. */
+  .btn-on-screen {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 4px solid var(--color-line);
+    border-radius: 6px;
+    background: var(--color-mint);
+    color: var(--color-screen);
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-pixel);
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .btn-on-screen:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.4);
+  }
+
+  .btn-on-screen:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 rgba(15, 44, 64, 0);
+  }
 }
 
 /* Focus visibility on the mint background. */
