@@ -13,6 +13,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@veylqorix/core": "0.1.0"
+    "@veylqorix/core": "workspace:*"
   }
 }
