@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability report
+    url: https://github.com/soumyachk101/Veylqorix/blob/main/SECURITY.md
+    about: Do not open public issues for vulnerabilities — see SECURITY.md for responsible disclosure.
+  - name: Accessibility barrier
+    url: https://github.com/soumyachk101/Veylqorix/blob/main/ACCESSIBILITY.md
+    about: How to report accessibility barriers in the dashboard or CLI.

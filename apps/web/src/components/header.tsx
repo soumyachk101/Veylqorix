@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
-import { Logo } from './logo';
+import { Wordmark } from './logo';
 
 const LINKS: Array<{ href: string; label: string }> = [
   { href: '/#product', label: 'Product' },
@@ -19,10 +19,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b-4 border-line bg-bg/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="press pixel-box-flat flex items-center gap-3 px-3 py-2" aria-label="Veylqorix home">
-          <Logo className="h-8 w-8" />
-          <span className="pixel-label text-ink">VEYLQORIX</span>
-        </Link>
+        <Wordmark />
 
         <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
@@ -36,7 +33,7 @@ export function Header() {
           ))}
           <Link
             href="/dashboard"
-            className="pixel-box press ml-2 flex items-center gap-2 rounded px-4 py-2 text-sm font-bold text-ink"
+            className="btn-primary ml-2"
           >
             Open Dashboard
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -68,7 +65,7 @@ export function Header() {
               <Link
                 href="/dashboard"
                 onClick={close}
-                className="pixel-box press mt-2 flex items-center justify-center gap-2 rounded px-4 py-2 font-bold text-ink"
+                className="btn-primary mt-2"
               >
                 Open Dashboard
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
