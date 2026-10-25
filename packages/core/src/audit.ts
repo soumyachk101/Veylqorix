@@ -40,6 +40,8 @@ export interface AuditOptions {
   skipScanners?: string[];
   /** Skip the quality check runner. */
   skipQualityChecks?: boolean;
+  /** Restrict the secret scanner to exactly these root-relative files (e.g. staged Git changes). */
+  stagedFiles?: string[];
 }
 
 export interface AuditResultWithExit extends AuditResult {
@@ -78,7 +80,11 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
   scanners.push({
     name: 'secrets',
     mandatory: true,
-    run: async (ctx) => scanSecrets(ctx.root, { mockFindings: ctx.mocks?.['secrets'] }),
+    run: async (ctx) =>
+      scanSecrets(ctx.root, {
+        mockFindings: ctx.mocks?.['secrets'],
+        files: options.stagedFiles,
+      }),
   });
 
   scanners.push({

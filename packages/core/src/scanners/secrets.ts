@@ -20,6 +20,8 @@ export interface SecretScanOptions {
   extraExtensions?: string[];
   /** Files and directories to exclude, relative to the audit root. */
   exclude?: string[];
+  /** When set, restrict the scan to exactly these files (relative to root). */
+  files?: string[];
   /** Optional deterministic mock findings for tests. */
   mockFindings?: Finding[];
 }
@@ -158,7 +160,9 @@ export async function scanSecrets(root: string, options: SecretScanOptions = {})
     };
   }
 
-  const files = walk(root, { maxDepth: 8, ignore: ['node_modules', '.git', 'dist', 'build'] });
+  const walked = walk(root, { maxDepth: 8, ignore: ['node_modules', '.git', 'dist', 'build'] });
+  // When a staged file set is supplied, restrict the scan to those files.
+  const files = options.files ? walked.filter((f) => options.files!.includes(f)) : walked;
 
   const findings: Finding[] = [];
   let filesScanned = 0;

@@ -2,19 +2,29 @@
 /**
  * Veylqorix CLI.
  *
- * Usage:
- *   veylqorix audit [root] [options]
- *   veylqorix deps [root]
- *   veylqorix secrets [root]
- *   veylqorix checks [root]
- *   veylqorix gate [root]
+ * Commands:
+ *   veylqorix scan [root]      Run the full security audit + quality gate.
+ *   veylqorix check  [root]    Run only the quality checks (type, lint, tests).
+ *   veylqorix report [root]    Emit a human-readable Markdown report.
+ *   veylqorix config validate [policy-file]   Validate a policy JSON file.
+ *   Legacy aliases: audit, deps, secrets, checks, gate.
  *
- * Options:
- *   --offline          Do not call external scanners (npm audit / pip-audit).
- *   --json             Emit machine-readable JSON instead of a human summary.
- *   --report-out PATH  Also write the report to this file (markdown).
- *   --no-tests         Skip test/build quality checks.
- *   --scanners a,b     Run only the listed scanners.
+ * Options (scan / check / report):
+ *   --root PATH          Audit this directory (default: current working dir).
+ *   --offline            Do not call external scanners (npm audit / pip-audit).
+ *   --json               Emit machine-readable JSON instead of a human summary.
+ *   --format json|markdown|sarif   Force a report format.
+ *   --report-out PATH    Also write a Markdown report to this file.
+ *   --sarif-out PATH     Also write a SARIF report to this file.
+ *   --no-tests           Skip test/build quality checks.
+ *   --scanners a,b       Run only the listed scanners.
+ *   --staged             Scope the secret scan to Git-staged files (git repos only).
+ *   --block-on a,b       Severities that block the gate.
+ *   --policy FILE        Load a policy JSON file for the audit.
+ *
+ * Exit codes:
+ *   0 PASS   1 FAIL (blocking findings)   2 INCOMPLETE (coverage degraded)
+ *   64 usage error   65 root not found   70 unexpected error
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,79 +32,118 @@ import {
   runAudit,
   toJson,
   toMarkdown,
+  toSarif,
+  listStagedFiles,
+  validatePolicyFile,
+  findPolicyFile,
   type AuditOptions,
+  type Policy,
 } from '@veylqorix/core';
+
+const USAGE = `Veylqorix CLI
+
+Usage:
+  veylqorix <command> [root] [options]
+
+Commands:
+  scan             Run the full security audit + quality gate (default)
+  check            Run only the quality checks
+  report           Emit a Markdown report
+  config validate  Validate a policy JSON file
+
+Options:
+  --root PATH              Audit this directory (default: current working dir)
+  --offline                Do not call external scanners
+  --json / --format json   Machine-readable output
+  --format sarif           Emit SARIF
+  --report-out PATH        Write a Markdown report to PATH
+  --sarif-out PATH         Write a SARIF report to PATH
+  --no-tests               Skip test/build quality checks
+  --scanners a,b           Run only the listed scanners
+  --staged                 Scope the secret scan to Git-staged files
+  --block-on a,b           Severities that block the gate
+  --policy FILE            Load a policy JSON file
+
+Exit codes: 0=PASS  1=FAIL  2=INCOMPLETE  64=usage  65=bad root  70=error`;
 
 interface ParsedArgs {
   command: string;
   root: string;
   offline: boolean;
   json: boolean;
+  format?: 'json' | 'markdown' | 'sarif';
   reportOut?: string;
+  sarifOut?: string;
   noTests: boolean;
   scanners?: string[];
-  policy?: AuditOptions['policy'];
+  staged: boolean;
+  policyFile?: string;
+  policy?: Partial<Policy>;
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
-  const command = argv[0] ?? 'audit';
-  const flags = argv.slice(1);
+  const first = argv[0];
+  const isConfig = first === 'config' && argv[1] === 'validate';
+  const command = isConfig ? 'config' : (first ?? 'scan');
+  // For `config validate`, the positional after `validate` is the policy file.
+  // For everything else, the positional after the command is the root.
+  const flags = isConfig ? argv.slice(2) : (argv.slice(1).filter((a) => a !== 'validate') as string[]);
+
   const parsed: ParsedArgs = {
     command,
     root: process.cwd(),
     offline: false,
     json: false,
     noTests: false,
+    staged: false,
   };
 
+  const valueFlag = new Set(['--report-out', '--sarif-out', '--scanners', '--block-on', '--root', '--policy']);
   for (let i = 0; i < flags.length; i++) {
     const flag = flags[i];
+    if (!flag) continue;
+    if (valueFlag.has(flag)) {
+      const value = flags[++i];
+      if (value === undefined) throw new Error(`${flag} requires a value`);
+      switch (flag) {
+        case '--root': parsed.root = value; break;
+        case '--report-out': parsed.reportOut = path.resolve(value); break;
+        case '--sarif-out': parsed.sarifOut = path.resolve(value); break;
+        case '--policy': parsed.policyFile = path.resolve(value); break;
+        case '--scanners': parsed.scanners = value.split(',').map((s) => s.trim()).filter(Boolean); break;
+        case '--block-on':
+          parsed.policy = { ...parsed.policy, blockOnSeverity: value.split(',').map((s) => s.trim().toUpperCase()) as Policy['blockOnSeverity'] };
+          break;
+      }
+      continue;
+    }
     switch (flag) {
-      case '--offline':
-        parsed.offline = true;
-        break;
-      case '--json':
-        parsed.json = true;
-        break;
-      case '--no-tests':
-        parsed.noTests = true;
-        break;
-      case '--report-out': {
+      case '--offline': parsed.offline = true; break;
+      case '--json': parsed.json = true; parsed.format = 'json'; break;
+      case '--format': {
         const value = flags[++i];
-        if (!value) throw new Error('--report-out requires a path');
-        parsed.reportOut = path.resolve(value);
+        if (value !== 'json' && value !== 'markdown' && value !== 'sarif') throw new Error(`--format must be json, markdown, or sarif (got '${value}')`);
+        parsed.format = value;
+        if (value === 'json') parsed.json = true;
         break;
       }
-      case '--scanners': {
-        const value = flags[++i];
-        if (!value) throw new Error('--scanners requires a comma-separated list');
-        parsed.scanners = value.split(',').map((s) => s.trim()).filter(Boolean);
+      case '--no-tests': parsed.noTests = true; break;
+      case '--staged': parsed.staged = true; break;
+      case '-h':
+      case '--help':
+        console.log(USAGE);
+        process.exit(0);
         break;
-      }
-      case '--block-on': {
-        const value = flags[++i];
-        if (!value) throw new Error('--block-on requires a severity list');
-        parsed.policy = {
-          ...parsed.policy,
-          blockOnSeverity: value
-            .split(',')
-            .map((s) => s.trim().toUpperCase() as 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL')
-            .filter((s) => ['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(s)),
-        };
-        break;
-      }
-      case '--root': {
-        const value = flags[++i];
-        if (!value) throw new Error('--root requires a path');
-        parsed.root = path.resolve(value);
-        break;
-      }
       default:
-        // A positional argument after the command is the root.
-        if (flag && !flag.startsWith('--') && parsed.root === process.cwd()) {
+        if (flag.startsWith('--')) throw new Error(`Unknown option: ${flag}`);
+        if (command.startsWith('config')) {
+          // `veylqorix config validate <policy-file>`: the positional is the file.
+          parsed.policyFile = path.resolve(flag);
+        } else if (parsed.root === process.cwd() && !isKnownCommand(flag)) {
+          // A bare positional is the root for scan/check/report.
           parsed.root = path.resolve(flag);
-        } else if (flag?.startsWith('--')) {
-          throw new Error(`Unknown option: ${flag}`);
+        } else if (isKnownCommand(flag)) {
+          // Legacy single-word subcommands after the main one are ignored.
         }
     }
   }
@@ -102,23 +151,49 @@ function parseArgs(argv: string[]): ParsedArgs {
   return parsed;
 }
 
+const KNOWN_COMMANDS = new Set(['scan', 'check', 'report', 'config', 'audit', 'deps', 'secrets', 'checks', 'gate']);
+function isKnownCommand(word: string): boolean {
+  return KNOWN_COMMANDS.has(word);
+}
+
+/** Normalize legacy aliases to modern verbs. */
+function normalizeCommand(command: string): string {
+  switch (command) {
+    case 'audit':
+    case 'deps':
+    case 'secrets':
+    case 'gate':
+      return 'scan';
+    case 'checks':
+      return 'check';
+    default:
+      return command;
+  }
+}
+
+function severityIcon(status: string): string {
+  switch (status) {
+    case 'PASS': return '✅';
+    case 'FAIL': return '❌';
+    case 'SKIPPED': return '⏭️';
+    default: return '⚠️';
+  }
+}
+
 function summarize(result: Awaited<ReturnType<typeof runAudit>>): string {
   const gate = result.gate;
   const lines: string[] = [];
-  const icon = gate.result === 'PASS' ? '✅' : gate.result === 'FAIL' ? '❌' : '⚠️';
-  lines.push(`${icon} Gate result: ${gate.result}  (coverage ${result.coverage}, exit code ${result.exitCode})`);
+  lines.push(`${severityIcon(gate.result)} Gate result: ${gate.result}  (coverage ${result.coverage}, exit code ${result.exitCode})`);
   lines.push('');
   lines.push('Scanners:');
   for (const s of result.scanners) {
-    const status = s.status === 'PASS' ? '✅' : s.status === 'FAIL' ? '❌' : s.status === 'SKIPPED' ? '⏭️' : '⚠️';
-    lines.push(`  ${status} ${s.scanner.padEnd(14)} ${s.status.padEnd(8)} ${s.findings.length} finding(s)`);
+    lines.push(`  ${severityIcon(s.status)} ${s.scanner.padEnd(16)} ${s.status.padEnd(8)} ${s.findings.length} finding(s)`);
   }
   if (result.checks.length > 0) {
     lines.push('');
     lines.push('Checks:');
     for (const c of result.checks) {
-      const status = c.status === 'PASS' ? '✅' : c.status === 'FAIL' ? '❌' : c.status === 'SKIPPED' ? '⏭️' : '⚠️';
-      lines.push(`  ${status} ${c.id.padEnd(14)} ${c.status}`);
+      lines.push(`  ${severityIcon(c.status)} ${c.id.padEnd(16)} ${c.status}`);
     }
   }
   if (gate.blockingReasons.length > 0) {
@@ -133,9 +208,29 @@ function summarize(result: Awaited<ReturnType<typeof runAudit>>): string {
   }
   if (result.findings.length > 0) {
     lines.push('');
-    lines.push(`Findings: ${result.findings.length} total (see --json or --report-out for details)`);
+    lines.push(`Findings: ${result.findings.length} total (use --json / --format markdown for details)`);
+  } else {
+    lines.push('');
+    lines.push('Findings: 0');
   }
   return lines.join('\n');
+}
+
+function loadPolicy(parsed: ParsedArgs): Partial<Policy> | undefined {
+  let file = parsed.policyFile;
+  if (!file && findPolicyFile(parsed.root)) file = findPolicyFile(parsed.root);
+  let policy = parsed.policy;
+  if (file) {
+    const result = validatePolicyFile(file);
+    if (!result.valid) {
+      console.error(`Policy file ${file} is invalid:`);
+      for (const issue of result.issues) console.error(`  [${issue.level}] ${issue.field}: ${issue.message}`);
+      process.exit(64);
+    }
+    const resolved = result.resolved?.policy;
+    policy = { ...policy, ...resolved } as Partial<Policy>;
+  }
+  return policy;
 }
 
 async function main(): Promise<void> {
@@ -146,29 +241,71 @@ async function main(): Promise<void> {
     console.error((error as Error).message);
     process.exit(64);
   }
+  const command = normalizeCommand(parsed.command);
+
+  if (command === 'config') {
+    const target = parsed.policyFile;
+    if (!target || !fs.existsSync(target)) {
+      console.error(`Policy file not found: ${target ?? '(none)'}`);
+      console.error('Usage: veylqorix config validate <policy.json>');
+      process.exit(65);
+    }
+    const result = validatePolicyFile(path.resolve(target));
+    if (result.valid) {
+      console.log(`✅ Policy valid: ${path.resolve(target)}`);
+      if (result.issues.length > 0) {
+        for (const issue of result.issues) console.log(`  [${issue.level}] ${issue.field}: ${issue.message}`);
+      }
+      process.exit(0);
+    }
+    console.error(`❌ Policy invalid: ${path.resolve(target)}`);
+    for (const issue of result.issues) console.error(`  [${issue.level}] ${issue.field}: ${issue.message}`);
+    process.exit(64);
+    return;
+  }
 
   if (!fs.existsSync(parsed.root)) {
     console.error(`Root directory does not exist: ${parsed.root}`);
     process.exit(65);
   }
 
+  let stagedFiles: string[] | undefined;
+  if (parsed.staged) {
+    stagedFiles = await listStagedFiles(parsed.root);
+    if (stagedFiles.length === 0) {
+      console.error('No staged files found; run `git add` first. --staged requires a Git repository with staged changes.');
+      process.exit(65);
+    }
+  }
+
   const options: AuditOptions = {
     root: parsed.root,
     online: !parsed.offline,
     includeTests: !parsed.noTests,
-    onlyScanners: parsed.scanners,
-    policy: parsed.policy,
+    onlyScanners: command === 'check' ? [] : parsed.scanners,
+    skipQualityChecks: command === 'check' ? false : undefined,
+    policy: loadPolicy(parsed),
+    stagedFiles,
   };
 
   const result = await runAudit(options);
 
+  // Write report files when requested.
   if (parsed.reportOut) {
     fs.writeFileSync(parsed.reportOut, toMarkdown(result), 'utf8');
-    if (!parsed.json) console.log(`Report written to ${parsed.reportOut}`);
+    if (parsed.format !== 'json' && parsed.format !== 'sarif') console.log(`Markdown report written to ${parsed.reportOut}`);
+  }
+  if (parsed.sarifOut) {
+    fs.writeFileSync(parsed.sarifOut, toSarif(result), 'utf8');
+    if (parsed.format !== 'json' && parsed.format !== 'markdown') console.log(`SARIF report written to ${parsed.sarifOut}`);
   }
 
-  if (parsed.json) {
+  // Decide the stdout shape: --json/--format json wins, then markdown
+  // (--format markdown or the `report` command), then a short summary.
+  if (parsed.format === 'json' || parsed.json) {
     console.log(toJson(result));
+  } else if (command === 'report' || parsed.format === 'markdown') {
+    console.log(toMarkdown(result));
   } else {
     console.log(summarize(result));
   }
