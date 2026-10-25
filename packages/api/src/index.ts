@@ -10,6 +10,7 @@
  * be swapped for SQLite/PostgreSQL without touching the route handlers.
  */
 import http from 'node:http';
+import path from 'node:path';
 import {
   runAudit,
   toMarkdown,
@@ -192,11 +193,11 @@ export function createServer(options: ApiOptions = {}): http.Server {
         const body = await readJson(req);
         const p = typeof body.path === 'string' ? body.path : undefined;
         if (!p) return send(res, 400, { error: '`path` is required.' });
-        const resolved = require('node:path').resolve(p);
+        const resolved = path.resolve(p);
         if (allowedRoots.length > 0 && !isUnderAny(resolved, allowedRoots)) {
           return send(res, 403, { error: `Repository path ${resolved} is outside the allowed roots.` });
         }
-        const name = typeof body.name === 'string' ? body.name : require('node:path').basename(resolved);
+        const name = typeof body.name === 'string' ? body.name : path.basename(resolved);
         const repo = store.addRepository({ path: resolved, name });
         return send(res, 201, { repository: repo });
       }
@@ -208,10 +209,10 @@ export function createServer(options: ApiOptions = {}): http.Server {
         const repo =
           (repoId ? store.getRepository(repoId) : undefined) ??
           (() => {
-            const p = typeof body.path === 'string' ? require('node:path').resolve(body.path) : undefined;
+            const p = typeof body.path === 'string' ? path.resolve(body.path) : undefined;
             if (!p) return undefined;
             if (allowedRoots.length > 0 && !isUnderAny(p, allowedRoots)) return undefined;
-            return store.addRepository({ path: p, name: require('node:path').basename(p) });
+            return store.addRepository({ path: p, name: path.basename(p) });
           })();
         if (!repo) return send(res, 400, { error: 'Provide a registered `repoId` or a `path`.' });
 
