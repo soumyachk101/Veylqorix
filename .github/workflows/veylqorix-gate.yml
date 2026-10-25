@@ -90,15 +90,18 @@ jobs:
           fi
           cli="node apps/cli/dist/index.js"
           if [ ! -d "apps/cli" ]; then cli="veylqorix"; fi
+          # One authoritative scan produces both machine-readable JSON and a
+          # SARIF document for GitHub code scanning. The exit code of this run
+          # drives the gate.
           set +e
-          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --json $no_tests \
-            > veylqorix.json \
-            2> veylqorix.stderr
+          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" \
+            $no_tests --json > veylqorix.json 2> veylqorix.stderr
           code=$?
           set -e
-          # SARIF for GitHub code scanning.
-          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --no-tests --format sarif --offline > /dev/null 2>&1 \
-            || "$cli" report --root "${{ inputs.root }}" --offline > /dev/null 2>&1 || true
+          # Emit the SARIF document for GitHub code scanning from the same scan
+          # flags (a separate invocation keeps the JSON stdout clean).
+          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" \
+            $no_tests --sarif-out veylqorix.sarif > /dev/null 2>&1 || true
           echo "exit=${code}" >> "$GITHUB_OUTPUT"
           echo "Scan exit code: ${code}"
 

@@ -1,0 +1,9 @@
+{
+  "name": "vulnerable-repo",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "4.17.20",
+    "minimist": "1.2.5"
+  }
+}
