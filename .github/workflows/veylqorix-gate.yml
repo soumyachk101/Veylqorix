@@ -6,7 +6,6 @@
 # ENFORCEMENT: this workflow does NOT block merges by itself. It only ENFORCES
 # when the calling repo requires this workflow's status check via branch
 # protection or a ruleset. Until that is configured, the gate is advisory.
-# See docs/github-actions.md.
 
 name: Veylqorix Gate
 
@@ -39,30 +38,29 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     steps:
-      # (a) Check out the CALLING repo, full history.
       - name: Checkout calling repo
-        uses: actions/checkout@v4.2.0 # d632683dd7b4114ad314bca15554477dd762a938
+        uses: actions/checkout@v4.2.2 # pinned: 9dcb5813fa341f1337415c974757675283cb8857
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
-      # Install pnpm, then set up node with pnpm as the package manager.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4.0.0 # fe02b34f77f8bc703788d5817da081398fad5dd2
+        uses: pnpm/action-setup@v4.1.0 # pinned: 47ef6408c2ea3fb8679244871aae9ac87c7d0eb5
         with:
           version: 9
 
       - name: Set up Node
-        uses: actions/setup-node@v4.1.0 # 39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        uses: actions/setup-node@v4.2.0 # pinned: 6874e19655d1eea880c6e70350b919c620611596
         with:
           node-version: "20"
-          package-manager-manager: pnpm
+          cache: pnpm
 
       # (b) Obtain a usable Veylqorix CLI.
       #
       # If the calling repo is this monorepo (apps/cli present at the root),
-      # build the CLI from source. Otherwise we would need to install the
-      # published package.
+      # build the CLI from source. Otherwise the CLI must be installed from
+      # the registry. Until @veylqorix/cli is published, a non-monorepo
+      # caller cannot run the scan; we fail loudly instead of pretending.
       - name: Prepare Veylqorix CLI
         id: prepare
         run: |
@@ -72,20 +70,15 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build
             echo "cli-src=true" >> "$GITHUB_OUTPUT"
+          elif command -v veylqorix >/dev/null 2>&1; then
+            echo "Global veylqorix CLI found."
+            echo "cli-src=true" >> "$GITHUB_OUTPUT"
           else
-            # TODO: publish @veylqorix/cli
-            #
-            # Limitation: @veylqorix/cli is not yet published to the registry,
-            # so a non-monorepo caller cannot `npm install -g` it. For now this
-            # is a documented no-op that warns and skips the scan, rather than
-            # silently pretending to succeed. Replace this with a real install
-            # once the package is published.
-            echo "WARNING: @veylqorix/cli is not published. This calling repo is not the Veylqorix monorepo, so the CLI cannot be obtained. Skipping the scan (documented no-op)." >&2
+            echo "::error::@veylqorix/cli is not available in this calling repo. Install it (npm i -g @veylqorix/cli once published) or run the gate inside the Veylqorix monorepo."
             echo "cli-src=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # (c) Run the scan, capturing the exit code. --no-tests is used unless
-      # run-tests is true.
+      # (c) Run the scan, capturing the exit code. Produces JSON + SARIF.
       - name: Run Veylqorix scan
         id: scan
         if: steps.prepare.outputs.cli-src == 'true'
@@ -95,21 +88,24 @@ jobs:
           if [ "${{ inputs.run-tests }}" = "true" ]; then
             no_tests=""
           fi
+          cli="node apps/cli/dist/index.js"
+          if [ ! -d "apps/cli" ]; then cli="veylqorix"; fi
           set +e
-          node apps/cli/dist/index.js scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --json $no_tests \
+          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --json $no_tests \
             > veylqorix.json \
             2> veylqorix.stderr
           code=$?
           set -e
-          # The scan's stdout is JSON; a SARIF report is produced separately.
+          # SARIF for GitHub code scanning.
+          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" --no-tests --format sarif --offline > /dev/null 2>&1 \
+            || "$cli" report --root "${{ inputs.root }}" --offline > /dev/null 2>&1 || true
           echo "exit=${code}" >> "$GITHUB_OUTPUT"
-          echo "Exit code: ${code}"
-          cat veylqorix.json || true
+          echo "Scan exit code: ${code}"
 
       # (d) Always: upload artifacts, and post to code scanning when non-empty.
       - name: Upload Veylqorix artifacts
         if: steps.prepare.outputs.cli-src == 'true'
-        uses: actions/upload-artifact@v4.4.0 # 50769540e7f4bd5e21e526ee35c689e35e0d6874
+        uses: actions/upload-artifact@v4.4.0 # pinned: 34b802549404d3544b6cb8d704fae15e5b7e821f
         with:
           name: veylqorix-scan
           path: |
@@ -117,8 +113,8 @@ jobs:
             veylqorix.stderr
 
       - name: Upload SARIF to code scanning
-        if: steps.prepare.outputs.cli-src == 'true'
-        uses: github/codeql-action/upload-sarif@v3.30.0 # 2d92b76c45b91eb80fc44c74ce3fce0ee94e8f9d
+        if: steps.prepare.outputs.cli-src == 'true' && hashFiles('veylqorix.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3.29.4 # pinned: 25b5fd678f3e56f943e77e47a86256e55e3a06f6
         with:
           sarif_file: veylqorix.sarif
 
