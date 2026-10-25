@@ -2,7 +2,9 @@ import { describe, expect, it, afterAll, beforeAll } from 'vitest';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createServer, createStore } from '@veylqorix/api';
+// Import the built API package directly (it is not linked into the root
+// node_modules; the same shape of import is used by packages/api's own tests).
+import { createServer, createStore } from '../../packages/api/dist/index.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '..', '..');
