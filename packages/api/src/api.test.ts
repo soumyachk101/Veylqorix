@@ -8,6 +8,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '..', '..', '..');
 const fixtures = path.join(repoRoot, 'tests', 'fixtures');
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper returns arbitrary JSON
 function request(port: number, method: string, urlPath: string, body?: unknown): Promise<{ status: number; json: any }> {
   return new Promise((resolve, reject) => {
     const payload = body ? JSON.stringify(body) : undefined;
@@ -68,7 +69,7 @@ describe('Veylqorix API server', () => {
     expect(ok.status).toBe(201);
     const denied = await request(gport, 'POST', '/api/repositories', { path: '/etc' });
     expect(denied.status).toBe(403);
-    await new Promise<void>((r) => guarded.close(r));
+    await new Promise<void>((resolve, reject) => guarded.close((e) => (e ? reject(e) : resolve())));
   });
 
   it('runs a real scan and exposes findings, gate, and history', async () => {
@@ -108,6 +109,6 @@ describe('Veylqorix API server', () => {
     const history = await request(port, 'GET', `/api/repo/${repoId}/history`);
     expect(history.json.history[0].id).toBe(scanId);
 
-    await new Promise<void>((r) => server.close(r));
+    await new Promise<void>((resolve, reject) => server.close((e) => (e ? reject(e) : resolve())));
   }, 60_000);
 });
