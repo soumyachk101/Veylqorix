@@ -1,12 +1,12 @@
 {
-  "name": "@veylqorix/showcase",
+  "name": "veylqorix-website",
   "version": "0.1.0",
   "private": true,
-  "description": "Standalone showcase site for Veylqorix (same theme as apps/web). Not a pnpm workspace member.",
+  "description": "Showcase website for Veylqorix — Universal AI code security and quality platform.",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
