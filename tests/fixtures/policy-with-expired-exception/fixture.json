@@ -32,6 +32,13 @@
     ]
   },
   "policy": {
+    "blockOnSeverity": ["CRITICAL", "HIGH"],
+    "blockOnSecrets": true,
+    "blockOnTestFailure": true,
+    "blockOnScannerError": true,
+    "blockOnSkippedCheck": true,
+    "reportOnSeverity": ["MEDIUM", "LOW"],
+    "maxExceptions": 5,
     "exceptions": [
       { "ruleId": "vuln-x", "reason": "stale exception from 2020", "expires": "2000-01-01T00:00:00.000Z" },
       { "ruleId": "vuln-y", "reason": "   " },
