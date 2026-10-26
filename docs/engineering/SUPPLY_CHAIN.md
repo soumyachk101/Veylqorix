@@ -33,10 +33,16 @@ Notes:
   build-tooling + optional image dependency). The CLI, API, MCP server, and
   core engine have **zero** audit findings: their trees are `semver`, `zod`,
   `@modelcontextprotocol/sdk` and their transitive deps, none flagged.
-- The only clean fix is a `next` bump (or `overrides` on `postcss`/`sharp`)
-  in `apps/web` — outside this phase's authority to make without compat
-  testing. **BLOCKED, recorded for the lead.** No manifest edits were made
-  here so the lockfile remains in sync.
+- **RESOLVED via pnpm overrides.** `postcss`/`sharp` were pinned
+  transitively by `next@15.5.28`; `pnpm-workspace.yaml` now sets
+  `overrides: { postcss: 8.5.31, sharp: 0.35.5 }`, replacing the vulnerable
+  nested `postcss@8.4.31` and optional `sharp@0.34.5` in place. Both targets
+  sit inside the ranges `next@15.5.28` accepts — proven by the standalone
+  website repo (same next version) resolving exactly these versions and
+  building clean. `next@16` remains the eventual hardening path. Note: pnpm
+  >= 11 reads `overrides` from `pnpm-workspace.yaml`, not the `pnpm` field in
+  `package.json` (a root `pnpm.overrides` key is silently ignored and pnpm
+  warns about it).
 
 ### 1.2 cargo audit — RAN (cargo-audit 0.22.2, 1378 advisories loaded)
 
@@ -147,9 +153,9 @@ placeholder-only.
 
 ## 7. What was not done / blocked for the lead
 
-1. **`apps/web` vulns (8, §1.1)** — need a `next`/`postcss`/`sharp` decision
-   (bump vs `pnpm.overrides`) + lockfile regeneration; flagged BLOCKED here
-   rather than silently bumped.
+1. ~~**`apps/web` vulns (8, §1.1)**~~ — **RESOLVED via pnpm overrides**
+   (`postcss: 8.5.31`, `sharp: 0.35.5` in `pnpm-workspace.yaml`) + lockfile
+   regeneration; see §1.1.
 2. **gitleaks CI download lacks a checksum** (§4) — one-line fix in
    `ci.yml`, owned by the workflows head.
 3. `packages/mcp-server/package.json.bak` left for its owner (§3).

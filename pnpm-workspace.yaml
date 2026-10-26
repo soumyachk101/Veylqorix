@@ -10,3 +10,10 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+
+# Force patched transitive versions under next@15.5.28 (see
+# docs/engineering/SUPPLY_CHAIN.md §1.1). pnpm >= 11 reads overrides from
+# here, not from the pnpm field in package.json.
+overrides:
+  postcss: 8.5.31
+  sharp: 0.35.5
