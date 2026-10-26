@@ -1,9 +1,11 @@
 # Veylqorix continuous integration.
 #
 # Runs the full quality loop on every push and pull request to `main`:
-# install, build, test, typecheck, lint. All third-party actions are pinned
-# to commit SHAs (verified against the action's tagged commit on GitHub) so a
-# tag rewrite upstream cannot change what CI executes.
+# install, build, test, typecheck, lint — for both the TypeScript/pnpm
+# pipeline and the Rust security engine (cargo workspace at crates/).
+# All third-party actions are pinned to commit SHAs (verified against the
+# action's tagged commit on GitHub) so a tag rewrite upstream cannot change
+# what CI executes.
 
 name: CI
 
@@ -38,6 +40,60 @@ jobs:
 
       - name: Build all packages
         run: pnpm -r build
+
+      # Rust security engine (cargo workspace at crates/).
+      #
+      # The cargo commands target the workspace manifest at crates/Cargo.toml
+      # (there is no Cargo.toml at the repo root). These steps build the
+      # release binary at crates/target/release/veylqorix-engine, which MUST
+      # exist before `pnpm test` below: the TypeScript engine-adapter tests
+      # spawn the real engine binary via its stdio protocol.
+      #
+      # `dtolnay/rust-toolchain` installs the Rust toolchain via rustup. Pinned
+      # to the commit that the `v1` tag resolves to (verified against the
+      # action's tagged commit on GitHub).
+      - name: Set up Rust toolchain (stable + clippy + rustfmt)
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+
+      - name: Show installed Rust toolchain
+        run: rustup show
+
+      # External scanners the engine can delegate to. When an install fails the
+      # step is non-fatal: `tests/external-tools.rs` probes each tool at run
+      # time and logs an honest SKIP when it is absent (the unavailable-tool
+      # branches are covered unconditionally by the unit tests in
+      # dependencies.rs / exec.rs).
+      - name: Install cargo-audit
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: cargo install cargo-audit
+
+      - name: Install gitleaks (pinned v8.30.1)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          set -e
+          ver=8.30.1
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${ver}/gitleaks_${ver}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          sudo mkdir -p /opt/gitleaks
+          sudo tar -xzf /tmp/gitleaks.tar.gz -C /opt/gitleaks
+          sudo ln -sf "/opt/gitleaks/gitleaks" /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path crates/Cargo.toml --all -- --check
+
+      - name: Lint Rust (clippy)
+        run: cargo clippy --manifest-path crates/Cargo.toml --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test Rust
+        run: cargo test --manifest-path crates/Cargo.toml --workspace --all-features
+
+      - name: Build Rust engine (release)
+        run: cargo build --manifest-path crates/Cargo.toml --workspace --release
 
       - name: Run tests
         run: pnpm test

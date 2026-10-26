@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* Veylqorix verified brand tokens (from capture of veylqorix.vercel.app) */
+      :root {
+        --color-ground: #e7f4ec;
+        --color-surface: #ffffff;
+        --color-surface-2: #eef7f1;
+        --color-screen: #0c2334;
+        --color-screen-2: #0e2a3d;
+        --color-screen-ink: #e9f7f3;
+        --color-screen-dim: #7fa6a8;
+        --color-ink: #0e2a3d;
+        --color-ink-dim: #3c5b6a;
+        --color-teal: #14b3ad;
+        --color-teal-deep: #0c8a86;
+        --color-mint: #6fe9e2;
+        --color-gold: #f0ac1b;
+        --color-coral: #ef5f5f;
+        --color-lav: #9a8cf5;
+        --shadow-pixel: 4px 4px 0 rgba(15, 44, 64, 0.16);
+        --font-display: "Hanken Grotesk", system-ui, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        --font-pixel: "Press Start 2P", monospace;
+      }
+      @font-face {
+        font-family: "Press Start 2P";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("assets/fonts/db234bd00cda6a96-s.p.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Hanken Grotesk";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--color-ground);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--color-ground);
+      }
+      .scene-host {
+        position: absolute;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="60"
+      data-width="1920"
+      data-height="1080"
+      data-motion-blur="on"
+    >
+      <!-- one scene host per sub-composition; paint order = z-index -->
+      <div id="s1" class="scene-host clip" data-composition-id="s1" data-composition-src="compositions/s1-silence.html" data-start="0" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 1"></div>
+      <div id="s2" class="scene-host clip" data-composition-id="s2" data-composition-src="compositions/s2-complexity.html" data-start="5" data-duration="7" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 2"></div>
+      <div id="s3" class="scene-host clip" data-composition-id="s3" data-composition-src="compositions/s3-reveal.html" data-start="12" data-duration="7" data-track-index="3" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <div id="s4" class="scene-host clip" data-composition-id="s4" data-composition-src="compositions/s4-pipeline.html" data-start="19" data-duration="12" data-track-index="4" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 4"></div>
+      <div id="s5" class="scene-host clip" data-composition-id="s5" data-composition-src="compositions/s5-engine.html" data-start="31" data-duration="9" data-track-index="5" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 5"></div>
+      <div id="s6" class="scene-host clip" data-composition-id="s6" data-composition-src="compositions/s6-confidence.html" data-start="40" data-duration="9" data-track-index="6" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 6"></div>
+      <div id="s7" class="scene-host clip" data-composition-id="s7" data-composition-src="compositions/s7-endcard.html" data-start="49" data-duration="11" data-track-index="7" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 7"></div>
+
+      <!-- sparse SFX bed (bundled, licensed-free). No music source in this environment: delivered without a bed; add via /media-use. -->
+      <audio id="sfx-tick-1" class="clip" src="assets/sfx_002.mp3" data-start="2.3" data-duration="0.4" data-track-index="20" data-volume="0.5"></audio>
+      <audio id="sfx-tick-2" class="clip" src="assets/sfx_001.mp3" data-start="6.2" data-duration="0.4" data-track-index="21" data-volume="0.5"></audio>
+      <audio id="sfx-riser" class="clip" src="assets/sfx_005.mp3" data-start="13.3" data-duration="2.1" data-track-index="22" data-volume="0.9"></audio>
+      <audio id="sfx-tick-3" class="clip" src="assets/sfx_002.mp3" data-start="21.7" data-duration="0.4" data-track-index="23" data-volume="0.5"></audio>
+      <audio id="sfx-tick-4" class="clip" src="assets/sfx_001.mp3" data-start="23.9" data-duration="0.4" data-track-index="24" data-volume="0.5"></audio>
+      <audio id="sfx-tick-5" class="clip" src="assets/sfx_002.mp3" data-start="26.1" data-duration="0.4" data-track-index="25" data-volume="0.5"></audio>
+      <audio id="sfx-pop-1" class="clip" src="assets/sfx_003.mp3" data-start="26.6" data-duration="0.7" data-track-index="26" data-volume="0.7"></audio>
+      <audio id="sfx-hum" class="clip" src="assets/sfx_004.mp3" data-start="31.2" data-duration="5.5" data-track-index="27" data-volume="0.4" data-fade-in="0.6" data-fade-out="0.8"></audio>
+      <audio id="sfx-tick-6" class="clip" src="assets/sfx_001.mp3" data-start="32.2" data-duration="0.4" data-track-index="28" data-volume="0.5"></audio>
+      <audio id="sfx-pop-2" class="clip" src="assets/sfx_003.mp3" data-start="44.3" data-duration="0.7" data-track-index="29" data-volume="0.7"></audio>
+      <audio id="sfx-endcard" class="clip" src="assets/sfx_006.mp3" data-start="50.4" data-duration="0.4" data-track-index="30" data-volume="0.6"></audio>
+      <!-- audio (music bed + exact SFX) added after sourcing -->
+    </div>
+    <script>
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

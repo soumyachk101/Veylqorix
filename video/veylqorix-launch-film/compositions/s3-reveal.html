@@ -1,0 +1,211 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Press Start 2P";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url("assets/fonts/db234bd00cda6a96-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #e7f4ec;
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+    }
+    .s3-dark {
+      position: absolute;
+      inset: 0;
+      background: #0c2334;
+      opacity: 0;
+    }
+    .s3-panel {
+      position: absolute;
+      left: 960px;
+      top: 560px;
+      width: 120px;
+      height: 120px;
+      margin: -60px 0 0 -60px;
+      background: #0c2334;
+      box-shadow: 0 40px 90px rgba(12, 35, 52, 0.35);
+      border-radius: 2px;
+    }
+    .s3-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .s3-markwrap {
+      position: relative;
+    }
+    .s3-mark {
+      position: relative;
+      width: 980px;
+    }
+    .s3-mark img {
+      display: block;
+      width: 100%;
+    }
+    .s3-scan {
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      top: 0;
+      height: 3px;
+      background: #6fe9e2;
+      box-shadow: 0 0 18px rgba(111, 233, 226, 0.5);
+      opacity: 0;
+    }
+    .s3-matte {
+      position: absolute;
+      inset: 0;
+      background: #0c2334;
+    }
+    .s3-title {
+      margin-top: 40px;
+      font-size: 88px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #e9f7f3;
+      line-height: 1;
+    }
+    .s3-title .w {
+      display: inline-block;
+      margin: 0 0.18em;
+    }
+    .s3-sub {
+      margin-top: 44px;
+      font-family: "Press Start 2P", monospace;
+      font-size: 30px;
+      letter-spacing: 0.06em;
+      color: #7fa6a8;
+      opacity: 0;
+    }
+    .s3-sub .acc {
+      color: #6fe9e2;
+    }
+    .s3-glow {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 900px;
+      height: 500px;
+      margin: -250px 0 0 -450px;
+      background: radial-gradient(ellipse at center, rgba(20, 179, 173, 0.16), transparent 62%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .s3-sweep {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 42%, rgba(111, 233, 226, 0.1) 50%, transparent 58%);
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+  <div id="root" data-composition-id="s3" data-width="1920" data-height="1080">
+    <!-- the fragment's panel, carried from the previous world -->
+    <div id="s3-panel" class="clip s3-panel" data-start="0" data-duration="1.4" data-layout-ignore data-track-index="0"></div>
+    <!-- the dark world floods the frame (colour flood, ~0.8 s) -->
+    <div id="s3-dark" class="clip s3-dark" data-start="0" data-duration="7" data-layout-ignore data-track-index="1"></div>
+
+    <!-- the reveal stage -->
+    <div id="s3-stage" class="clip s3-stage" data-start="0.7" data-duration="6.3" data-track-index="2">
+      <div id="s3-glow" class="s3-glow"></div>
+      <div id="s3-markwrap" class="s3-markwrap">
+        <div class="s3-mark">
+          <img id="s3-logo" src="assets/wordmark-text.png" alt="" draggable="false" />
+          <div id="s3-matte" class="s3-matte"></div>
+        </div>
+        <div id="s3-scan" class="s3-scan"></div>
+      </div>
+      <h2 id="s3-title" class="s3-title">
+        <span class="t">
+          <span class="w">Meet</span>
+          <span class="w">Veylqorix.</span>
+        </span>
+      </h2>
+      <p id="s3-sub" class="s3-sub">No <span class="acc">Unsafe</span> Code Gets Through.</p>
+      <div id="s3-sweep" class="s3-sweep"></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // fragment grows into a panel, then the panel floods the frame (object becomes the world)
+    tl.fromTo("#s3-panel", { scale: 1 }, { scale: 15, duration: 0.85, ease: "power2.inOut", transformOrigin: "center" }, 0.05);
+    tl.to("#s3-panel", { opacity: 0, duration: 0.3, ease: "power1.out" }, 0.75);
+    // the dark world floods in
+    tl.fromTo("#s3-dark", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.inOut" }, 0.15);
+    // stage content fades up from the flood
+    tl.fromTo("#s3-stage", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.75);
+    // the real wordmark performs in: matte lifts, teal scanline passes, 4 slices rise
+    const logo = document.getElementById("s3-logo");
+    const markEl = logo.parentElement;
+    // build 4 horizontal slices of the real logo from one offscreen canvas
+    const cw = logo.naturalWidth || 980;
+    const ch = logo.naturalHeight || 320;
+    const slices = [];
+    const NSLICE = 4;
+    for (let i = 0; i < NSLICE; i++) {
+      const cv = document.createElement("canvas");
+      cv.width = cw;
+      cv.height = Math.ceil(ch / NSLICE);
+      const ctx = cv.getContext("2d");
+      ctx.drawImage(logo, 0, i * (ch / NSLICE), cw, ch / NSLICE, 0, 0, cw, ch / NSLICE);
+      const im = new Image();
+      im.src = cv.toDataURL("image/png");
+      im.alt = "";
+      im.draggable = false;
+      im.style.cssText =
+        "position:absolute;left:0;width:100%;opacity:0;" +
+        "top:" + (i * (100 / NSLICE)).toFixed(3) + "%;" +
+        "height:" + (100 / NSLICE).toFixed(3) + "%;";
+      markEl.insertBefore(im, markEl.firstChild);
+      slices.push(im);
+    }
+    tl.set("#s3-matte", { opacity: 0 }, 0.7);
+    tl.set(logo, { opacity: 0 }, 0.7);
+    tl.set("#s3-title .t", { opacity: 0 }, 0.7);
+    // scanline sweep across the mark
+    tl.fromTo("#s3-scan", { opacity: 0, y: 0 }, { opacity: 1, duration: 0.1 }, 1.05);
+    tl.to("#s3-scan", { y: "150px", duration: 0.9, ease: "power1.inOut" }, 1.1);
+    tl.to("#s3-scan", { opacity: 0, duration: 0.15 }, 2.0);
+    // slices rise with the scanline
+    slices.forEach((s, i) => {
+      tl.fromTo(s, { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 1.15 + i * 0.11);
+    });
+    // gentle underglow and a slow orbit-settle dolly on the stage
+    tl.fromTo("#s3-glow", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "power2.out" }, 1.3);
+    tl.fromTo("#s3-stage", { scale: 1.04 }, { scale: 1, duration: 4.5, ease: "power2.out" }, 0.8);
+    // "Meet Veylqorix."
+    tl.fromTo("#s3-title .w", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out", stagger: 0.09 }, 1.75);
+    tl.to("#s3-title .t", { opacity: 1, duration: 0.01 }, 1.75);
+    // a single light sweep across the frame (restrained)
+    tl.fromTo("#s3-sweep", { opacity: 0, x: -600 }, { opacity: 1, x: 600, duration: 1.1, ease: "power2.inOut" }, 2.0);
+    tl.to("#s3-sweep", { opacity: 0, duration: 0.2 }, 3.1);
+    // tagline (pixel) — breathing room
+    tl.fromTo("#s3-sub", { opacity: 0, filter: "blur(5px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "power3.out" }, 3.9);
+    // hold; final fade of the stage into the next world
+    tl.to("#s3-stage", { opacity: 0, duration: 0.3, ease: "power2.in" }, 6.6);
+    window.__timelines["s3"] = tl;
+  </script>
+</template>

@@ -42,6 +42,26 @@ via branch protection or a ruleset:
 Until that is configured the gate is advisory: it runs, produces findings, and
 exits non-zero, but GitHub will not block the merge.
 
+## Rust engine
+
+The CI workflow (`.github/workflows/ci.yml`) also builds and validates the
+Rust security engine in `crates/`: it sets up the Rust toolchain (stable,
+with clippy and rustfmt), then runs `cargo fmt --check`, `cargo clippy`,
+`cargo test`, and a release build — all before `pnpm test`, because the
+TypeScript engine-adapter tests spawn the real engine binary at
+`crates/target/release/veylqorix-engine` over its stdio protocol.
+
+The gate workflow builds the release engine in the monorepo branch: when the
+CLI is built from source, the engine binary is compiled with
+`cargo build --workspace --release` before the scan runs, so the CLI's
+engine adapter can find it. If the binary is missing, the engine reports
+itself as a skipped scanner in the scan response (never as a non-zero
+exit).
+
+As with the rest of the gate, requiring the gate check via branch
+protection or a ruleset is the caller's responsibility — the workflows
+themselves do not block merges.
+
 ## Permissions
 
 The workflow requests `contents: read` and `security-events: write` only.

@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = ["veylqorix-engine"]
+
+[profile.release]
+# Keep the engine small and fast; it is spawned per scan by the CLI/MCP/API.
+opt-level = 3
+lto = "thin"

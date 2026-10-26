@@ -1,0 +1,133 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #e7f4ec;
+      overflow: hidden;
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+    }
+    .s1-grid {
+      position: absolute;
+      inset: -120px;
+      background-image: linear-gradient(rgba(15, 44, 64, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 44, 64, 0.055) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.5;
+    }
+    .s1-pix {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #0e2a3d;
+      box-shadow: 4px 4px 0 rgba(15, 44, 64, 0.16);
+    }
+    .s1-chip {
+      position: absolute;
+      background: #ffffff;
+      border: 4px solid #0f2c40;
+      box-shadow: 4px 4px 0 rgba(15, 44, 64, 0.16);
+      padding: 12px 20px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 30px;
+      font-weight: 500;
+      color: #0e2a3d;
+      white-space: nowrap;
+    }
+    .s1-chip .k {
+      color: #0c8a86;
+      font-weight: 700;
+    }
+    .s1-chip .r {
+      color: #a83232;
+      font-weight: 700;
+    }
+    .s1-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 640px;
+      text-align: center;
+      font-size: 96px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0e2a3d;
+      line-height: 1;
+    }
+    .s1-title .w {
+      display: inline-block;
+      margin: 0 0.18em;
+    }
+    .s1-title .w.hl {
+      color: #0a6b67;
+    }
+  </style>
+  <div id="root" data-composition-id="s1" data-width="1920" data-height="1080">
+    <div id="s1-grid" class="clip s1-grid" data-start="0" data-duration="5" data-layout-ignore data-track-index="0"></div>
+
+    <div id="s1-pixels" class="clip" data-start="0" data-duration="5" data-track-index="1" data-layout-ignore>
+      <div class="s1-pix p" style="left: 780px; top: 240px"></div>
+      <div class="s1-pix p" style="left: 850px; top: 205px"></div>
+      <div class="s1-pix p" style="left: 930px; top: 240px"></div>
+      <div class="s1-pix p" style="left: 1010px; top: 205px"></div>
+      <div class="s1-pix p" style="left: 1080px; top: 240px; background: #14b3ad"></div>
+      <div class="s1-pix p" style="left: 890px; top: 300px"></div>
+      <div class="s1-pix p" style="left: 970px; top: 300px"></div>
+      <div class="s1-pix p" style="left: 1050px; top: 300px; background: #ef5f5f"></div>
+    </div>
+
+    <div id="s1-chips" class="clip" data-start="0.9" data-duration="4.1" data-track-index="2">
+      <div class="s1-chip c" style="left: 180px; top: 430px">diff <span class="k">+42</span> <span class="r">−7</span></div>
+      <div class="s1-chip c" style="left: 1440px; top: 380px">Cargo.lock</div>
+      <div class="s1-chip c" style="left: 1490px; top: 760px">manifest.json</div>
+    </div>
+
+    <h1 id="s1-title" class="clip" data-start="1.6" data-duration="3.2" data-track-index="3">
+      <span class="t">
+        <span class="w">Every</span>
+        <span class="w">line</span>
+        <span class="w">of</span>
+        <span class="w hl">code</span>
+        <span class="w">carries</span>
+        <span class="w">a</span>
+        <span class="w">decision.</span>
+      </span>
+    </h1>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // grid drifts slowly (camera, not content)
+    tl.fromTo("#s1-grid", { x: 0, y: 0 }, { x: -48, y: -32, duration: 4.9, ease: "power1.out" }, 0);
+    // pixels settle with a premium spring
+    tl.fromTo(
+      "#s1-pixels .p",
+      { y: -24 },
+      { y: 0, duration: 0.5, ease: "back.out(1.25)", stagger: 0.09 },
+      0.1
+    );
+    // code chips rise on their hard shadow, long-tail arrivals
+    tl.fromTo("#s1-chips .c", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", stagger: 0.14 }, 0.95);
+    // gentle parallax drift on the world
+    tl.to("#s1-chips", { x: -18, y: 10, duration: 3.9, ease: "power1.inOut" }, 1.2);
+    tl.to("#s1-pixels", { y: 14, duration: 3.6, ease: "power1.inOut" }, 1.4);
+    // title: word-by-word blur-in, dead still after landing
+    tl.fromTo("#s1-title .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, ease: "power4.out", stagger: 0.067 }, 1.7);
+    // exit: blur-out lands before the clip end
+    tl.to("#s1-title .t", { opacity: 0, filter: "blur(5px)", duration: 0.25, ease: "power2.in" }, 4.3);
+    window.__timelines["s1"] = tl;
+  </script>
+</template>

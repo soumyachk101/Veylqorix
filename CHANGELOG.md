@@ -2,6 +2,48 @@
 
 All notable changes to Veylqorix are documented here.
 
+## Unreleased
+
+### Rust security engine (`crates/veylqorix-engine`)
+- New pure-Rust engine crate (`crates/`, workspace manifest at
+  `crates/Cargo.toml`): deterministic policy resolution, gate evaluation,
+  exit-code mapping (0 PASS / 1 FAIL / 2 INCOMPLETE, plus the strict variant),
+  and the offline secret scanner, exposed over a bounded JSON-over-stdio
+  protocol (`PROTOCOL_VERSION` 1, `SCHEMA_VERSION` 1; 8 MiB input / 16 MiB
+  output caps; process exit 0/64/65/70 — a scanner failure inside a scan is a
+  `SKIPPED`/`ERROR` result, never a non-zero exit).
+- Byte-compatible with the TypeScript core: same stable finding ids (e.g.
+  `SECRETS-8C5562BA`), same redaction format (`AKIA…CDEF (20 chars,
+  redacted)`), same gate and `exitCodeFor`/`strictExitCode` mapping —
+  cross-verified by 60 passing tests (`cargo test` in `crates/`), including
+  golden vectors, gate differential tests, secret-parity tests, and
+  protocol e2e tests that spawn the real binary.
+- Gitleaks delegation (`preferGitleaks`, opt-in; built-in offline rules stay
+  the authoritative default) and `cargo audit` for Rust ecosystems
+  (`runCargoAudit`); missing tools or a missing lockfile are reported
+  `SKIPPED`, timeouts `ERROR` — never a silent pass.
+- CI (`.github/workflows/ci.yml`) sets up the Rust toolchain and runs
+  `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`, and a
+  release build before the TypeScript suite.
+- Compatibility: CLI exit codes (0/1/2/64/65/70), MCP tool contracts, API
+  routes, the finding schema, and redaction behavior are unchanged.
+- TypeScript adapter (`packages/core/src/engine/index.ts`): resolves the
+  binary (`VEYLQORIX_ENGINE` env var, then `crates/target/release`, then
+  `crates/target/debug`), spawns it with one JSON request on stdin and one
+  JSON response on stdout under a byte cap and a wall-clock timeout, and
+  classifies failures into structured errors
+  (`EngineUnavailableError`, `EngineProtocolError`, `EngineResponseError`,
+  `EngineTimeoutError`). Invoked by `runAudit` in
+  `packages/core/src/audit.ts`, so the CLI, MCP server, and API all use the
+  engine when the binary is present.
+- Status: the engine is implemented, integrated, and verified. When the
+  binary is available, `runAudit` is authoritative through the engine
+  (secret scanner + gate + exit codes); when it is unavailable (or a caller
+  requests deterministic secret mocks), `runAudit` degrades to the
+  byte-compatible TypeScript secret scanner/policy engine and records a
+  **labeled** compatibility-mode note on the secret scanner result, never a
+  silent pass. Details: `docs/engine.md`.
+
 ## 0.1.1 (2026-10-25)
 
 Next.js dashboard, MCP tooling, CLI/hooks hardening, CI pinning.

@@ -1,0 +1,113 @@
+[span] Veylqorix
+[span] No unsafe code gets through
+[a] Changelog
+[span] No Unsafe Code Gets Through
+[span] showcase
+[h1] Verify the code your agents wrote.
+[span] Before it ships.
+[p] Veylqorix independently verifies AI-generated and human-written code before it is committed, pushed, merged, or deployed. It orchestrates real scanners — dependency auditing, secret detection, license checks, static analysis, and test suites — normalizes their output into one finding schema, and turns it into a deterministic gate decision with auditable evidence.
+[a] Read the build story
+[a] See the changelog
+[span] veylqorix / gate-decision (illustrative)
+[span] veylqorix
+[p] $ veylqorix scan . --json
+[span] 23 findings
+[p] · 2 critical · 5 high · 8 medium · 8 low
+[span] CRIT
+[p] secret: AWS access key in config.js:12 — AKIA…CDEF (20 chars, redacted)
+[span] HIGH
+[p] vulnerable dependency: lodash@4.17.15
+[span] MED
+[p] license risk: GPL dependency in an MIT project
+[span] PASS
+[span] · exit
+[span] FAIL
+[span] · exit
+[span] INCOMPLETE
+[span] · exit
+[p] Illustrative output. Exit 2 (INCOMPLETE) means degraded coverage — never a clean pass.
+[span] Why Veylqorix
+[h2] Four guarantees
+[p] AI coding agents now write a large share of production code — fast, plausible, and occasionally unsafe. Lint and CI pipelines were not designed to verify that volume. Veylqorix fills the gap:
+[p] Guarantee 01
+[h3] Real evidence, no fabrication
+[p] Every finding, severity, and exit code comes from an actual scanner run. A check that cannot run is reported SKIPPED or ERROR with a reason — never a clean pass.
+[p] Guarantee 02
+[h3] One engine, many surfaces
+[p] CLI, MCP, GitHub Actions, and the dashboard are thin adapters over a single core, so security logic exists in exactly one place and behaves identically everywhere.
+[p] Guarantee 03
+[h3] Deterministic gate
+[p] Exit codes are stable — 0 PASS, 1 FAIL, 2 INCOMPLETE — so CI branching is predictable and auditable run to run.
+[p] Guarantee 04
+[h3] Agent-safe policy
+[p] An AI agent cannot suppress findings or raise thresholds: exceptions must be documented, capped, expirable, and visible in the committed policy file and every gate report.
+[span] One engine, many surfaces
+[h2] Where Veylqorix plugs in
+[p] Every surface is a thin adapter over the same core engine (
+[code] packages/core
+[p] ), so there is exactly one place where security logic lives:
+[h3] CLI
+[p] Real scans, deterministic exit codes, safe dry-run hook installer. Not published to npm yet — run from dist/.
+[h3] MCP server
+[p] Six validated tools, root-confinement + redaction. Requires pnpm build.
+[h3] GitHub Actions gate
+[p] Real scan + SARIF upload, all actions pinned to SHAs. Advisory until a branch-protection rule requires the check.
+[h3] Agent skills
+[p] Portable SKILL.md plus MCP configs for Claude Code, Codex, and Cursor.
+[h3] Dashboard
+[p] Live scan data from the API; clearly-labeled DEMO MODE when the API is down.
+[p] Honest note
+[p] The gate and the CLI hooks are
+[strong] advisory
+[p] until enforcement is in place — a branch-protection rule that requires the check, or a published CLI. Findings are produced and the check fails; a merge can still be forced. That is stated everywhere, never hidden.
+[span] How it works
+[h2] Scanner adapters reuse real tools
+[th] Scanner
+[th] Backed by
+[th] Offline?
+[td] Dependencies
+[td] npm audit (Node) / pip-audit (Python)
+[td] optional
+[td] Secrets
+[td] Rust engine secret scanner (offline, 9 families) — TypeScript fallback, redacted values
+[td] yes
+[td] Licenses
+[td] manifest-level license checks, copyleft risk
+[td] yes
+[td] Quality
+[td] tsc, eslint, ruff, project test scripts
+[p] System architecture — entry points reach one core engine; results fan out to CLI, API, and CI surfaces.
+[p] Scan lifecycle — normalize before judging, gate failures are first-class, verify don't trust.
+[span] Honest limitations
+[h2] What Veylqorix is not
+[p] Read this first
+[li] Veylqorix reports what its scanners found. It does not certify the
+[em] absence
+[li] of vulnerabilities or secrets.
+[li] A scanner that cannot run makes the gate INCOMPLETE (exit 2) — degraded coverage is surfaced, never green-washed.
+[li] Regex secret detection has false positives and negatives; it complements tools like Gitleaks, it does not replace them.
+[li] License scanning is manifest-level, not a transitive license audit. A clean quality check is not a security certification.
+[blockquote] A check that cannot run is reported SKIPPED or ERROR with a reason. Veylqorix surfaces incomplete audits instead of green-washing them.
+[figcaption] docs/faq.md — honest limitations
+[span] Keep going
+[h2] The full story, in three places
+[p] Story
+[p] How it was built
+[p] Five diary-style posts: the gap, the eight-day board, INCOMPLETE, one engine, and the sync loop.
+[p] Changelog
+[p] 0.1.0 → 0.1.1, then Rust
+[p] Every release, every group of changes — now including the Rust security engine wired in through a TypeScript adapter.
+[p] Tour
+[p] Inside the platform
+[p] CLI, MCP, API, dashboard, GitHub gate, security model, and community ground rules.
+[a] The eight-day roadmap
+[a] GitHub repository
+[p] checklist: 3 of 5 release items open
+[p] A universal code-security and quality platform that verifies AI-generated and human-written code before it ships.
+[p] MIT licensed
+[a] Changelog
+[p] Docs & GitHub
+[a] Tour: CLI
+[a] Tour: MCP
+[a] Tour: GitHub gate
+[p] Veylqorix reports what its scanners found. It does not certify the absence of vulnerabilities.

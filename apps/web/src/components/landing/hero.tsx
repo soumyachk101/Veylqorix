@@ -99,12 +99,12 @@ export function Hero() {
         {/* Right: a mock "scan result" screen in the pixel-box language */}
         <div className="pixel-box--screen press rounded p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <span className="pixel-label-sm text-mint">veylq / security-report</span>
+            <span className="pixel-label-sm text-mint">veylqorix / security-report</span>
             <span className="pixel-label-sm text-coral">GATE · FAIL</span>
           </div>
 
           <div className="mt-4 space-y-2 font-mono text-[13px] leading-relaxed text-screen-ink">
-            <p className="text-screen-dim">$ veylq scan --staged --strict</p>
+            <p className="text-screen-dim">$ veylqorix scan . --staged --json</p>
             <p>
               <span className="text-mint">23 findings</span> · 2 critical · 5 high · 8 med · 9 low
             </p>

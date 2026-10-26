@@ -1,0 +1,197 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #e7f4ec;
+      overflow: hidden;
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+    }
+    .s2-grid {
+      position: absolute;
+      inset: -120px;
+      background-image: linear-gradient(rgba(15, 44, 64, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 44, 64, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.45;
+    }
+    /* layered parallax cards, back to front */
+    .s2-card {
+      position: absolute;
+      background: #ffffff;
+      border: 4px solid #0f2c40;
+      box-shadow: 4px 4px 0 rgba(15, 44, 64, 0.16);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .s2-card .h {
+      background: #0f2c40;
+      color: #e9f7f3;
+      font-size: 28px;
+      font-weight: 700;
+      padding: 8px 14px;
+      letter-spacing: 0.04em;
+    }
+    .s2-card .h .tag {
+      float: right;
+      margin-left: 12px;
+      color: #6fe9e2;
+      font-weight: 500;
+    }
+    .s2-card .b {
+      padding: 12px 16px;
+      font-size: 28px;
+      line-height: 1.4;
+      color: #0e2a3d;
+    }
+    .s2-card .b .dim {
+      color: #3c5b6a;
+    }
+    .s2-node {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #14b3ad;
+      box-shadow: 3px 3px 0 rgba(15, 44, 64, 0.14);
+    }
+    .s2-node.risk {
+      background: #ef5f5f;
+    }
+    .s2-edge {
+      position: absolute;
+      height: 3px;
+      background: #0c8a86;
+      transform-origin: left center;
+    }
+    .s2-edge.risk {
+      background: #ef5f5f;
+      opacity: 0.85;
+    }
+    .s2-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 810px;
+      text-align: center;
+      font-size: 88px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0e2a3d;
+      line-height: 1;
+    }
+    .s2-title .w {
+      display: inline-block;
+      margin: 0 0.18em;
+    }
+    .s2-title .w.hl {
+      color: #ef5f5f;
+    }
+    .s2-frag {
+      position: absolute;
+      left: 956px;
+      top: 532px;
+      width: 56px;
+      height: 56px;
+      background: #0f2c40;
+      box-shadow: 6px 6px 0 rgba(15, 44, 64, 0.16);
+    }
+  </style>
+  <div id="root" data-composition-id="s2" data-width="1920" data-height="1080">
+    <div id="s2-grid" class="clip s2-grid" data-start="0" data-duration="7" data-layout-ignore data-track-index="0"></div>
+
+    <div id="s2-back" class="clip" data-start="0" data-duration="7" data-layout-ignore data-track-index="1">
+      <div class="s2-card" style="left: 140px; top: 150px; width: 330px">
+        <div class="h">package.json <span class="tag">npm</span></div>
+        <div class="b"><span class="dim">dependencies</span><br>react · 24 … lodash@4.17.15</div>
+      </div>
+      <div class="s2-card" style="left: 140px; top: 380px; width: 330px">
+        <div class="h">Cargo.lock <span class="tag">rust</span></div>
+        <div class="b"><span class="dim">97 packages · </span>3 outdated</div>
+      </div>
+      <div class="s2-card" style="left: 1450px; top: 170px; width: 330px">
+        <div class="h">src/app <span class="tag">ts</span></div>
+        <div class="b"><span class="dim">184 files · </span>diff +132 −51</div>
+      </div>
+    </div>
+
+    <div id="s2-mid" class="clip" data-start="0.4" data-duration="6.6" data-track-index="2">
+      <div class="s2-node" style="left: 560px; top: 210px"></div>
+      <div class="s2-node" style="left: 560px; top: 430px"></div>
+      <div class="s2-node" style="left: 760px; top: 320px"></div>
+      <div class="s2-node risk" style="left: 880px; top: 210px"></div>
+      <div class="s2-node risk" style="left: 880px; top: 450px"></div>
+      <div class="s2-node" style="left: 1100px; top: 320px"></div>
+      <div class="s2-node" style="left: 1300px; top: 230px"></div>
+      <div class="s2-node" style="left: 1300px; top: 440px"></div>
+      <div class="s2-edge" style="left: 576px; top: 221px; width: 170px; transform: rotate(33deg)"></div>
+      <div class="s2-edge" style="left: 576px; top: 441px; width: 170px; transform: rotate(-33deg)"></div>
+      <div class="s2-edge risk" style="left: 776px; top: 331px; width: 88px; transform: rotate(52deg)"></div>
+      <div class="s2-edge risk" style="left: 776px; top: 329px; width: 88px; transform: rotate(-52deg)"></div>
+      <div class="s2-edge" style="left: 1116px; top: 331px; width: 168px; transform: rotate(-27deg)"></div>
+      <div class="s2-edge" style="left: 1116px; top: 309px; width: 168px; transform: rotate(27deg)"></div>
+    </div>
+
+    <div id="s2-fore" class="clip" data-start="0.8" data-duration="6.2" data-track-index="3">
+      <div class="s2-card" style="left: 1400px; top: 640px; width: 380px">
+        <div class="h">.github/workflows</div>
+        <div class="b"><span class="dim">gate · </span>shas pinned</div>
+      </div>
+      <div class="s2-card" style="left: 150px; top: 640px; width: 380px">
+        <div class="h">deps graph</div>
+        <div class="b"><span class="dim">4,182 edges · </span>2 risk</div>
+      </div>
+    </div>
+
+    <h2 id="s2-title" class="clip" data-start="0.6" data-duration="4.6" data-track-index="4">
+      <span class="t">
+        <span class="w">But</span>
+        <span class="w">not</span>
+        <span class="w">every</span>
+        <span class="w">change</span>
+        <span class="w">is</span>
+        <span class="w hl">safe</span>
+        <span class="w">to</span>
+        <span class="w">ship.</span>
+      </span>
+    </h2>
+
+    <div id="s2-frag" class="clip s2-frag" data-start="6.2" data-duration="0.8" data-layout-ignore data-track-index="5"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // world drift: back layer slowest, front fastest (parallax)
+    tl.fromTo("#s2-back", { x: 40 }, { x: -30, duration: 6.9, ease: "power1.inOut" }, 0);
+    tl.fromTo("#s2-mid", { x: 80 }, { x: -60, duration: 6.5, ease: "power1.inOut" }, 0.4);
+    tl.fromTo("#s2-fore", { x: 140 }, { x: -100, duration: 6.1, ease: "power1.inOut" }, 0.8);
+    tl.fromTo("#s2-grid", { x: 0 }, { x: -60, duration: 6.9, ease: "power1.out" }, 0);
+    // cards rise into place
+    tl.fromTo("#s2-back .s2-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.12 }, 0.15);
+    tl.fromTo("#s2-fore .s2-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.12 }, 0.55);
+    // graph nodes pop, edges draw
+    tl.fromTo("#s2-mid .s2-node", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.5)", transformOrigin: "center", stagger: 0.07 }, 0.7);
+    tl.fromTo("#s2-mid .s2-edge", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power3.out", stagger: 0.08 }, 1.1);
+    // risk nodes flag once with a brief coral flash (opacity only, no loop)
+    tl.fromTo("#s2-mid .s2-node.risk", { opacity: 1 }, { opacity: 0.45, duration: 0.35, ease: "power2.inOut", stagger: 0.1 }, 2.2);
+    tl.to("#s2-mid .s2-node.risk", { opacity: 1, duration: 0.4, ease: "power2.out" }, 3.0);
+    // title lands word-by-word, holds, exits with the world's move
+    tl.fromTo("#s2-title .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, ease: "power4.out", stagger: 0.067 }, 0.65);
+    tl.to("#s2-title .t", { opacity: 0, filter: "blur(5px)", duration: 0.25, ease: "power2.in" }, 4.95);
+    // the fragment: appears, then grows — it is the object that becomes the next world
+    tl.fromTo("#s2-frag", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power4.out", transformOrigin: "center" }, 6.2);
+    tl.to("#s2-frag", { scale: 3.4, duration: 0.75, ease: "power3.in", transformOrigin: "center" }, 6.38);
+    window.__timelines["s2"] = tl;
+  </script>
+</template>

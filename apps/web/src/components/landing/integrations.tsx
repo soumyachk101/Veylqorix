@@ -39,8 +39,11 @@ const MCP_SNIPPET = [
   '  "mcpServers": {',
   '    "veylqorix": {',
   '      "command": "node",',
-  '      "args": ["/path/to/veylqorix/packages/mcp-server/dist/bin.js"],',
-  '      "env": { "VEYLQORIX_ROOTS": "/path/to/your/project" }',
+  '      "args": ["/ABSOLUTE/PATH/to/Veylqorix/packages/mcp-server/dist/bin.js"],',
+  '      "env": {',
+  '        "VEYLQORIX_ROOTS": "/ABSOLUTE/PATH/to/your/project",',
+  '        "VEYLQORIX_TIMEOUT_MS": "120000"',
+  '      }',
   '    }',
   '  }',
   '}',
@@ -61,11 +64,12 @@ export function Integrations() {
           </div>
           <h3 className="mt-4 text-lg font-extrabold text-ink">MCP server</h3>
           <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-            Real tools for AI agents — <code className="font-mono text-[13px]">scan_project</code>,{' '}
-            <code className="font-mono text-[13px]">check_dependencies</code>,{' '}
-            <code className="font-mono text-[13px]">detect_secrets</code>,{' '}
-            <code className="font-mono text-[13px]">get_audit_report</code>,{' '}
-            <code className="font-mono text-[13px]">verify_quality_gate</code>. Claude Code, Codex,
+            Six validated tools for AI agents — <code className="font-mono text-[13px]">scan_repository</code>,{' '}
+            <code className="font-mono text-[13px]">scan_dependencies</code>,{' '}
+            <code className="font-mono text-[13px]">scan_secrets</code>,{' '}
+            <code className="font-mono text-[13px]">run_security_checks</code>,{' '}
+            <code className="font-mono text-[13px]">get_findings</code>,{' '}
+            <code className="font-mono text-[13px]">validate_fix</code>. Claude Code, Codex,
             and Cursor share one server config.
           </p>
         </div>

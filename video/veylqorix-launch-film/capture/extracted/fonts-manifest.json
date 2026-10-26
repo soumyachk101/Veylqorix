@@ -1,0 +1,256 @@
+{
+  "files": [
+    {
+      "file": "313510e2713fb214-s.p.woff2",
+      "family": "Hanken Grotesk",
+      "rawFamily": "Hanken Grotesk",
+      "subfamily": "Regular",
+      "postscript": "HankenGrotesk-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "558ca1a6aa3cb55e-s.p.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "64d784ea54a4acde-s.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "6d831b18ae5b01dc-s.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "851c4691abdf3def-s.woff2",
+      "family": "Hanken Grotesk",
+      "rawFamily": "Hanken Grotesk",
+      "subfamily": "Regular",
+      "postscript": "HankenGrotesk-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "a06229eb79a83cfc-s.woff2",
+      "family": "Press Start 2P",
+      "rawFamily": "Press Start 2P",
+      "subfamily": "Regular",
+      "postscript": "PressStart2P-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "a6c19694cd327cd4-s.woff2",
+      "family": "Hanken Grotesk",
+      "rawFamily": "Hanken Grotesk",
+      "subfamily": "Regular",
+      "postscript": "HankenGrotesk-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "a8a8dd7277bab4cf-s.woff2",
+      "family": "Hanken Grotesk",
+      "rawFamily": "Hanken Grotesk",
+      "subfamily": "Regular",
+      "postscript": "HankenGrotesk-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "ac0e76ddaeeb7981-s.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "c9e224327ce7933e-s.woff2",
+      "family": "Press Start 2P",
+      "rawFamily": "Press Start 2P",
+      "subfamily": "Regular",
+      "postscript": "PressStart2P-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "d85064eaed4b8683-s.woff2",
+      "family": "Press Start 2P",
+      "rawFamily": "Press Start 2P",
+      "subfamily": "Regular",
+      "postscript": "PressStart2P-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "db234bd00cda6a96-s.p.woff2",
+      "family": "Press Start 2P",
+      "rawFamily": "Press Start 2P",
+      "subfamily": "Regular",
+      "postscript": "PressStart2P-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "dbbdd2d89d2ef0ef-s.woff2",
+      "family": "Press Start 2P",
+      "rawFamily": "Press Start 2P",
+      "subfamily": "Regular",
+      "postscript": "PressStart2P-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "edc640959b0c7826-s.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "ff71da380fbe67dd-s.woff2",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [
+        "wght"
+      ],
+      "identified": true,
+      "isIcon": false
+    }
+  ],
+  "families": [
+    {
+      "family": "Hanken Grotesk",
+      "weights": [
+        400
+      ],
+      "variable": true,
+      "fileCount": 4,
+      "files": [
+        "313510e2713fb214-s.p.woff2",
+        "851c4691abdf3def-s.woff2",
+        "a6c19694cd327cd4-s.woff2",
+        "a8a8dd7277bab4cf-s.woff2"
+      ]
+    },
+    {
+      "family": "JetBrains Mono",
+      "weights": [
+        400
+      ],
+      "variable": true,
+      "fileCount": 6,
+      "files": [
+        "558ca1a6aa3cb55e-s.p.woff2",
+        "64d784ea54a4acde-s.woff2",
+        "6d831b18ae5b01dc-s.woff2",
+        "ac0e76ddaeeb7981-s.woff2",
+        "edc640959b0c7826-s.woff2",
+        "ff71da380fbe67dd-s.woff2"
+      ]
+    },
+    {
+      "family": "Press Start 2P",
+      "weights": [
+        400
+      ],
+      "variable": false,
+      "fileCount": 5,
+      "files": [
+        "a06229eb79a83cfc-s.woff2",
+        "c9e224327ce7933e-s.woff2",
+        "d85064eaed4b8683-s.woff2",
+        "db234bd00cda6a96-s.p.woff2",
+        "dbbdd2d89d2ef0ef-s.woff2"
+      ]
+    }
+  ],
+  "unidentified": [],
+  "meta": {
+    "generatedAt": "2026-10-26T10:53:04.973Z",
+    "tool": "fontkit"
+  }
+}

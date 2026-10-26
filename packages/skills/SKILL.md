@@ -56,7 +56,9 @@ MCP tools (when the veylqorix server is connected):
   quality checks, and the gate. Structured findings + gate decision.
 - `scan_dependencies` — dependency scanner only (npm audit / pip-audit). An
   unavailable scanner comes back SKIPPED/ERROR with a note, never a pass.
-- `scan_secrets` — offline secret-pattern scan; values are redacted in output.
+- `scan_secrets` — offline secret-pattern scan (built-in rule families;
+  external `gitleaks` is opt-in and not part of this skill's default path);
+  values are redacted in output.
 - `run_security_checks` — quality checks only (type, lint, tests). Commands
   are chosen from the project's own config; callers cannot inject commands.
 - `get_findings` — list current findings (fast, no quality checks), with a
@@ -66,6 +68,35 @@ MCP tools (when the veylqorix server is connected):
 
 The exit code is authoritative: **0 = PASS, 1 = FAIL (blocking findings),
 2 = INCOMPLETE (coverage degraded)** — never treat 2 as a pass.
+
+### 2a. Which engine actually ran (honest check)
+
+Veylqorix has two byte-compatible implementations of the gate: the
+in-process TypeScript engine (`packages/core`) and a standalone Rust engine
+(`crates/veylqorix-engine`). **The CLI, MCP, and API run the Rust engine when
+its binary is available**: `runAudit` (`packages/core/src/audit.ts`) invokes
+the engine adapter `packages/core/src/engine/index.ts`, which spawns the
+binary over its JSON-stdio protocol and lets the engine's secret scanner and
+gate drive the result. When the binary is missing, `runAudit` degrades to the
+byte-compatible TypeScript engine and records a labeled "degraded
+compatibility mode" note on the secret scanner result — never a silent
+fallback. To verify which engine produced a given result:
+
+- Check the secret-scanner notes in the `--json` output: a degraded run carries
+  the note `Rust engine unavailable: TypeScript policy engine evaluated the
+  gate (degraded compatibility mode).`
+- Run the engine banner directly: `crates/target/release/veylqorix-engine --version`
+  → `veylqorix-engine 0.1.0 (protocol 1, schema 1)` (build it first with
+  `cargo build --release --manifest-path crates/Cargo.toml --workspace`).
+- A `scan` response's `engineScannerResults[].summary.source` reports
+  `"offline-rules"` (built-in rules) or `"offline-rules+gitleaks"`
+  (gitleaks delegated). Finding ids and redaction match across both engines
+  because they are byte-compatible.
+
+If you specifically need the Rust engine's verdict, invoke the binary
+directly (build it first with `cargo build --release --manifest-path
+crates/Cargo.toml --workspace`). Full protocol and the compatibility/degraded
+mode are in `docs/engine.md`.
 
 ### 3. Read and interpret the actual results
 
