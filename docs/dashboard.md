@@ -6,7 +6,8 @@ When the API is unreachable it renders clearly-labeled sample data with a
 
 > `apps/web` is a Next.js 15 + React 19 app. It proxies `/api/*` to the API
 > server via Next.js rewrites (`next.config.mjs`), targeting
-> `NEXT_PUBLIC_API_BASE` (default `http://localhost:4173`).
+> `NEXT_PUBLIC_API_BASE` (default `http://localhost:4173`). The full
+> endpoint contract lives in `docs/api.md`.
 
 ## Run it
 
@@ -17,7 +18,7 @@ Two processes: the API (source of truth) and the web app.
 pnpm install
 pnpm build
 
-# 2. Start the API (default port 4173)
+# 2. Start the API (default port 4173, loopback-only by default)
 node packages/api/dist/bin.js
 #    -> veylqorix-api listening on http://localhost:4173
 
@@ -36,12 +37,42 @@ pnpm --filter @veylqorix/web build
 pnpm --filter @veylqorix/web start
 ```
 
+### Accessing the API from another machine
+
+The API binds to `127.0.0.1` by default, so remote clients cannot reach
+it. To expose it you must run it in protected mode:
+
+```
+VEYLQORIX_API_HOST=0.0.0.0 VEYLQORIX_API_TOKEN=<secret> \
+  node packages/api/dist/bin.js
+```
+
+- A non-loopback `VEYLQORIX_API_HOST` **without** `VEYLQORIX_API_TOKEN`
+  refuses to start (fail closed).
+- With a token, every `/api` route except `GET /api/health` requires
+  `Authorization: Bearer <token>` (timing-safe check); the dashboard and
+  any other client must send it.
+- For cross-origin browser access, add the dashboard's origin to
+  `VEYLQORIX_CORS_ORIGINS` (exact-origin allowlist; never a wildcard).
+
+### Persistence
+
+The API persists repositories and scan results to a JSON file
+(`VEYLQORIX_STORE_PATH`, default `./.veylqorix-store.json`) with atomic
+writes, so registered repositories and scan history survive API
+restarts. Scans still running when the process exits are re-stamped
+`INTERRUPTED` (never surfaced as completed) and can be re-run.
+
 ### Environment
 
 | Variable | Default | Effect |
 |----------|---------|--------|
 | `VEYLQORIX_API_PORT` | `4173` | Port the API listens on. |
+| `VEYLQORIX_API_HOST` | `127.0.0.1` | Bind address; non-loopback requires `VEYLQORIX_API_TOKEN` or the API refuses to start. |
+| `VEYLQORIX_API_TOKEN` | none | Bearer token; every `/api` route except `GET /api/health` requires it when set. |
+| `VEYLQORIX_CORS_ORIGINS` | none | Comma-separated exact-origin CORS allowlist (no wildcard, no credentials). |
 | `VEYLQORIX_ALLOWED_ROOTS` | none | Restrict which paths the API may scan. |
+| `VEYLQORIX_STORE_PATH` | `./.veylqorix-store.json` | Where repositories and scan results are persisted. |
 | `VEYLQORIX_OFFLINE` | unset | `1` skips network-dependent scanners. |
 | `VEYLQORIX_INCLUDE_TESTS` | unset | `1` includes test/build checks in scans. |
 | `VEYLQORIX_TIMEOUT_MS` | `120000` | Per-scanner timeout. |
@@ -65,18 +96,25 @@ build-time variable read by the web app. `.env.example` documents both sets.
 ## Using the API from the dashboard
 
 The dashboard registers a repository, starts a scan, polls it to completion,
-and renders the result. The underlying endpoints (see `docs/api.md`):
+and renders the result. The underlying endpoints (see `docs/api.md` for the
+full contract; the token and host variables above apply when the API runs in
+protected mode):
 
 ```
 POST /api/repositories      { "path": "/abs/path/to/repo", "name": "my-repo" }
 POST /api/scan              { "repoId": "repo-…" }        -> 202 { "scan": { "id": "scan-…" } }
-GET  /api/scans/:id                              -> poll until status is DONE/ERROR
+GET  /api/scan/:id                             -> poll until status is DONE/ERROR/INTERRUPTED
 GET  /api/scans                          -> list scans
 GET  /api/reports/:scanId?format=sarif    -> SARIF download
 ```
 
 The dashboard requests hit `/api/*` same-origin on port 3000; Next.js rewrites
 forward them to the API at `NEXT_PUBLIC_API_BASE`.
+
+Because the API persists its store to disk, a repository registered (and a
+scan started) before an API restart is still visible afterward: a scan that
+was still running when the process exited is re-stamped `INTERRUPTED`, and
+you can start a new scan for it.
 
 ## If you only want the API
 

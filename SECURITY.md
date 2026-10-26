@@ -35,13 +35,32 @@ workflow where it runs, but it does not replace GitHub-side enforcement.
 
 ### Least privilege
 
-- MCP server: `VEYLQORIX_ROOTS` restricts every tool to authorized
-  directories; paths are canonicalized and checked for `..` traversal and
-  symlink escapes.
+- MCP server: `VEYLQORIX_ROOTS` (required — without it the server
+  refuses to start, no current-directory fallback) restricts every
+  tool to authorized directories; paths are canonicalized and checked
+  for `..` traversal and symlink escapes.
 - API: `VEYLQORIX_ALLOWED_ROOTS` (optional) restricts which repositories can be
-  registered; the default API permissions are read-only.
+  registered; the API binds to `127.0.0.1` by default, and a
+  non-loopback `VEYLQORIX_API_HOST` without `VEYLQORIX_API_TOKEN`
+  refuses to start. With a token, every `/api` route except
+  `GET /api/health` requires a bearer token (timing-safe check);
+  CORS is an exact-origin allowlist (`VEYLQORIX_CORS_ORIGINS`),
+  never a wildcard.
 - GitHub workflow: `contents: read` + `security-events: write` only; no
   secrets are forwarded into the called workflow.
+
+### What the store file contains
+
+API state (repositories, scan records, findings) persists to
+`VEYLQORIX_STORE_PATH` (default `./.veylqorix-store.json`). The file
+holds repository paths + names, scan metadata (status, timing, exit
+code), and redacted findings only — matched secret values are
+masked before they enter a finding (`redactSecret` in
+`packages/core/src/scanners/secrets.ts`), so no plaintext secret
+value is written to the store, logs, or any output. The store is
+single-process; two API processes sharing one file will lose
+interleaved writes. Scans still `RUNNING` when a process exits are
+re-stamped `INTERRUPTED` on the next start — never completed.
 
 ## Known limitations
 

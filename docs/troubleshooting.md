@@ -35,6 +35,15 @@ The banner in the top-right of the dashboard says which mode is active:
   `node packages/api/dist/bin.js`.
 - **LIVE** (green): real scan data is being displayed.
 
+## API refuses to start: "non-loopback host without a token"
+
+Starting the API with a non-loopback `VEYLQORIX_API_HOST` (for example
+`0.0.0.0`) but no `VEYLQORIX_API_TOKEN` fails with exit 1 — by design,
+exposing a root-reading API without authentication is never a safe
+default. Fix: set `VEYLQORIX_API_TOKEN` (protected mode: every `/api`
+route except `GET /api/health` then requires the bearer token), or bind
+to loopback only (`127.0.0.1`/`localhost`, the default) for local use.
+
 ## CLI `hooks install` says "not a Git repository"
 
 Run the command from inside a Git work tree. The installer requires `.git/` to
