@@ -1,5 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import fs from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
 import {
   runAudit,
@@ -19,6 +21,9 @@ export interface McpServerOptions {
   timeoutMs?: number;
   /** Run external scanners; false forces offline mode. */
   online?: boolean;
+  /** Hard cap for the human-readable text of a tool result. Structured
+   * fields (status, coverage, gate, truncation flags) are never capped. */
+  maxTextChars?: number;
 }
 
 const SCANNER_NAMES = ['dependencies', 'secrets', 'licenses'] as const;
@@ -49,7 +54,21 @@ const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement?: string }> = [
   { pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g },
   { pattern: /\b[a-z]{1,5}\d{20,32}\b/g },
   { pattern: /\b[a-z]{32}@[a-z0-9.-]+\.[a-z]{2,}\b/g },
+  // Whole PEM private key block first (body included), then any lone marker
+  // lines, so a key pasted into notes or logs is scrubbed, not just its header.
+  {
+    pattern:
+      /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z0-9 ]*PRIVATE KEY-----|$)/g,
+    replacement: '[REDACTED-PRIVATE-KEY]',
+  },
   { pattern: /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/g, replacement: '[REDACTED-PRIVATE-KEY]' },
+  { pattern: /-----END [A-Z0-9 ]*PRIVATE KEY-----/g, replacement: '' },
+  // Assigned credential values (e.g. `password = "hunter2"`) that the value
+  // patterns above do not recognize.
+  {
+    pattern: /\b(password|passwd|secret|token|api_?key|auth_?token)\s*[:=]\s*["'][^"']{4,}["']/gi,
+    replacement: '$1=[REDACTED]',
+  },
 ];
 
 /** Mask a matched secret value, keeping just enough characters to identify it. */
@@ -80,15 +99,36 @@ function redactDeep(value: unknown): unknown {
   return value;
 }
 
-function capText(text: string): string {
-  if (text.length <= MAX_TEXT_CHARS) return text;
-  return `${text.slice(0, MAX_TEXT_CHARS)}\n[... truncated to ${MAX_TEXT_CHARS} chars]`;
+function capText(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars)}\n[... truncated to ${maxChars} chars]`;
 }
 
 function capFindings(findings: Finding[], limit: number): { items: Finding[]; total: number; truncated: boolean } {
   const total = findings.length;
   const items = findings.slice(0, limit);
   return { items, total, truncated: total > limit };
+}
+
+/** Resolves a root to its canonical absolute form; a root that is not an
+ * existing directory fails closed (throws) so confinement is never checked
+ * against a non-canonical spelling. */
+function canonicalizeRoot(root: string): string {
+  const resolved = path.resolve(root);
+  try {
+    if (!fs.statSync(resolved).isDirectory()) {
+      throw new Error('not a directory');
+    }
+  } catch {
+    throw new Error(
+      `createServer: workspace root must be an existing directory: ${root} (unconfigured or missing roots fail closed)`,
+    );
+  }
+  try {
+    return fs.realpathSync.native(resolved);
+  } catch {
+    return resolved;
+  }
 }
 
 /** A tool result in the shape the MCP SDK hands to the client. */
@@ -102,9 +142,21 @@ export interface ToolResult {
 /**
  * Apply the output caps and the redaction pass to a tool result before it is
  * handed to the client.
+ *
+ * The human-readable text block is redacted, then capped — the cap appends an
+ * explicit marker instead of silently cutting mid-word. The structured payload
+ * is redacted but not sliced: its fields (status, coverage, gate, and the
+ * findings cap / `findingsTruncated` flag) are what tell a client whether the
+ * scan completed, so capping it as a raw string would risk emitting malformed
+ * JSON and losing that signal. Structured finding lists are already bounded
+ * upstream (`MAX_FINDINGS_PER_RESPONSE`), so the payload stays small by
+ * construction rather than by truncation.
  */
-function sanitizeResult(result: ToolResult): ToolResult {
-  result.content = result.content.map((c) => ({ ...c, text: capText(redactText(c.text)) }));
+function sanitizeResult(result: ToolResult, maxTextChars: number): ToolResult {
+  result.content = result.content.map((c) => ({
+    ...c,
+    text: capText(redactText(c.text), maxTextChars),
+  }));
   if (result.structuredContent) {
     result.structuredContent = redactDeep(result.structuredContent) as Record<string, unknown>;
   }
@@ -126,7 +178,14 @@ export function createServer(options: McpServerOptions): McpServer {
   if (!Array.isArray(options.roots) || options.roots.length === 0) {
     throw new Error('createServer: at least one workspace root is required');
   }
-  const roots = options.roots;
+  // Canonicalize roots up front so confinement is checked against one string
+  // for every call. A root that does not exist (or is not a directory) fails
+  // closed instead of silently admitting any path under its lexical spelling.
+  const roots = options.roots.map(canonicalizeRoot);
+  const maxTextChars =
+    Number.isFinite(options.maxTextChars) && (options.maxTextChars as number) > 0
+      ? (options.maxTextChars as number)
+      : MAX_TEXT_CHARS;
   const online = options.online ?? true;
   const timeoutMs =
     Number.isFinite(options.timeoutMs) && (options.timeoutMs as number) > 0
@@ -178,32 +237,38 @@ export function createServer(options: McpServerOptions): McpServer {
     fallbackMessage: string,
   ): Promise<ToolResult> {
     try {
-      return sanitizeResult(await action());
+      return sanitizeResult(await action(), maxTextChars);
     } catch (error) {
-      const message = error instanceof Error ? error.message : fallbackMessage;
-      if (message.startsWith('PATH_ERROR')) {
+      const rawMessage = error instanceof Error ? error.message : fallbackMessage;
+      if (rawMessage.startsWith('PATH_ERROR')) {
+        const message = redactText(rawMessage);
         return {
           content: [{ type: 'text', text: message }],
           isError: true,
           structuredContent: { error: { code: 'PATH_ERROR', message } },
         };
       }
+      const message = redactText(rawMessage);
       return {
         content: [{ type: 'text', text: message }],
         isError: true,
-        structuredContent: { error: { code: fallbackCode, message: redactText(message) } },
+        structuredContent: { error: { code: fallbackCode, message } },
       };
     }
   }
 
   const scannerSummaries = (result: AuditResultWithExit) =>
-    result.scanners.map((s) => ({
-      scanner: s.scanner,
-      status: s.status,
-      findingCount: s.findings.length,
-      notes: s.notes,
-      error: s.error,
-    }));
+    result.scanners.map((s) => {
+      const unavailable = s.status === 'SKIPPED' || s.status === 'ERROR';
+      return {
+        scanner: s.scanner,
+        status: s.status,
+        available: !unavailable,
+        findingCount: s.findings.length,
+        notes: s.notes,
+        error: s.error,
+      };
+    });
 
   // 1. scan_repository — full audit: every scanner + quality checks + gate.
   server.registerTool(
@@ -321,11 +386,13 @@ export function createServer(options: McpServerOptions): McpServer {
           };
         }
         const capped = capFindings(sec.findings, MAX_FINDINGS_PER_RESPONSE);
+        const unavailable = sec.status === 'SKIPPED' || sec.status === 'ERROR';
         return {
           content: [{ type: 'text', text: summarizeSecrets(sec) }],
           structuredContent: {
             scanner: sec.scanner,
             status: sec.status,
+            available: !unavailable,
             findings: capped.items,
             totalFindings: capped.total,
             findingsTruncated: capped.truncated,
@@ -439,9 +506,13 @@ export function createServer(options: McpServerOptions): McpServer {
         scanners: z.array(z.enum(SCANNER_NAMES)).optional().describe(
           'Scanners to re-run; default all (dependencies, secrets, licenses). Findings are only checkable within the scanners that are run.',
         ),
-        findingIds: z.array(z.string().min(1)).optional().describe(
-          'Finding ids to verify as resolved (stable, deterministic ids from earlier scan results).',
-        ),
+        findingIds: z
+          .array(z.string().min(1).max(128))
+          .max(500)
+          .optional()
+          .describe(
+            'Finding ids to verify as resolved (stable, deterministic ids from earlier scan results). At most 500.',
+          ),
       },
     },
     async (args) =>

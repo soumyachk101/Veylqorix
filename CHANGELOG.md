@@ -4,6 +4,30 @@ All notable changes to Veylqorix are documented here.
 
 ## Unreleased
 
+### Release readiness (`@veylqorix/cli` + `@veylqorix/core`)
+- Packaging hardened for external publication: `files` set to `["dist"]` on
+  both packages (no `src/`, `tsconfig.json`, lockfiles, or test output in the
+  tarball), `engines` (`node >=20.18`) and `publishConfig.access` added. The
+  `workspace:*` dependency is resolved by publishing `@veylqorix/core`
+  alongside the CLI at matching semver (core first, so the range resolves) —
+  `workspace:` is never shipped to a consumer.
+- `.github/workflows/release.yml` (new, opt-in, no token secret): on `v*`
+  tag only, builds, packs, and `npm publish --provenance` via GitHub OIDC
+  trusted publishing (no commit/tag push, no write permissions). **Inert
+  until the owner registers the trusted publisher + bot user** — publish
+  fails closed otherwise.
+- `docs/engineering/RELEASE_READINESS.md`: dry-run pack contents, engine
+  binary resolution (`VEYLQORIX_ENGINE` env var + developer-checkout walk,
+  no bundled/downloaded binary), the labeled degraded-coverage behavior when
+  the engine is absent, owner setup steps, and clean-consumer validation
+  commands + expected outputs.
+- `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
+  and exit-code examples matching the implementation.
+- Status: packaging validated locally (dry-run only). **Owner actions
+  remaining:** trusted-publisher + bot-user setup, first `v*` tag, and an
+  engine-binary distribution story (a verified platform artifact or
+  documented build step). No publish/release/tag has been performed yet.
+
 ### Rust security engine (`crates/veylqorix-engine`)
 - New pure-Rust engine crate (`crates/`, workspace manifest at
   `crates/Cargo.toml`): deterministic policy resolution, gate evaluation,

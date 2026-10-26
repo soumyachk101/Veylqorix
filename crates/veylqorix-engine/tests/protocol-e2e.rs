@@ -3,8 +3,9 @@
 //! These spawn the actual `veylqorix-engine` binary (built by cargo for the
 //! test run) and verify: the ping handshake, a secret scan of the fixture
 //! tree over the protocol, the exit-code mapping, and that a malformed
-//! request exits non-zero without ever producing a response (so a failure
-//! can never be read as a pass).
+//! request exits non-zero with a structured error frame on stdout (an error
+//! frame is `ok: false` and carries no gate decision — a failure can never
+//! be read as a pass) plus a stderr reason.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -170,18 +171,24 @@ fn evaluate_command_never_touches_the_filesystem() {
 }
 
 #[test]
-fn malformed_request_exits_64_with_no_response() {
+fn malformed_request_exits_64_with_a_structured_error_frame() {
     let (code, stdout, stderr) = run_engine("this is not JSON");
     assert_eq!(code, 64, "malformed request must exit 64; stderr: {stderr}");
-    assert!(
-        stdout.trim().is_empty(),
-        "no response document may be written"
+    // A structured error frame is written to stdout: `ok: false` with an
+    // `error` object and no gate — it can never be read as a pass.
+    let resp: ProtocolDoc = serde_json::from_str(stdout.trim()).expect("error frame is JSON");
+    assert_eq!(resp["ok"], serde_json::json!(false));
+    assert_eq!(
+        resp["error"]["code"],
+        serde_json::json!("malformed-request")
     );
+    assert_eq!(resp["error"]["exitCode"], serde_json::json!(64));
+    assert!(resp.get("gate").is_none());
     assert!(stderr.contains("veylqorix-engine"));
 }
 
 #[test]
-fn unsupported_protocol_version_exits_64() {
+fn unsupported_protocol_version_exits_64_with_an_error_frame() {
     let mut m = serde_json::Map::new();
     m.insert("protocolVersion".into(), serde_json::json!(99));
     m.insert("command".into(), serde_json::json!("ping"));
@@ -189,11 +196,17 @@ fn unsupported_protocol_version_exits_64() {
     let (code, stdout, stderr) =
         run_engine(&serde_json::to_string(&ProtocolDoc::Object(m)).unwrap());
     assert_eq!(code, 64, "stderr: {stderr}");
-    assert!(stdout.trim().is_empty());
+    let resp: ProtocolDoc = serde_json::from_str(stdout.trim()).expect("error frame is JSON");
+    assert_eq!(resp["ok"], serde_json::json!(false));
+    assert_eq!(
+        resp["error"]["code"],
+        serde_json::json!("malformed-request")
+    );
+    assert!(stderr.contains("unsupported protocol version 99"));
 }
 
 #[test]
-fn missing_root_exits_65() {
+fn missing_root_exits_65_with_an_error_frame() {
     let mut m = serde_json::Map::new();
     m.insert(
         "protocolVersion".into(),
@@ -209,7 +222,11 @@ fn missing_root_exits_65() {
     let (code, stdout, stderr) =
         run_engine(&serde_json::to_string(&ProtocolDoc::Object(m)).unwrap());
     assert_eq!(code, 65, "stderr: {stderr}");
-    assert!(stdout.trim().is_empty(), "no response on a missing root");
+    let resp: ProtocolDoc = serde_json::from_str(stdout.trim()).expect("error frame is JSON");
+    assert_eq!(resp["ok"], serde_json::json!(false));
+    assert_eq!(resp["error"]["code"], serde_json::json!("root-not-found"));
+    assert_eq!(resp["error"]["exitCode"], serde_json::json!(65));
+    assert!(resp.get("gate").is_none());
 }
 
 #[test]

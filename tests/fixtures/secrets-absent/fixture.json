@@ -1,0 +1,22 @@
+{
+  "name": "secrets-absent",
+  "kind": "diff",
+  "description": "No secret findings and all scanners pass: a clean PASS with FULL coverage. The engine and the TypeScript gate must both produce PASS / exit 0.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": [
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": ["no secret patterns matched"] },
+      { "scanner": "dependencies", "status": "PASS", "findings": [], "durationMs": 1, "notes": ["clean"] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "PASS",
+    "exitCode": 0,
+    "coverage": "FULL",
+    "findingIds": [],
+    "blockingReasonContains": []
+  }
+}

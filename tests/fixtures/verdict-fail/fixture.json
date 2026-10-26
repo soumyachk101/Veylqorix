@@ -1,0 +1,36 @@
+{
+  "name": "verdict-fail",
+  "kind": "diff",
+  "description": "A blocking HIGH finding plus a failed required test: the gate must FAIL on both sides with exit 1. The blocking reasons on both sides must name the same finding id and check id.",
+  "command": "evaluate",
+  "input": {
+    "findings": [
+      {
+        "id": "QUALITY-HIGH-01",
+        "title": "Insecure deserialization in src/loader.ts",
+        "scanner": "quality",
+        "ruleId": "insecure-code",
+        "severity": "HIGH",
+        "confidence": "HIGH",
+        "location": { "file": "src/loader.ts", "line": 42 }
+      }
+    ],
+    "checks": [
+      { "id": "tests", "command": "npm test", "status": "FAIL", "durationMs": 500, "output": "2 failed" },
+      { "id": "typescript", "command": "tsc --noEmit", "status": "PASS", "durationMs": 120 }
+    ],
+    "scannerResults": [
+      { "scanner": "dependencies", "status": "PASS", "findings": [], "durationMs": 5, "notes": [] },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "FULL",
+    "findingIds": ["QUALITY-HIGH-01"],
+    "severityOf": { "QUALITY-HIGH-01": "HIGH" },
+    "blockingReasonContains": ["HIGH finding QUALITY-HIGH-01", "Required check 'tests' failed"]
+  }
+}

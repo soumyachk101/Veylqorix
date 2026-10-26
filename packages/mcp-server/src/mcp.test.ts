@@ -1,4 +1,6 @@
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -199,6 +201,133 @@ describe('Veylqorix MCP server', () => {
     expect(s.findingsTruncated).toBe(total > 1);
     expect(s.limit).toBe(1);
   });
+
+  it('rejects a symlink inside the root that points outside it', async () => {
+    // Build a throwaway root that contains a symlink escaping to /etc.
+    // realpath the root so the tool argument lines up with the canonical
+    // form createServer checks containment against.
+    const tmpRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'veylqorix-mcp-')));
+    try {
+      fs.symlinkSync('/etc', path.join(tmpRoot, 'esc'));
+      const local = createServer({ roots: [tmpRoot], online: false, timeoutMs: 5_000 });
+      const [ct, st] = InMemoryTransport.createLinkedPair();
+      await local.connect(st);
+      const localClient = new Client({ name: 'veylqorix-symlink-client', version: '0.0.1' });
+      await localClient.connect(ct);
+      const res = await localClient.callTool({
+        name: 'scan_secrets',
+        arguments: { root: path.join(tmpRoot, 'esc') },
+      });
+      // The symlink resolves outside the root, so the call fails with a
+      // structured PATH_ERROR — it is never followed.
+      expect(res.isError).toBe(true);
+      expect(textOf(res)).toContain('PATH_ERROR');
+      await localClient.close().catch(() => undefined);
+      await local.close().catch(() => undefined);
+    } finally {
+      fs.rmSync(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a root that is not a configured workspace root (fail closed)', async () => {
+    // No configured roots -> createServer refuses to build the server at all.
+    expect(() => createServer({ roots: [], online: false })).toThrowError(/root/i);
+    // A configured root that does not exist also fails closed, so confinement
+    // is never checked against a phantom spelling.
+    expect(() =>
+      createServer({ roots: [path.join(os.tmpdir(), 'veylqorix-does-not-exist-xyz')] }),
+    ).toThrowError(/existing directory/i);
+  });
+
+  it('returns a structured PATH_ERROR (not a crash) for a target outside every root', async () => {
+    // A path that contains no traversal but is outside the configured roots:
+    // the confinement check rejects it before any filesystem access.
+    const res = await client.callTool({
+      name: 'scan_secrets',
+      arguments: { root: '/nonexistent-veylqorix-target' },
+    });
+    expect(res.isError).toBe(true);
+    const err = structuredOf(res).error as { code?: string; message?: string };
+    expect(err?.code).toBe('PATH_ERROR');
+    expect(typeof err?.message).toBe('string');
+    // The payload is still a safe structured result, not an exception.
+    expect(JSON.parse(JSON.stringify(structuredOf(res)))).toBeDefined();
+  });
+
+  it('keeps the same result shape for the same tool and inputs', async () => {
+    const a = await client.callTool({
+      name: 'scan_repository',
+      arguments: { root: cleanRoot, skipQualityChecks: true },
+    });
+    const b = await client.callTool({
+      name: 'scan_repository',
+      arguments: { root: cleanRoot, skipQualityChecks: true },
+    });
+    const keys = (r: unknown) =>
+      Object.keys(structuredOf(r)).sort();
+    expect(keys(a)).toEqual(keys(b));
+    // Truncation bookkeeping is part of the stable shape.
+    expect((structuredOf(a).findingsTruncated as boolean | undefined) !== undefined).toBe(true);
+  });
+
+  it('caps the text block with an explicit marker while keeping structured status fields', async () => {
+    // Tiny cap so the gate summary text is guaranteed to exceed it; the
+    // structured payload (gate, coverage, exitCode, findings caps) must
+    // survive and remain valid JSON.
+    const capped = createServer({
+      roots: [fixtures],
+      online: false,
+      timeoutMs: 20_000,
+      maxTextChars: 80,
+    });
+    const [ct, st] = InMemoryTransport.createLinkedPair();
+    await capped.connect(st);
+    const cappedClient = new Client({ name: 'veylqorix-capped-client', version: '0.0.1' });
+    await cappedClient.connect(ct);
+    const res = await cappedClient.callTool({
+      name: 'scan_repository',
+      arguments: { root: cleanRoot, skipQualityChecks: true },
+    });
+    expect(res.isError).not.toBe(true);
+    const text = textOf(res);
+    expect(text).toContain('truncated to 80 chars');
+    const s = structuredOf(res);
+    expect(s.gate).toBeDefined();
+    expect(typeof s.coverage).toBe('string');
+    expect(typeof s.exitCode).toBe('number');
+    expect(Array.isArray(s.findings)).toBe(true);
+    expect(Array.isArray(s.scanners)).toBe(true);
+    // The payload is intact JSON with its scan-completeness fields intact.
+    JSON.parse(JSON.stringify(s));
+    await cappedClient.close().catch(() => undefined);
+    await capped.close().catch(() => undefined);
+  });
+
+  it('keeps a scanner-unavailable flag consistent across tools that report scanners', async () => {
+    const res = await client.callTool({
+      name: 'get_findings',
+      arguments: { root: noScannerRoot },
+    });
+    const s = structuredOf(res);
+    const scanners = s.scanners as Array<{ scanner: string; status: string; available: boolean }>;
+    expect(scanners.length).toBeGreaterThan(0);
+    for (const sc of scanners) {
+      const unavailable = sc.status === 'SKIPPED' || sc.status === 'ERROR';
+      expect(sc.available).toBe(!unavailable);
+    }
+  });
+
+  it('caps findingsTruncated reporting when the limit is smaller than the total', async () => {
+    const res = await client.callTool({
+      name: 'get_findings',
+      arguments: { root: secretRoot, onlyScanners: ['secrets'], limit: 1 },
+    });
+    const s = structuredOf(res);
+    expect(Array.isArray(s.findings)).toBe(true);
+    expect((s.findings as unknown[]).length).toBeLessThanOrEqual(1);
+    expect(typeof s.findingsTruncated).toBe('boolean');
+    expect(typeof s.totalFindings).toBe('number');
+  });
 });
 
 describe('redactText', () => {
@@ -212,5 +341,36 @@ describe('redactText', () => {
     );
     expect(redactText('-----BEGIN RSA PRIVATE KEY-----xxxx')).toContain('[REDACTED-PRIVATE-KEY]');
     expect(redactText('hello world')).toBe('hello world');
+  });
+
+  it('scrubs a whole PEM private key block, including its body', () => {
+    const pem = '-----BEGIN RSA PRIVATE KEY-----\nMIIEogIBAAKCAQEAabc123def456xyz789\nsecretBodyBytes\n-----END RSA PRIVATE KEY-----';
+    const out = redactText(pem);
+    expect(out).toContain('[REDACTED-PRIVATE-KEY]');
+    expect(out).not.toContain('secretBodyBytes');
+    expect(out).not.toContain('BEGIN RSA PRIVATE KEY');
+  });
+
+  it('redacts assigned credential values that no value pattern recognizes', () => {
+    expect(redactText('password = "hunter2secret"')).not.toContain('hunter2secret');
+    expect(redactText('const token="mySup3rSecretValue"')).not.toContain('mySup3rSecretValue');
+  });
+
+  it('does not leak raw values from nested structures or Markdown-formatted text', () => {
+    const nested = {
+      notes: ['key AKIA0123456789ABCDEF found'],
+      markdown: '## Report\n- AKIA0123456789ABCDEF in `config.js`\n',
+      list: [{ value: 'ghp_0123456789abcdefghijklmnopqrstuvwxyz0123456789' }],
+    };
+    const serialized = JSON.stringify(nested);
+    // redactText runs on every string value; simulate the deep pass here.
+    const deep = JSON.parse(
+      JSON.stringify(nested, (_k, v) => (typeof v === 'string' ? redactText(v) : v)),
+    );
+    const blob = JSON.stringify(deep);
+    expect(blob).not.toContain('AKIA0123456789ABCDEF');
+    expect(blob).not.toContain('ghp_0123456789abcdefghijklmnopqrstuvwxyz0123456789');
+    expect(blob).toContain('redacted');
+    expect(serialized).toContain('AKIA0123456789ABCDEF'); // raw input did contain it
   });
 });

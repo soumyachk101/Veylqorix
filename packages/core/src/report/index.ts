@@ -1,5 +1,9 @@
+import fs from 'node:fs';
 import { sortBySeverity } from '../policy.js';
 import type { AuditResult, Finding, ScannerResult } from '../types.js';
+import { toSarif } from './sarif.js';
+
+export { toSarif };
 
 /**
  * Serialize an audit result as a deterministic JSON document. The document
@@ -155,4 +159,84 @@ export function toMarkdown(audit: AuditResult): string {
   lines.push('> Veylqorix reports what its scanners found; it does not certify the absence of vulnerabilities or secrets. Coverage reflects which scanners actually completed.');
 
   return lines.join('\n');
+}
+
+/**
+ * Write every report format (JSON, Markdown, SARIF) from one audit result.
+ * This is the shared result→report path for the gate workflow: one scan feeds
+ * all three artifacts, so the gate never runs a second scan to "keep the
+ * JSON clean".
+ */
+export interface ReportOutputs {
+  jsonPath?: string;
+  markdownPath?: string;
+  sarifPath?: string;
+}
+
+export interface RenderedReports {
+  jsonPath?: string;
+  markdownPath?: string;
+  sarifPath?: string;
+}
+
+export function renderAllReports(audit: AuditResult, outputs: ReportOutputs): RenderedReports {
+  const written: RenderedReports = {};
+  // Each format is rendered from the SAME audit result; a write failure
+  // propagates to the caller so a promised artifact is never silently missing
+  // (e.g. a workflow claiming a SARIF upload of a file that was not written).
+  if (outputs.jsonPath) {
+    fs.writeFileSync(outputs.jsonPath, toJson(audit), 'utf8');
+    written.jsonPath = outputs.jsonPath;
+  }
+  if (outputs.markdownPath) {
+    fs.writeFileSync(outputs.markdownPath, toMarkdown(audit), 'utf8');
+    written.markdownPath = outputs.markdownPath;
+  }
+  if (outputs.sarifPath) {
+    fs.writeFileSync(outputs.sarifPath, toSarif(audit), 'utf8');
+    written.sarifPath = outputs.sarifPath;
+  }
+  return written;
+}
+
+export interface SarifValidation {
+  valid: boolean;
+  /** Empty when valid; a human-readable explanation when not. */
+  error?: string;
+}
+
+/**
+ * Verify a SARIF file is suitable for upload to a code-scanning service
+ * (GitHub Actions `upload-sarif` requires a valid SARIF 2.1.0 document with at
+ * least one run). A workflow should run this before claiming the SARIF upload
+ * path is healthy: an empty file, truncated JSON, or a missing run means the
+ * upload would either fail or silently post nothing — both must surface as an
+ * explicit failure, never be treated as a successful upload.
+ */
+export function validateSarifFile(filePath: string): SarifValidation {
+  if (!fs.existsSync(filePath)) {
+    return { valid: false, error: `SARIF file not found: ${filePath}` };
+  }
+  let text: string;
+  try {
+    text = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    return { valid: false, error: `SARIF file unreadable: ${error instanceof Error ? error.message : String(error)}` };
+  }
+  if (text.trim().length === 0) {
+    return { valid: false, error: `SARIF file is empty: ${filePath}` };
+  }
+  let doc: { version?: string; runs?: unknown[] };
+  try {
+    doc = JSON.parse(text) as typeof doc;
+  } catch (error) {
+    return { valid: false, error: `SARIF file is not valid JSON: ${error instanceof Error ? error.message : String(error)}` };
+  }
+  if (doc.version !== '2.1.0') {
+    return { valid: false, error: `SARIF file has version '${doc.version ?? '(none)'}'; expected '2.1.0'.` };
+  }
+  if (!Array.isArray(doc.runs) || doc.runs.length === 0) {
+    return { valid: false, error: 'SARIF file has no runs; a code-scanning upload would post nothing.' };
+  }
+  return { valid: true };
 }

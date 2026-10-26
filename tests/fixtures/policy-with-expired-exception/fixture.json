@@ -1,0 +1,52 @@
+{
+  "name": "policy-with-expired-exception",
+  "kind": "diff",
+  "description": "A policy carrying an exception whose `expires` is in the past (2000-01-01, string-compared against now) plus an undocumented (empty-reason) exception must have both dropped by resolve_policy on both sides — so the CRITICAL finding is NOT suppressed and the gate FAILS. The live exception stays. This is the no-silent-escape invariant: an expired or undocumented exception can never turn a security failure into a pass.",
+  "command": "evaluate",
+  "input": {
+    "findings": [
+      {
+        "id": "VULN-CRIT",
+        "title": "Critical vulnerability in legacy-parsing",
+        "scanner": "dependencies",
+        "ruleId": "vuln-x",
+        "severity": "CRITICAL",
+        "confidence": "HIGH",
+        "location": { "file": "Cargo.lock" },
+        "remediation": "Upgrade the dependency."
+      },
+      {
+        "id": "VULN-LIVE-EXC",
+        "title": "Accepted medium risk in vendor-lib",
+        "scanner": "dependencies",
+        "ruleId": "vuln-y",
+        "severity": "MEDIUM",
+        "confidence": "MEDIUM",
+        "dependency": { "name": "vendor-lib", "installedVersion": "0.9.0" }
+      }
+    ],
+    "checks": [],
+    "scannerResults": [
+      { "scanner": "dependencies", "status": "FAIL", "findings": [], "durationMs": 12, "notes": ["advisories"] },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "policy": {
+    "exceptions": [
+      { "ruleId": "vuln-x", "reason": "stale exception from 2020", "expires": "2000-01-01T00:00:00.000Z" },
+      { "ruleId": "vuln-y", "reason": "   " },
+      { "ruleId": "vuln-y", "reason": "accepted risk until rewrite" }
+    ],
+    "maxExceptions": 5
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "FULL",
+    "findingIds": ["VULN-CRIT", "VULN-LIVE-EXC"],
+    "severityOf": { "VULN-CRIT": "CRITICAL", "VULN-LIVE-EXC": "MEDIUM" },
+    "blockingReasonContains": ["CRITICAL finding VULN-CRIT"],
+    "reportContains": ["VULN-LIVE-EXC"]
+  }
+}

@@ -1,12 +1,15 @@
 //! Veylqorix engine binary.
 //!
-//! Reads one JSON request from stdin and writes one JSON response to stdout,
-//! or exits non-zero with a stderr reason on protocol errors. The protocol is
-//! bounded (input and output caps), versioned, and never treats an error as a
-//! pass:
+//! Reads one JSON request from stdin and writes one JSON response to stdout.
+//! On protocol errors it writes a structured *error frame* (a response
+//! document with `ok: false` and an `error` object) to stdout, a short
+//! human-readable reason to stderr, and exits non-zero. The exit code is
+//! authoritative: an error frame can never be read as a pass. stdout is
+//! reserved strictly for protocol JSON in both directions; diagnostics go to
+//! stderr only:
 //!
-//! - exit 0: a response document was written (the gate decision, findings, and
-//!   scanner statuses are in the document).
+//! - exit 0: a successful response document was written (the gate decision,
+//!   findings, and scanner statuses are in the document).
 //! - exit 64: malformed request / unsupported protocol version.
 //! - exit 65: the audit root does not exist.
 //! - exit 70: engine internal error.

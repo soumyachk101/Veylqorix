@@ -1,0 +1,30 @@
+{
+  "name": "verdict-incomplete",
+  "kind": "diff",
+  "description": "A skipped mandatory scanner with no hard failures: the gate must be INCOMPLETE (not PASS, not FAIL) with exit 2 on both implementations. This is the degraded-coverage path — an audit that could not verify everything is never reported as a clean pass, and the strict exit code forces it even when blockOnSkippedCheck is off.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": [
+      {
+        "scanner": "dependencies",
+        "status": "SKIPPED",
+        "findings": [],
+        "durationMs": 0,
+        "notes": ["offline; npm audit requires network"]
+      },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": true,
+  "expect": {
+    "verdict": "INCOMPLETE",
+    "exitCode": 2,
+    "strictExitCode": 1,
+    "coverage": "LIMITED",
+    "findingIds": [],
+    "incompleteContains": ["Scanner 'dependencies' was skipped"],
+    "neverPass": true
+  }
+}

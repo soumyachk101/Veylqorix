@@ -157,6 +157,24 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
     scannerResults.push(await runScannerSafely(scanner, context));
   }
 
+  // When a caller restricts the audit with `onlyScanners` or `skipScanners`,
+  // every mandatory scanner that was not selected is recorded as SKIPPED with
+  // an explicit note. This is the gate input the unselected-mandatory path
+  // relies on: without it the gate would see zero scanners and could return
+  // PASS, which is the F-05 bug (see docs/engineering/BASELINE_AUDIT.md).
+  const selectedNames = new Set(selected.map((s) => s.name));
+  for (const scanner of scanners) {
+    if (scanner.mandatory && !selectedNames.has(scanner.name)) {
+      scannerResults.push({
+        scanner: scanner.name,
+        status: 'SKIPPED',
+        findings: [],
+        durationMs: 0,
+        notes: [`${scanner.name} scanner was not selected for this audit.`],
+      });
+    }
+  }
+
   let checks: CheckResult[] = [];
   if (!options.skipQualityChecks) {
     checks = detectChecks(detection, {
@@ -232,21 +250,6 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
       } as unknown)) as GateDecision;
 
     let finalScanners = [...scannerResults, ...engineScannerResults];
-    if (!secretsSelected) {
-      // Keep the scanner list shape symmetric with the compatibility path: a
-      // selected-but-absent secret scanner is reported as SKIPPED, never
-      // silently missing.
-      finalScanners = [
-        ...finalScanners,
-        {
-          scanner: 'secrets',
-          status: 'SKIPPED',
-          findings: [],
-          durationMs: 0,
-          notes: ['Secret scanner was not selected for this audit.'],
-        },
-      ];
-    }
     // The engine's `exitCode` is always the default (soft) mapping; when
     // `strict` was requested it also returns `strictExitCode`. Mirror the
     // compatibility path exactly: strict -> exitCode=strict, softExitCode=soft.
@@ -278,25 +281,20 @@ export async function runAudit(options: AuditOptions): Promise<AuditResultWithEx
   // engine, and the degradation is recorded on the secret scanner result so
   // a full run is never impersonated.
   const engineUnavailable = !adapter.available;
-  let secretsResult: ScannerResult | undefined;
   if (secretsSelected) {
+    // The secrets scanner is registered whenever it is selected, so the
+    // definition exists at this point.
     const def = selected.find((s) => s.name === 'secrets');
-    secretsResult = def
-      ? await runScannerSafely(def, context)
-      : {
-          scanner: 'secrets',
-          status: 'SKIPPED',
-          findings: [],
-          durationMs: 0,
-          notes: ['Secret scanner was not selected for this audit.'],
-        };
-    // Label the degraded run only when the TS scanner actually executed and
-    // the engine (which would have been authoritative) was unavailable.
-    if (def && engineUnavailable) {
-      secretsResult.notes = [...secretsResult.notes, TS_COMPAT_NOTE];
+    if (def) {
+      const secretsResult = await runScannerSafely(def, context);
+      // Label the degraded run only when the TS scanner actually executed and
+      // the engine (which would have been authoritative) was unavailable.
+      if (engineUnavailable) {
+        secretsResult.notes = [...secretsResult.notes, TS_COMPAT_NOTE];
+      }
+      scannerResults.push(secretsResult);
     }
   }
-  if (secretsResult) scannerResults.push(secretsResult);
 
   const allFindings = scannerResults.flatMap((s) => s.findings);
   const gate = evaluateGate({

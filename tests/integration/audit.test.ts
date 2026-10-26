@@ -1,5 +1,61 @@
 import { describe, expect, it } from 'vitest';
-import { runAudit, makeFinding } from '@veylqorix/core';
+import { isEngineAvailable, makeFinding, runAudit } from '@veylqorix/core';
+
+const engineAvailable = isEngineAvailable();
+if (!engineAvailable) {
+  console.log(
+    '[audit] Rust engine binary not available; the F-05 Rust-path regression test is skipped. ' +
+      'Build it with `cargo build --release` in crates/, or set VEYLQORIX_ENGINE to an engine binary path.',
+  );
+}
+
+describe('unselected scanners degrade the gate, never exit 0 (F-05 regression)', () => {
+  // Mirrors the `veylqorix check` CLI path: `onlyScanners: []` selects zero
+  // scanners, so the mandatory secret scanner is recorded as SKIPPED and the
+  // gate reports INCOMPLETE (exit 2) regardless of the other scanners or
+  // checks. A repo full of secrets can never be mistaken for a clean pass.
+  it('records unselected mandatory scanners as SKIPPED and exits 2 (TypeScript compatibility path)', async () => {
+    const previous = process.env.VEYLQORIX_ENGINE;
+    process.env.VEYLQORIX_ENGINE = '/nonexistent-veylqorix-engine';
+    try {
+      const result = await runAudit({
+        root: 'tests/fixtures/secret-repo',
+        online: false,
+        onlyScanners: [],
+        skipQualityChecks: true,
+      });
+      const secrets = result.scanners.find((s) => s.scanner === 'secrets');
+      expect(secrets?.status).toBe('SKIPPED');
+      expect(secrets?.notes[0]).toContain('not selected for this audit');
+      expect(result.gate.result).toBe('INCOMPLETE');
+      expect(result.exitCode).toBe(2);
+      expect(result.coverage).not.toBe('FULL');
+    } finally {
+      if (previous === undefined) delete process.env.VEYLQORIX_ENGINE;
+      else process.env.VEYLQORIX_ENGINE = previous;
+    }
+  });
+});
+
+describe.skipIf(!engineAvailable)(
+  'F-05 regression (Rust engine path)',
+  () => {
+    it('records unselected mandatory scanners as SKIPPED and exits 2', async () => {
+      const result = await runAudit({
+        root: 'tests/fixtures/secret-repo',
+        online: false,
+        onlyScanners: [],
+        skipQualityChecks: true,
+      });
+      const secrets = result.scanners.find((s) => s.scanner === 'secrets');
+      expect(secrets?.status).toBe('SKIPPED');
+      expect(secrets?.notes[0]).toContain('not selected for this audit');
+      expect(result.gate.result).toBe('INCOMPLETE');
+      expect(result.exitCode).toBe(2);
+      expect(result.coverage).not.toBe('FULL');
+    });
+  },
+);
 
 describe('runAudit', () => {
   it('passes on the clean fixture with no blocking findings', async () => {
