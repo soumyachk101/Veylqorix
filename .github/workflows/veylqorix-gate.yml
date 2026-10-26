@@ -70,6 +70,7 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build
             echo "cli-src=true" >> "$GITHUB_OUTPUT"
+            echo "monorepo=true" >> "$GITHUB_OUTPUT"
           elif command -v veylqorix >/dev/null 2>&1; then
             echo "Global veylqorix CLI found."
             echo "cli-src=true" >> "$GITHUB_OUTPUT"
@@ -77,6 +78,27 @@ jobs:
             echo "::error::@veylqorix/cli is not available in this calling repo. Install it (npm i -g @veylqorix/cli once published) or run the gate inside the Veylqorix monorepo."
             echo "cli-src=false" >> "$GITHUB_OUTPUT"
           fi
+
+      # (b2) Rust security engine (monorepo branch only).
+      #
+      # When the CLI is built from this monorepo, its engine adapter looks for
+      # the release binary at crates/target/release/veylqorix-engine, so it
+      # must be built before the scan below. If the binary is missing during a
+      # scan the engine is a SKIPPED scanner result in the response, never a
+      # non-zero exit.
+      #
+      # `dtolnay/rust-toolchain` installs the Rust toolchain via rustup. Pinned
+      # to the commit that the `v1` tag resolves to (verified against the
+      # action's tagged commit on GitHub).
+      - name: Set up Rust toolchain (stable)
+        if: steps.prepare.outputs.monorepo == 'true'
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: stable
+
+      - name: Build Rust engine (release)
+        if: steps.prepare.outputs.monorepo == 'true'
+        run: cargo build --manifest-path crates/Cargo.toml --workspace --release
 
       # (c) Run the scan, capturing the exit code. Produces JSON + SARIF.
       - name: Run Veylqorix scan

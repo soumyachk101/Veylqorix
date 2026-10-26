@@ -1,0 +1,192 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Hanken Grotesk",
+      "fontSize": "48px",
+      "fontWeight": "800",
+      "lineHeight": "48px",
+      "letterSpacing": "-1.2px",
+      "color": "#0E2A3D",
+      "sampleText": "Verify the code your agents wrote. Before it ships."
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Hanken Grotesk",
+      "fontSize": "30px",
+      "fontWeight": "800",
+      "lineHeight": "36px",
+      "letterSpacing": "-0.75px",
+      "color": "#0F2C40",
+      "sampleText": "Four guarantees"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Hanken Grotesk",
+      "fontSize": "18px",
+      "fontWeight": "700",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "color": "#0F2C40",
+      "sampleText": "Real evidence, no fabrication"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Hanken Grotesk",
+      "fontSize": "18px",
+      "fontWeight": "400",
+      "lineHeight": "29.25px",
+      "letterSpacing": "normal",
+      "color": "#3C5B6A",
+      "sampleText": "Veylqorix independently verifies AI-generated and human-writ"
+    },
+    {
+      "role": "link",
+      "fontFamily": "Hanken Grotesk",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "color": "#0E2A3D",
+      "sampleText": "Home"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Press Start 2P",
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "lineHeight": "16px",
+      "letterSpacing": "0.8px",
+      "color": "#0F2C40",
+      "sampleText": "CLI"
+    },
+    {
+      "role": "body-small",
+      "fontFamily": "Press Start 2P",
+      "fontSize": "8px",
+      "fontWeight": "400",
+      "lineHeight": "13.6px",
+      "letterSpacing": "0.64px",
+      "color": "#7FA6A8",
+      "sampleText": "docs/faq.md — honest limitations"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      2,
+      4,
+      6,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      64
+    ],
+    "baseUnit": 8
+  },
+  "radius": [
+    "4px",
+    "6px"
+  ],
+  "shadows": [
+    {
+      "value": "rgba(15, 44, 64, 0.16) 4px 4px 0px 0px",
+      "count": 23
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(15, 44, 64, 0.16) 2px 2px 0px 0px",
+      "count": 1
+    }
+  ],
+  "buttons": [
+    {
+      "label": "Read the build story",
+      "background": "#0F2C40",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#E9F7F3",
+      "padding": "12px 20px",
+      "borderRadius": "6px",
+      "border": "4px solid rgb(31, 71, 99)",
+      "boxShadow": "rgba(15, 44, 64, 0.16) 4px 4px 0px 0px",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "height": "56px"
+    },
+    {
+      "label": "See the changelog",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#0E2A3D",
+      "padding": "12px 20px",
+      "borderRadius": "6px",
+      "border": "4px solid rgb(31, 71, 99)",
+      "boxShadow": "rgba(15, 44, 64, 0.16) 4px 4px 0px 0px",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "height": "56px"
+    }
+  ],
+  "cards": [
+    {
+      "label": "card",
+      "background": "#0C2334",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#E9F7F3",
+      "padding": "0px",
+      "borderRadius": "6px",
+      "border": "4px solid rgb(31, 71, 99)",
+      "boxShadow": "rgba(15, 44, 64, 0.16) 4px 4px 0px 0px",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "366.781px"
+    },
+    {
+      "label": "card",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#0E2A3D",
+      "padding": "20px",
+      "borderRadius": "6px",
+      "border": "4px solid rgb(31, 71, 99)",
+      "boxShadow": "rgba(15, 44, 64, 0.16) 4px 4px 0px 0px",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "176.25px"
+    }
+  ],
+  "nav": {
+    "label": "navigation",
+    "background": "transparent",
+    "backgroundImage": "",
+    "backdropFilter": "",
+    "color": "#0E2A3D",
+    "padding": "0px",
+    "borderRadius": "0px",
+    "border": "0px solid rgb(229, 231, 235)",
+    "boxShadow": "none",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "height": "53.5938px"
+  },
+  "chips": [],
+  "statCells": [],
+  "tabs": [],
+  "backgrounds": [],
+  "glass": [
+    {
+      "backdropFilter": "blur(4px)",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "",
+      "borderRadius": "0px",
+      "boxShadow": "",
+      "area": 102900
+    }
+  ]
+}

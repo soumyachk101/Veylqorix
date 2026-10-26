@@ -1,0 +1,228 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Press Start 2P";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url("assets/fonts/db234bd00cda6a96-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #0c2334;
+      overflow: hidden;
+      font-family: "JetBrains Mono", monospace;
+    }
+    /* mint floods back over the dark screen (colour flood ~0.6 s) */
+    .s5-flood {
+      position: absolute;
+      inset: 0;
+      background: #e7f4ec;
+      opacity: 0;
+    }
+    .s5-glow {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 1200px;
+      height: 800px;
+      margin: -400px 0 0 -600px;
+      background: radial-gradient(ellipse at center, rgba(20, 179, 173, 0.14), transparent 60%);
+      opacity: 0;
+    }
+    .s5-hub {
+      position: absolute;
+      left: 960px;
+      top: 560px;
+      width: 400px;
+      height: 180px;
+      margin: -90px 0 0 -200px;
+      background: #ffffff;
+      border: 6px solid #0f2c40;
+      box-shadow: 6px 6px 0 rgba(15, 44, 64, 0.18);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 34px;
+      opacity: 0;
+    }
+    .s5-hub .k {
+      font-family: "Press Start 2P", monospace;
+      font-size: 28px;
+      letter-spacing: 0.06em;
+      color: #0c8a86;
+    }
+    .s5-hub .n {
+      margin-top: 14px;
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0e2a3d;
+      line-height: 1.05;
+    }
+    .s5-hub .d {
+      margin-top: 12px;
+      font-size: 28px;
+      color: #3c5b6a;
+    }
+    .s5-hub .d .acc {
+      color: #b97b0b;
+      font-weight: 700;
+    }
+    .s5-card {
+      position: absolute;
+      width: 320px;
+      background: #ffffff;
+      border: 4px solid #0f2c40;
+      box-shadow: 4px 4px 0 rgba(15, 44, 64, 0.16);
+      padding: 18px 22px;
+      opacity: 0;
+    }
+    .s5-card .k {
+      font-family: "Press Start 2P", monospace;
+      font-size: 26px;
+      color: #0c8a86;
+      letter-spacing: 0.05em;
+    }
+    .s5-card .n {
+      margin-top: 9px;
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 29px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #0e2a3d;
+    }
+    .s5-card .d {
+      margin-top: 8px;
+      font-size: 28px;
+      color: #3c5b6a;
+      line-height: 1.4;
+    }
+    .s5-line {
+      position: absolute;
+      height: 4px;
+      background: #0c8a86;
+      transform-origin: center;
+      opacity: 0;
+    }
+    .s5-word {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 130px;
+      text-align: center;
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 96px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0e2a3d;
+      line-height: 1;
+      opacity: 0;
+    }
+    .s5-word .acc {
+      color: #0a6b67;
+    }
+    .s5-word2 {
+      top: 1010px;
+      font-size: 54px;
+    }
+  </style>
+  <div id="root" data-composition-id="s5" data-width="1920" data-height="1080">
+    <div id="s5-darkbase" class="clip" data-start="0" data-duration="0.6" data-layout-ignore data-track-index="0"
+      style="position: absolute; inset: 0; background: #0c2334; opacity: 0"></div>
+    <div id="s5-flood" class="clip s5-flood" data-start="0" data-duration="9" data-layout-ignore data-track-index="1"></div>
+    <div id="s5-glow" class="clip s5-glow" data-start="0" data-duration="9" data-layout-ignore data-track-index="2"></div>
+
+    <h2 id="s5-w1" class="clip s5-word" data-start="0.5" data-duration="9.5" data-track-index="3">Independent verification<span class="acc">.</span></h2>
+
+    <div id="s5-hub" class="clip s5-hub" data-start="0.4" data-duration="8.6" data-track-index="4">
+      <div class="k">ENGINE</div>
+      <div class="n">veylqorix-engine</div>
+      <div class="d">v0.1.0 · <span class="acc">in repo</span></div>
+    </div>
+
+    <div id="s5-cards" class="clip" data-start="0.4" data-duration="8.6" data-track-index="5">
+      <div class="s5-card c" style="left: 220px; top: 330px">
+        <div class="k">SURFACE 01</div>
+        <div class="n">CLI</div>
+        <div class="d">scan · check · report<br>hooks install</div>
+      </div>
+      <div class="s5-card c" style="left: 220px; top: 610px">
+        <div class="k">SURFACE 02</div>
+        <div class="n">GitHub Actions</div>
+        <div class="d">gate · SARIF upload<br>actions pinned to SHAs</div>
+      </div>
+      <div class="s5-card c" style="left: 220px; top: 880px">
+        <div class="k">SURFACE 03</div>
+        <div class="n">Dashboard + API</div>
+        <div class="d">live scan data<br>JSON · Markdown · SARIF</div>
+      </div>
+      <div class="s5-card c" style="left: 1330px; top: 330px">
+        <div class="k">SURFACE 04</div>
+        <div class="n">MCP server</div>
+        <div class="d">six validated tools<br>root-confinement</div>
+      </div>
+      <div class="s5-card c" style="left: 1330px; top: 610px">
+        <div class="k">SURFACE 05</div>
+        <div class="n">Agent skills</div>
+        <div class="d">Claude Code · Codex · Cursor</div>
+      </div>
+    </div>
+
+    <div id="s5-lines" class="clip" data-start="0" data-duration="9" data-layout-ignore data-track-index="6">
+      <div class="s5-line l" style="left: 500px; top: 320px; width: 420px; transform: rotate(-19deg)"></div>
+      <div class="s5-line l" style="left: 500px; top: 680px; width: 420px; transform: rotate(19deg)"></div>
+      <div class="s5-line l" style="left: 1000px; top: 320px; width: 420px; transform: rotate(19deg)"></div>
+      <div class="s5-line l" style="left: 1000px; top: 680px; width: 420px; transform: rotate(-19deg)"></div>
+    </div>
+
+    <h2 id="s5-w2" class="clip s5-word s5-word2" data-start="3.5" data-duration="5.5" data-track-index="7">Before code ships<span class="acc">.</span></h2>
+
+    <div id="s5-dip" class="clip" data-start="8.4" data-duration="0.6" data-layout-ignore data-track-index="8"
+      style="position: absolute; inset: 0; background: #0c2334; opacity: 0"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // carry the dark frame, then mint floods back over it (colour flood)
+    tl.fromTo("#s5-darkbase", { opacity: 1 }, { opacity: 1, duration: 0.1 }, 0);
+    tl.to("#s5-darkbase", { opacity: 0, duration: 0.1 }, 0.55);
+    tl.fromTo("#s5-flood", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.inOut" }, 0);
+    tl.fromTo("#s5-glow", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "power2.out" }, 0.5);
+    // hub lands first (dead still), then a single restrained teal pulse
+    tl.fromTo("#s5-hub", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 0.55);
+    tl.fromTo("#s5-hub", { boxShadow: "6px 6px 0 rgba(15,44,64,0.18)" }, { boxShadow: "0 0 40px rgba(20,179,173,0.35)", duration: 0.5, ease: "power2.out" }, 3.2);
+    // first word
+    tl.fromTo("#s5-w1", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power4.out" }, 0.7);
+    tl.to("#s5-w1", { opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in" }, 3.2);
+    // surface cards: two columns rise under the hum
+    tl.fromTo("#s5-cards .c", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.14 }, 1.1);
+    // thin architectural lines converge to the hub
+    tl.fromTo("#s5-lines .l", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.5, ease: "power3.out", stagger: 0.09 }, 1.8);
+    tl.to("#s5-lines .l", { opacity: 0.55, duration: 0.4 }, 4.0);
+    // second word
+    tl.fromTo("#s5-w2", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power4.out" }, 3.6);
+    tl.to("#s5-w2", { opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in" }, 7.9);
+    // everything settles with a slow pull-back (camera)
+    tl.to("#s5-hub", { y: -6, duration: 4.5, ease: "power1.inOut" }, 2.0);
+    tl.to("#s5-cards", { y: -10, duration: 5, ease: "power1.inOut" }, 2.0);
+    // dip into the next scene
+    tl.to("#s5-dip", { opacity: 1, duration: 0.55, ease: "power2.in" }, 8.45);
+    window.__timelines["s5"] = tl;
+  </script>
+</template>

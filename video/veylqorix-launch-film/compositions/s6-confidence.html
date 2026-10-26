@@ -1,0 +1,242 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Press Start 2P";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url("assets/fonts/db234bd00cda6a96-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #e7f4ec;
+      overflow: hidden;
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+    }
+    .s6-grid {
+      position: absolute;
+      inset: -120px;
+      background-image: linear-gradient(rgba(15, 44, 64, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 44, 64, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.5;
+    }
+    .s6-glow {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      width: 1400px;
+      height: 700px;
+      margin: -350px 0 0 -700px;
+      background: radial-gradient(ellipse at center, rgba(20, 179, 173, 0.12), transparent 60%);
+      opacity: 0;
+    }
+    /* the balanced system silhouette, drawn as layered thin modules */
+    .s6-mod {
+      position: absolute;
+      border: 4px solid #0f2c40;
+      background: #ffffff;
+      box-shadow: 4px 4px 0 rgba(15, 44, 64, 0.14);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .s6-mod .t {
+      font-size: 30px;
+      font-weight: 700;
+      color: #0e2a3d;
+      padding: 10px 16px;
+      letter-spacing: 0.02em;
+    }
+    .s6-mod .m {
+      font-size: 28px;
+      color: #3c5b6a;
+      padding: 0 16px 10px;
+    }
+    .s6-tick {
+      position: absolute;
+      width: 560px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #14b3ad, transparent);
+      top: 530px;
+      left: 0;
+      opacity: 0;
+      transform-origin: left center;
+    }
+    .s6-word {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 150px;
+      text-align: center;
+      font-size: 118px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0e2a3d;
+      line-height: 1.02;
+      opacity: 0;
+    }
+    .s6-word .acc {
+      color: #0a6b67;
+    }
+    .s6-sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 330px;
+      text-align: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      color: #3c5b6a;
+      letter-spacing: 0.04em;
+      opacity: 0;
+    }
+    .s6-gate {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 640px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+    .s6-g {
+      width: 440px;
+      background: #ffffff;
+      border: 5px solid #0f2c40;
+      box-shadow: 5px 5px 0 rgba(15, 44, 64, 0.16);
+      padding: 26px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .s6-g .l {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      color: #7fa6a8;
+      font-weight: 500;
+    }
+    .s6-g .b {
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .s6-g.pass {
+      border-color: #14b3ad;
+    }
+    .s6-g.pass .b {
+      color: #0c8a86;
+    }
+    .s6-g.fail {
+      border-color: #ef5f5f;
+    }
+    .s6-g.fail .b {
+      color: #ef5f5f;
+    }
+    .s6-g.incomp {
+      border-color: #f0ac1b;
+    }
+    .s6-g.incomp .b {
+      color: #b97b0b;
+    }
+    .s6-g .code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      color: #3c5b6a;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .s6-g .code .dot {
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .s6-dip {
+      position: absolute;
+      inset: 0;
+      background: #0c2334;
+      opacity: 0;
+    }
+  </style>
+  <div id="root" data-composition-id="s6" data-width="1920" data-height="1080">
+    <div id="s6-darkbase" class="clip" data-start="0" data-duration="0.5" data-layout-ignore data-track-index="0"
+      style="position: absolute; inset: 0; background: #0c2334; opacity: 0"></div>
+    <div id="s6-grid" class="clip s6-grid" data-start="0" data-duration="9" data-layout-ignore data-track-index="1"></div>
+    <div id="s6-glow" class="clip s6-glow" data-start="0" data-duration="9" data-layout-ignore data-track-index="2"></div>
+
+    <h2 id="s6-word" class="clip s6-word" data-start="0.4" data-duration="9" data-track-index="3">Confidence, built into the <span class="acc">workflow.</span></h2>
+    <p id="s6-sub" class="clip s6-sub" data-start="0.9" data-duration="9" data-track-index="4">one engine · many surfaces · one deterministic gate</p>
+
+    <div id="s6-mods" class="clip" data-start="0.2" data-duration="8.8" data-track-index="5" data-layout-allow-overflow>
+      <div class="s6-mod m" style="left: 210px; top: 440px; width: 300px"><div class="t">change</div><div class="m">diff · staged</div></div>
+      <div class="s6-mod m" style="left: 560px; top: 470px; width: 260px"><div class="t">discover</div><div class="m">manifests</div></div>
+      <div class="s6-mod m" style="left: 830px; top: 500px; width: 300px"><div class="t">scan</div><div class="m">deps · secrets</div></div>
+      <div class="s6-mod m" style="left: 1170px; top: 470px; width: 290px"><div class="t">normalize</div><div class="m">redacted</div></div>
+      <div class="s6-mod m" style="left: 1510px; top: 440px; width: 280px"><div class="t">policy</div><div class="m">gate decision</div></div>
+    </div>
+
+    <div id="s6-tick" class="clip s6-tick" data-start="0" data-duration="9" data-layout-ignore data-track-index="6"></div>
+
+    <div id="s6-gate" class="clip s6-gate" data-start="4.0" data-duration="5.0" data-track-index="7">
+      <div id="s6-gpass" class="s6-g pass">
+        <span class="b">PASS</span>
+        <span class="code"><span><span class="dot" style="background:#14b3ad"></span>exit 0</span></span>
+      </div>
+      <div id="s6-gfail" class="s6-g fail">
+        <span class="b">FAIL</span>
+        <span class="code"><span><span class="dot" style="background:#ef5f5f"></span>exit 1</span></span>
+      </div>
+      <div id="s6-ginc" class="s6-g incomp">
+        <span class="b">INCOMPLETE</span>
+        <span class="code"><span><span class="dot" style="background:#f0ac1b"></span>exit 2</span></span>
+      </div>
+    </div>
+
+    <div id="s6-dip" class="clip s6-dip" data-start="8.4" data-duration="0.6" data-layout-ignore data-track-index="8"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // carry the dark base briefly, then it resolves to mint
+    tl.fromTo("#s6-darkbase", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "power2.out" }, 0);
+    tl.fromTo("#s6-glow", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "power2.out" }, 0.4);
+    // modules of the system silhouette draw in
+    tl.fromTo("#s6-mods .m", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.1 }, 0.6);
+    // the pipeline completes: a single teal tick sweeps left-to-right across the modules
+    tl.fromTo("#s6-tick", { opacity: 0, x: 200 }, { opacity: 1, x: 200, duration: 0.2 }, 2.6);
+    tl.to("#s6-tick", { x: 1600, duration: 0.7, ease: "power2.inOut" }, 2.8);
+    tl.to("#s6-tick", { opacity: 0, duration: 0.3 }, 3.4);
+    // title lands, holds; supporting line
+    tl.fromTo("#s6-word", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "power4.out" }, 0.7);
+    tl.fromTo("#s6-sub", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.4);
+    tl.to("#s6-word", { opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in" }, 6.8);
+    tl.to("#s6-sub", { opacity: 0, duration: 0.25 }, 6.8);
+    // the gate trio: the big visual payoff, lands at 4.0, each card a frame apart
+    tl.fromTo("#s6-gpass", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.15);
+    tl.fromTo("#s6-gfail", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.28);
+    tl.fromTo("#s6-ginc", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.41);
+    // pass card gets a one-time confidence glow
+    tl.fromTo("#s6-gpass", { boxShadow: "5px 5px 0 rgba(15,44,64,0.16)" }, { boxShadow: "0 0 40px rgba(20,179,173,0.4)", duration: 0.5, ease: "power2.out" }, 5.0);
+    // the modules fade back so the gate trio is the clear focus
+    tl.to("#s6-mods", { opacity: 0.35, duration: 0.5, ease: "power2.out" }, 4.2);
+    // hold the confident composition; dip into end card
+    tl.to("#s6-gate", { y: -12, duration: 2.5, ease: "power1.inOut" }, 5.4);
+    tl.to("#s6-dip", { opacity: 1, duration: 0.55, ease: "power2.in" }, 8.45);
+    window.__timelines["s6"] = tl;
+  </script>
+</template>

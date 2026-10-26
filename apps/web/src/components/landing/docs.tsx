@@ -41,12 +41,12 @@ export function Docs() {
           <div id="cli" className="pixel-box scroll-mt-24 rounded p-5">
             <h3 className="text-lg font-extrabold text-ink">CLI &amp; git hooks</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              <code className="font-mono text-[13px]">veylq scan</code>, <code className="font-mono text-[13px]">veylq check</code>,{' '}
-              <code className="font-mono text-[13px]">veylq report</code>, and{' '}
-              <code className="font-mono text-[13px]">veylq config validate</code>. Exit codes are
+              <code className="font-mono text-[13px]">veylqorix scan</code>, <code className="font-mono text-[13px]">veylqorix check</code>,{' '}
+              <code className="font-mono text-[13px]">veylqorix report</code>, and{' '}
+              <code className="font-mono text-[13px]">veylqorix config validate</code>. Exit codes are
               deterministic: <code className="font-mono text-[13px]">0</code> pass, <code className="font-mono text-[13px]">1</code>{' '}
               blocking findings, <code className="font-mono text-[13px]">2</code> incomplete coverage.
-              <code className="font-mono text-[13px]"> veylq hooks install</code> writes pre-commit and
+              <code className="font-mono text-[13px]"> veylqorix hooks install</code> writes pre-commit and
               pre-push hooks; <code className="font-mono text-[13px]">VEYLQORIX_OVERRIDE</code> is the
               explicit, auditable escape hatch.
             </p>

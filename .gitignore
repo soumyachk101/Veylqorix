@@ -5,3 +5,6 @@ dist/
 .DS_Store
 .vercel
 .env*
+# Rust engine build tree (release/debug binaries and intermediate artifacts)
+crates/target/
+veylqorix-website/

@@ -32,3 +32,20 @@ export { scanSecrets, redactSecret, type SecretScanOptions } from './scanners/se
 export { scanLicenses, type LicenseScanOptions } from './scanners/licenses.js';
 export { detectChecks, runCheck, type QualityCheckOptions } from './scanners/quality.js';
 export { execFileAsync, ExecError, extractJson, sha256 } from './util/exec.js';
+export {
+  RustEngineAdapter,
+  createEngineAdapter,
+  resolveEngineBinary,
+  isEngineAvailable,
+  EngineError,
+  EngineUnavailableError,
+  EngineProtocolError,
+  EngineResponseError,
+  EngineTimeoutError,
+  PROTOCOL_VERSION,
+  ENGINE_EXIT,
+  type EngineResponse,
+  type EngineScanOptions,
+  type EngineEvaluateOptions,
+  type RustEngineAdapterOptions,
+} from './engine/index.js';
