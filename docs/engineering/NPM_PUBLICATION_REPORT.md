@@ -190,6 +190,42 @@ credential layer** — everything else was prepared and verified:
 **This is now the single blocker for the entire release.** Everything on the
 repository side is merged, green, and verified.
 
+## 4c. Bootstrap state as of 2026-10-27 (23:00, after `npm login`)
+
+After the owner ran `npm login` (as `soumya.chk101`, who is the **owner** of
+the `@veylqorix` scope — confirmed via `npm org ls veylqorix`), the bootstrap
+was executed as far as the credential allows:
+
+- **Discovery that forced a procedure change:** `npm publish` of the 0.0.1
+  tarballs initially failed with `EUSAGE "Automatic provenance generation not
+  supported for provider: null"` — the `publishConfig.provenance: true` added
+  in PR #107 makes npm attempt provenance on *every* publish, and a
+  non-CI/owner-machine publish has no provider. The provenance flag was
+  therefore stripped from the **local-only 0.0.1 dip** (never committed;
+  `HEAD` still carries `provenance: true`, which is correct for the
+  CI/OIDC path where provenance is the whole point).
+- **`npm stage publish` used instead** (staging does not require 2FA):
+  - `@veylqorix/core@0.0.1` staged, id `94a22c65-2e6e-4c21-8ebc-1f39588b5be6`
+  - `@veylqorix/cli@0.0.1` staged, id `df5d9357-7f6d-4916-8ce6-9aa3fcf6a684`
+  - Both now **exist on the registry**: `npm view` lists the public
+    `0.0.0-stage` placeholder plus the staged version for each. This
+    satisfies the prerequisite for attaching a trusted publisher.
+- **The bypass-2FA granular token cannot do the 2FA-gated steps** —
+  `npm trust`, `npm stage approve`, `npm stage reject` all fail with
+  `EOTP` ("One-time password required"). This matches npm's published
+  restriction that tokens bypassing 2FA cannot perform account changes or
+  direct/staged approvals.
+- Working tree restored: both manifests back at `0.1.1` with
+  `publishConfig.provenance: true` (matching HEAD); the `video/` changes
+  remain uncommitted; no tag was created or moved; no GitHub Release.
+
+**Net effect:** the packages exist, so the owner can now attach the two
+trusted publishers (web UI — the CLI is 2FA-blocked for this token). The
+staged `0.0.1` versions are inert until approved or rejected; recommend
+rejecting them (registry stays minimal — the `0.1.1` trusted publish is the
+real release) or approving them (0.0.1 becomes a public bootstrap version;
+also fine, `0.1.1 > 0.0.1`).
+
 ## 5. Actions requiring the owner's npm / GitHub account
 
 These are the only steps that can move the release forward. Full detail in

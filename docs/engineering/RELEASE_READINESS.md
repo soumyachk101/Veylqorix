@@ -275,14 +275,15 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
 - [ ] **(ii-b)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
       enabled on the owning account/org (`NPM_TRUSTED_PUBLISHING_SETUP.md`
       §1). Both packages currently 404 — nothing is published yet.
-- [ ] **(iii)** Perform the one-time bootstrap publication of **each**
-      package from the owner's machine, under 2FA
-      (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0): publish core at the
-      bootstrap version first, then the CLI with a dependency range that
-      matches that bootstrap core version, then restore `0.1.1` in both
-      manifests for the tagged release. This is a one-time exception on
-      the owner's machine — never a repository secret, never an `NPM_TOKEN`,
-      and never an `npm login` on the runner.
+- [x] **(iii)** One-time bootstrap of **each** package — **done via
+      staging** on 2026-10-27 (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0,
+      "Staged variant actually used"): `npm stage publish` of core
+      `0.0.1` then CLI `0.0.1` (whose packed manifest carries the
+      concrete `@veylqorix/core` `0.0.1`), creating both packages on
+      the registry (public `0.0.0-stage` placeholder + staged `0.0.1`).
+      `npm stage approve`/`reject` of the staged `0.0.1` needs a
+      2FA-enabled credential — owner action, but optional: the
+      `0.1.1` release does not depend on it either way.
 - [ ] **(iv)** Register the trusted publisher for **each** of
       `@veylqorix/core` and `@veylqorix/cli` per
       `NPM_TRUSTED_PUBLISHING_SETUP.md` §2 — per-package, no environment,

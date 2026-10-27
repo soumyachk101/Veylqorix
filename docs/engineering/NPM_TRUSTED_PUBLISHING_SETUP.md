@@ -88,6 +88,23 @@ workflow's OIDC publish can ever run:
   `0.0.0-stage` placeholder; a maintainer then approves it with 2FA.
   Either way the package comes to exist and the
   trusted-publisher record becomes configurable.
+- **Staged variant actually used (2026-10-27):** `npm stage publish`
+  creates a public `0.0.0-stage` placeholder for a not-yet-existing
+  package and does **not** require 2FA to *stage* (approval does). Both
+  packages were staged at `0.0.1` this way, so they now exist on the
+  registry and a trusted publisher can be attached. The `0.0.1` staged
+  versions are inert until the owner approves or rejects them in the npm
+  UI (or `npm stage approve`/`reject` with a 2FA-enabled credential).
+  Two notes from executing this:
+  1. **`publishConfig.provenance` must not be set for an owner-machine
+     publish** — it makes npm attempt provenance generation, which fails
+     outside CI with `EUSAGE "Automatic provenance generation not
+     supported for provider: null"`. Strip it from the local dip;
+     `HEAD` keeps `provenance: true` for the CI/OIDC path, where it is
+     correct.
+  2. **The `npm trust` CLI rejects bypass-2FA granular tokens** (npm's
+     documented restriction), so with such a token the web UI is the
+     only way to create the trusted-publisher records.
 - This bootstrap is a **one-time exception and stays on the owner's
   machine**: the owner's own credentials plus 2FA (or a granular
   access token with bypass-2FA — which the `npm trust` command
