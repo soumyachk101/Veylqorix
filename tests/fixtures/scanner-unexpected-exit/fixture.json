@@ -1,0 +1,30 @@
+{
+  "name": "scanner-unexpected-exit",
+  "kind": "diff",
+  "description": "An external scanner exited with an unrecognized code (5) and an empty stdout, but its result was still recorded (the orchestrator classifies exit codes, not the engine). Both sides must treat a recorded ERROR scanner result the same way the timeout fixture does: never a pass. This pins that the engine trusts the *recorded* scanner status, not an exit-code guess, so an unexpected exit is an ERROR and a hard FAIL.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": [
+      {
+        "scanner": "dependencies",
+        "status": "ERROR",
+        "findings": [],
+        "durationMs": 1500,
+        "error": { "message": "npm audit exited with unexpected code 5", "code": "5" },
+        "notes": ["unrecognized exit code; treat as an error, not a pass"]
+      },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "LIMITED",
+    "findingIds": [],
+    "blockingReasonContains": ["Required scanner 'dependencies' errored"],
+    "neverPass": true
+  }
+}

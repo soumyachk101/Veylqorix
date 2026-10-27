@@ -1,0 +1,22 @@
+{
+  "name": "verdict-pass",
+  "kind": "diff",
+  "description": "A clean audit: all scanners pass, no findings, no failed checks. The gate must PASS with FULL coverage and exit 0 on both implementations.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [{ "id": "tests", "command": "npm test", "status": "PASS", "durationMs": 120 }],
+    "scannerResults": [
+      { "scanner": "dependencies", "status": "PASS", "findings": [], "durationMs": 5, "notes": ["clean"] },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "PASS",
+    "exitCode": 0,
+    "coverage": "FULL",
+    "findingIds": [],
+    "blockingReasonContains": []
+  }
+}

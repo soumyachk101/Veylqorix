@@ -1,0 +1,14 @@
+{
+  "name": "invalid-protocol-version",
+  "kind": "protocol",
+  "description": "A request with a protocolVersion that the current engine does not speak must be rejected with exit 64 and a structured malformed-request error frame, with no gate decision and no findings on stdout. The adapter must reject a matching response with the wrong protocolVersion. This pins the version check on BOTH sides so a future protocol bump cannot be silently misread as compatible.",
+  "expectedRustExitCode": 64,
+  "requestProtocolVersion": 99,
+  "responseProtocolVersion": 99,
+  "expect": {
+    "protocolError": true,
+    "rustExitCode": 64,
+    "errorFrame": { "code": "malformed-request", "ok": false, "noGate": true },
+    "tsRaises": "EngineProtocolError"
+  }
+}

@@ -39,6 +39,7 @@
 - [REST API and dashboard](#rest-api-and-dashboard)
 - [GitHub Actions gate](#github-actions-gate)
 - [Agent skills](#agent-skills)
+- [Plugin SDK](#plugin-sdk)
 - [Programmatic API](#programmatic-api)
 - [Rust security engine](#rust-security-engine)
 - [Policy and exceptions](#policy-and-exceptions)
@@ -146,7 +147,8 @@ pnpm test         # vitest unit + integration suite
 
 ### Scan a repository from the CLI
 
-The CLI is not published to npm yet — run it from the build output:
+The CLI is packaged and dry-run-validated (`pnpm pack --dry-run`) but not
+published to npm yet — run it from the build output until publish:
 
 ```sh
 node apps/cli/dist/index.js scan --root /path/to/repo --json
@@ -196,15 +198,17 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 
 | Surface                       | Where                                    | Status (verified)                                                                                                             | Docs |
 |-------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|------|
-| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. **Not published to npm — run from `dist/`.**                | [docs/cli.md](docs/cli.md) |
+| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. **Packaged and dry-run-validated; not published to npm — run from `dist/` until publish.** | [docs/cli.md](docs/cli.md) |
 | MCP server (`veylqorix-mcp`)  | `packages/mcp-server`                    | Six Zod-validated tools, root confinement + redaction. Requires `pnpm build`.                                                 | [docs/mcp.md](docs/mcp.md) |
 | REST API + dashboard          | `packages/api`, `apps/web`               | Dependency-free API on `:4173`; Next.js dashboard on `:3000` with a clearly-labeled **SAMPLE DATA** fallback when the API is down. | [docs/api.md](docs/api.md) · [docs/dashboard.md](docs/dashboard.md) |
 | GitHub Actions gate           | `.github/workflows/veylqorix-gate.yml`   | Reusable `workflow_call` gate: real scan + SARIF upload, SHA-pinned actions, least-privilege permissions. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
 | Agent skills                  | `packages/skills`                        | Portable `SKILL.md` + ready-made MCP configs for Claude Code, Codex, and Cursor.                                              | [packages/skills](packages/skills) |
+| Plugin SDK (`@veylqorix/plugin`) | `packages/plugin`                     | Custom scanners/checks that plug into `runAudit` and the gate; shell-free `exec`, no silent passes. **Not published to npm — run from source via `workspace:*` until publish.** | [docs/plugin.md](docs/plugin.md) |
 | Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 60 tests; called by the TypeScript core through the engine adapter. | below |
 
 **Honest note:** the gate and the CLI hooks are *advisory* until
-enforcement (branch protection, or a published CLI) is in place. See
+enforcement (branch protection) is in place; the CLI is packaged and
+dry-run-validated but not published to npm yet. See
 [Honest limitations](#honest-limitations) and
 [docs/faq.md](docs/faq.md).
 
@@ -216,7 +220,7 @@ adapter over the core engine. Every result comes from a real scanner run.
 | Command                        | What it does                                   |
 |--------------------------------|------------------------------------------------|
 | `scan [root]`                  | Full audit + quality gate (default command)   |
-| `check [root]`                 | Quality checks only (typecheck, lint, tests)   |
+| `check [root]`                 | Quality checks only (typecheck, lint, tests); no scanners run, so the gate always reports `INCOMPLETE` (exit 2) — run `scan` for a full audit |
 | `report [root]`                | Human-readable Markdown report                 |
 | `config validate FILE`         | Validate a policy JSON file                    |
 | `hooks install \| uninstall`   | Safe Git hook installer (dry-run by default)   |
@@ -309,7 +313,8 @@ Security properties:
   server.
 
 Configuration is via environment in the server process: `VEYLQORIX_ROOTS`
-(whitespace/semicolon-separated roots; falls back to the current
+(required — comma/whitespace/semicolon-separated roots; without it the
+server refuses to start, exit 1, and does **not** fall back to the current
 directory), `VEYLQORIX_OFFLINE=1`, `VEYLQORIX_TIMEOUT_MS` (default
 `120000`). Example `.mcp.json` (run `pnpm build` first):
 
@@ -334,12 +339,20 @@ Setup and client configs: [docs/mcp.md](docs/mcp.md).
 ### REST API
 
 `@veylqorix/api` is a dependency-free Node `http` server on port **4173**
-(`VEYLQORIX_API_PORT` to override). Scans are **asynchronous**:
-`POST /api/scan` creates a `RUNNING` record, starts the core audit in the
-background, and returns `202` with the scan id; clients poll
-`GET /api/scan/:id` on the stable `status` field until `DONE`
-(findings, gate, coverage, and exit code available) or `ERROR`. Unknown
-routes return 404; CORS is open.
+(`VEYLQORIX_API_PORT` to override). By default the API binds to
+`127.0.0.1` (loopback-only). To expose it on another address you must
+run it in protected mode: set `VEYLQORIX_API_HOST` **and**
+`VEYLQORIX_API_TOKEN` — a non-loopback host without a token refuses to
+start. In protected mode every `/api` route requires the bearer token
+(`GET /api/health` stays open so orchestrators can probe) and is checked
+with a timing-safe comparison. CORS is an exact-origin allowlist from
+`VEYLQORIX_CORS_ORIGINS` — no wildcard, no credentials. Scans are
+**asynchronous**: `POST /api/scan` creates a `RUNNING` record, starts the
+core audit in the background, and returns `202` with the scan id; clients
+poll `GET /api/scan/:id` on the stable `status` field until `DONE`
+(findings, gate, coverage, and exit code available), `ERROR`, or
+`INTERRUPTED` (a scan still running when the API process exited — re-run
+it; it is never surfaced as completed). Unknown routes return 404.
 
 | Endpoint                                  | Behavior                                            |
 |-------------------------------------------|-----------------------------------------------------|
@@ -361,14 +374,22 @@ Configuration (environment):
 | Variable                  | Default    | Effect                                            |
 |---------------------------|------------|---------------------------------------------------|
 | `VEYLQORIX_API_PORT`      | `4173`     | listen port                                        |
+| `VEYLQORIX_API_HOST`      | —          | bind address; non-loopback requires `VEYLQORIX_API_TOKEN` or the API refuses to start |
+| `VEYLQORIX_API_TOKEN`     | —          | bearer token: every `/api` route except `GET /api/health` requires it (timing-safe check) |
+| `VEYLQORIX_CORS_ORIGINS`  | —          | comma-separated exact-origin CORS allowlist (no wildcard, no credentials) |
 | `VEYLQORIX_ALLOWED_ROOTS` | —          | comma/space-separated root allow-list; paths outside it get `403` on registration or scan (least privilege) |
 | `VEYLQORIX_OFFLINE`       | off        | skip network-dependent scanners (`=1`)             |
 | `VEYLQORIX_INCLUDE_TESTS` | off        | include test/build checks (`=1`)                   |
 | `VEYLQORIX_TIMEOUT_MS`    | `120000`   | per-scanner timeout in ms (applied to each scan)    |
 
-Storage is **in-memory by default** (swappable behind the `ApiStore`
-interface) — a restart clears repositories and scan history. Full
-reference: [docs/api.md](docs/api.md).
+Storage persists to a JSON file: repositories and scans are written to
+`VEYLQORIX_STORE_PATH` (default `./.veylqorix-store.json`) with atomic
+writes (temp file + fsync + rename), so state survives restarts. Scans
+still `RUNNING` when the process exits are re-stamped `INTERRUPTED` on
+the next start — never surfaced as completed. The store is single-process:
+two API processes sharing one file will lose interleaved writes. The
+store file holds repository paths + names, scan metadata, and
+redacted findings only. Full reference: [docs/api.md](docs/api.md).
 
 ### Dashboard
 
@@ -419,10 +440,13 @@ enforcement that is independent of local hooks.
 What it does: check out the calling repo (`fetch-depth: 0`) → prepare the
 CLI (build from source when `apps/cli` is present; otherwise require a
 global `veylqorix` and fail loudly if it is missing) → run one
-authoritative scan producing JSON + SARIF → upload the `veylqorix-scan`
-artifact (`veylqorix.json`, SARIF, stderr) → upload SARIF to GitHub code
-scanning → evaluate exit codes: `0` PASS · `1` FAIL · `2` INCOMPLETE
-(never green). Permissions are least-privilege (`contents: read`,
+authoritative scan that feeds every report format from the same audit
+result (JSON + Markdown + SARIF) → upload the `veylqorix-scan`
+artifact (`veylqorix.json`, `veylqorix.md`, SARIF, stderr) → validate
+the SARIF (2.1.0 with at least one run) before uploading it to GitHub
+code scanning → evaluate exit codes: `0` PASS · `1` FAIL · `2`
+INCOMPLETE (never green — an incomplete scan fails the gate).
+Permissions are least-privilege (`contents: read`,
 `security-events: write`), no secrets are forwarded, and every
 third-party action is pinned to a full commit SHA.
 
@@ -460,6 +484,67 @@ compatible entry points — no duplicated security rules:
 | **MCP server**              | six validated tools (see [MCP server](#mcp-server)) — the programmatic entry point    |
 | **Portable skill** (`packages/skills`) | `SKILL.md` in Agent Skills format that guides the agent's verify-don't-trust workflow, plus ready-made MCP client configs for Claude Code, Codex, and Cursor |
 | **Git hooks**               | `hooks install` adds a safe pre-commit/pre-push layer: dry-run by default, backs up existing hooks, never touches `git config` |
+
+## Plugin SDK
+
+`@veylqorix/plugin` is a thin **scanner extension SDK** over the core:
+author custom scanners and quality checks (wrapping an in-house SAST tool,
+an SBOM policy check, a coverage gate, a house rule) and hand that
+evidence to `runAudit` — it flows into the unified finding schema and the
+same authoritative gate, never a re-implemented one.
+
+```ts
+import { definePlugin, runPluginAudit } from '@veylqorix/plugin';
+
+const myPlugin = definePlugin({
+  id: 'acme/security',
+  scanners: [
+    {
+      id: 'acme-sast',
+      // the context gives you `root`, `timeoutMs`, and a shell-free `exec`
+      run: async (ctx) => {
+        const { code, stdout } = await ctx.exec('semgrep', ['run', '--json'], {
+          cwd: ctx.root,
+          timeoutMs: ctx.timeoutMs,
+        });
+        return normalizeMyToolOutput(stdout); // Finding[] — normalized for you
+      },
+    },
+  ],
+  checks: [
+    {
+      id: 'coverage-floor',
+      command: 'node scripts/check-coverage.mjs',
+      run: async (ctx) => runCoverageFloor(ctx),
+    },
+  ],
+});
+
+const result = await runPluginAudit({ root: '/path/to/repo' }, myPlugin);
+process.exit(result.exitCode); // 0 · 1 · 2
+```
+
+Security properties:
+
+- **No silent passes.** A plugin scanner that throws or times out is
+  recorded `ERROR`, which blocks the gate under the default policy and
+  degrades coverage to `INCOMPLETE` (exit 2). A missing optional tool is
+  reported `SKIPPED` with a note — never a clean result.
+- **Normalized evidence.** Plugin findings go through the core's
+  `normalizeFindings` (deterministic ids, severity/confidence clamping,
+  malformed entries dropped), so reports and gate reasons behave exactly
+  as if a built-in scanner had produced them.
+- **Shell-free execution.** The only process API a plugin gets is the
+  core's `execFileAsync` (explicit argument arrays, hard timeouts, bounded
+  output).
+- **No gate weakening.** Plugins contribute evidence only; thresholds and
+  exceptions stay with the committed, auditable policy file. Secret values
+  must be redacted by the scanner author before emitting findings.
+
+The gate stays single-sourced: plugin evidence is merged into the audit
+and evaluated by the Rust engine when its binary is available, else by the
+byte-compatible TypeScript engine — whichever authority `runAudit` already
+uses. Full reference and authoring guide: [docs/plugin.md](docs/plugin.md).
 
 ## Programmatic API
 
@@ -506,15 +591,18 @@ binary stays small and fast. Dependencies are pure Rust (`serde`,
 
 > **Integration status (honest).** The engine is wired into the application
 > through the TypeScript adapter `packages/core/src/engine/index.ts`, which
-> resolves the binary (`VEYLQORIX_ENGINE` env var, then
-> `crates/target/release`, then `crates/target/debug`) and is invoked by
-> `runAudit` in `packages/core/src/audit.ts`. CLI, MCP, and API all funnel
-> through `runAudit`, so they use the engine when the binary is present; when
-> it is not, `runAudit` degrades to the byte-compatible TypeScript secret
-> scanner and policy engine and records an explicit degraded-mode note rather
-> than passing silently. The engine runs the secret scan and evaluates the
-> gate over the merged evidence, and its decision drives the exit codes the
-> surfaces report.
+> resolves the binary (`VEYLQORIX_ENGINE` env var, then `veylqorix-engine`
+> on `PATH`, then documented install locations, then an upward walk to a
+> `crates/target/{release,debug}/veylqorix-engine` in the repo) and is
+> invoked by `runAudit` in `packages/core/src/audit.ts`. CLI, MCP, and API
+> all funnel through `runAudit`, so they use the engine when the binary is
+> present; when it is not, `runAudit` degrades to the byte-compatible
+> TypeScript secret scanner and policy engine and records an explicit
+> "degraded compatibility mode" note on the secret scanner result, so a
+> degraded run is never presented as a full engine run (a scan whose coverage
+> degrades still comes out `INCOMPLETE`, exit 2, — never a silent pass).
+> The engine runs the secret scan and evaluates the gate over the merged
+> evidence, and its decision drives the exit codes the surfaces report.
 
 ### Protocol
 
@@ -729,40 +817,37 @@ absence of vulnerabilities or secrets. Specifically:
 - **A clean gate is not a security certification.** A green quality
   check proves only that the checks that ran passed.
 - **The gate and hooks are advisory** until a branch-protection rule
-  or ruleset requires the gate's status check; the CLI is not
-  published to npm yet, so the gate workflow builds it from
-  `dist/`/source when available.
-- **The Rust engine adapter is written but uncommitted.** `runAudit`
-  (`packages/core/src/audit.ts`) calls the Rust engine through the
-  adapter in `packages/core/src/engine/index.ts` when the
-  `veylqorix-engine` binary is available, and degrades to the
-  byte-compatible TypeScript fallback with an explicit degraded-mode
-  note when it is not. `crates/`, the adapter, and the engine CI steps
-  are still uncommitted in the working tree, so no public artifact
-  ships the engine yet (see [Roadmap](#roadmap)).
-- **API storage is in-memory by default** — a restart clears
-  repositories and scan history.
+  or ruleset requires the gate's status check. The CLI is packaged and
+  dry-run-validated but not published to npm yet, so the gate workflow
+  builds it from `dist/`/source when available.
+- **The Rust engine is committed and wired in** — `runAudit`
+  (`packages/core/src/audit.ts`) calls it through the adapter in
+  `packages/core/src/engine/index.ts` when the `veylqorix-engine`
+  binary is available, and degrades to the byte-compatible TypeScript
+  fallback with an explicit "degraded compatibility mode" note on the
+  secret scanner result when it is not — never a silent fallback.
+- **The API store is a single-process JSON file**
+  (`VEYLQORIX_STORE_PATH`, default `./.veylqorix-store.json`):
+  repositories and scan history survive restarts, and in-flight scans
+  recover as `INTERRUPTED`, never as completed.
 
 Full answers: [docs/faq.md](docs/faq.md) · deeper failure
 explanations: [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Roadmap
 
-Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (current: 0.1.1 —
-the root `package.json` still reads 0.1.0; version sync is pending).
-Open items:
+Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
+2026-10-25; the root and package `package.json` files still read
+0.1.0 — version sync is pending). Open items:
 
-- [ ] Commit the untracked engine work: `crates/`, `packages/core/src/engine/`,
-      `tests/engine-adapter.test.ts`, `tests/fixtures/rust-clean/`,
-      `tests/fixtures/rust-vulnerable/`, `docs/engine.md`, and the engine
-      steps in `ci.yml` / `veylqorix-gate.yml`. The TypeScript adapter is
-      already written and wired into `runAudit` (`packages/core/src/audit.ts`)
-      — only the git commit remains.
-- [ ] Publish `@veylqorix/cli` to the npm registry
+- [ ] Sync the version numbers: root and package `package.json` files
+      still read 0.1.0 while the changelog is at 0.1.1.
+- [ ] Publish `@veylqorix/cli` to the npm registry (packaging is
+      validated by dry-run; trusted-publisher setup is the remaining
+      owner step)
 - [ ] Gitleaks as a first-class secret scanner (delegation already
       exists in the engine)
 - [ ] GitHub Actions branch-protection guide with screenshots
-- [ ] Persistent `ApiStore` backend for the REST API
 - [ ] Commit the editable `.dot` sources for the `Veylqorix_Diagrams/`
       PNGs (the diagrams' own README references them, but only the
       rendered PNGs are in the tree today)
@@ -809,13 +894,9 @@ new dependencies without justification. Pull requests use the
 [template](.github/PULL_REQUEST_TEMPLATE.md), whose verification block
 requires `pnpm build && pnpm typecheck && pnpm lint && pnpm test`.
 
-**Known caveats** (fix-forward, not blockers): `pnpm-workspace.yaml`
-carries an invalid `allowBuilds` block with literal placeholder strings
-(e.g. `esbuild: set this to true or false`) and a stray
-`pnpm-workspace.yaml.bak` sits at the root — both can confuse a fresh
-`pnpm install`; and `apps/cli/src/index.ts` duplicates and has drifted
-from the shared `apps/cli/src/cli-args.ts` parser (the runtime
-behavior documented in [CLI](#cli) follows `index.ts`).
+**Known caveats** (fix-forward, not blockers): `apps/cli/src/index.ts`
+still duplicates the shared `apps/cli/src/cli-args.ts` parser (the
+runtime behavior documented in [CLI](#cli) follows `index.ts`).
 
 ## Repository layout
 
@@ -825,6 +906,7 @@ packages/core           engine: detection, scanners, policy, gate, reports,
 packages/mcp-server     MCP server (six tools) for AI coding agents
 packages/api            dependency-free REST API that runs real scans
 packages/skills         portable AI-agent skill + per-client MCP configs
+packages/plugin         scanner extension SDK (custom scanners + checks)
 apps/cli                the veylqorix command-line interface
 apps/web                Next.js dashboard (real API data, labeled demo fallback)
 crates/                 Rust security engine (cargo workspace, veylqorix-engine)
@@ -835,9 +917,10 @@ Veylqorix_Diagrams/     rendered architecture diagrams + palette notes
 
 The core engine is independent of every front-end. CLI, MCP, and API
 are thin adapters that all call the same `runAudit` and policy/gate
-functions, so there is exactly one place where security logic lives
-(today — the Rust engine, once wired in, becomes a second,
-byte-compatible implementation of the same gate semantics).
+functions, so there is exactly one place where security logic lives —
+backed by the Rust engine when its binary is available, and by the
+byte-compatible TypeScript fallback (explicitly labeled as degraded)
+when it is not.
 
 ## Documentation
 
@@ -848,6 +931,7 @@ byte-compatible implementation of the same gate semantics).
 | [docs/api.md](docs/api.md) | REST API reference |
 | [docs/dashboard.md](docs/dashboard.md) | running the API + dashboard, environment variables |
 | [docs/github-actions.md](docs/github-actions.md) | reusable gate workflow, enforcement via branch protection |
+| [docs/plugin.md](docs/plugin.md) | plugin SDK: authoring custom scanners/checks, API reference, security properties |
 | [docs/engine.md](docs/engine.md) | the Rust security engine: crate layout, stdio protocol, security properties, build/test |
 | [docs/faq.md](docs/faq.md) | honest limitations and general questions |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | "why did it fail" answers |

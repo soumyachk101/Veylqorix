@@ -37,6 +37,38 @@ function canonicalize(target: string): string {
 }
 
 /**
+ * Canonical form of a path that may not exist yet: realpath the deepest
+ * existing ancestor, then re-join the non-existent tail lexically. This keeps
+ * containment checks comparing canonical to canonical (never a lexical
+ * spelling against a realpath'd root, which breaks under symlinked mounts such
+ * as /var -> /private/var on macOS).
+ */
+function canonicalAncestor(candidate: string): string {
+  let walk = candidate;
+  const tail: string[] = [];
+  while (!fs.existsSync(walk)) {
+    const parent = path.dirname(walk);
+    if (parent === walk) break;
+    tail.unshift(path.basename(walk));
+    walk = parent;
+  }
+  const base = fs.realpathSync.native(walk);
+  return tail.length > 0 ? path.join(base, ...tail) : base;
+}
+
+/**
+ * Path-aware interior test: `candidate` is inside `root` when the canonical
+ * relative path is a clean interior one (no `..`, not absolute, non-empty).
+ * This replaces naïve string-prefix matching, which admits sibling-prefix
+ * paths and is defeated by symlinked roots.
+ */
+function isInterior(root: string, candidate: string): boolean {
+  if (candidate === root) return true;
+  const rel = path.relative(root, candidate);
+  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
+/**
  * Validate a caller-supplied path against the allowed workspace roots.
  *
  * @param requestedPath the path to validate
@@ -64,31 +96,21 @@ export function validatePath(
   // Determine the base root: an absolute path must live under one of the
   // roots; a relative path is resolved against the first root.
   const isAbsolute = path.isAbsolute(requestedPath);
-  const candidate = isAbsolute
+  const lexical = isAbsolute
     ? path.resolve(requestedPath)
     : path.resolve(canonicalRoots[0] as string, requestedPath);
 
-  // Lexical containment check first: this catches `..` traversal cheaply.
-  const lexicallyInside = canonicalRoots.some(
-    (root) => candidate === root || candidate.startsWith(root + path.sep),
-  );
-  if (!lexicallyInside) {
+  // Canonicalize the candidate the same way the roots were canonicalized.
+  // A candidate that does not exist yet (an output path) is canonicalized via
+  // its deepest existing ancestor so the containment test below compares
+  // canonical forms to canonical forms.
+  const real = fs.existsSync(lexical) ? canonicalize(lexical) : canonicalAncestor(lexical);
+
+  const inside = canonicalRoots.some((root) => isInterior(root, real));
+  if (!inside) {
     throw new PathValidationError(
       `Path resolves outside the configured workspace roots: ${requestedPath}`,
       isAbsolute ? 'OUTSIDE_ROOT' : 'PATH_TRAVERSAL',
-    );
-  }
-
-  // Then resolve symlinks and re-check, so a symlink inside the root that
-  // points outside it is rejected.
-  const real = canonicalize(candidate);
-  const reallyInside = canonicalRoots.some(
-    (root) => real === root || real.startsWith(root + path.sep),
-  );
-  if (!reallyInside) {
-    throw new PathValidationError(
-      `Path resolves outside the configured workspace roots via a symlink: ${requestedPath}`,
-      'OUTSIDE_ROOT',
     );
   }
 

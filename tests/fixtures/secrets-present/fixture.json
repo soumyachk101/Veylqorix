@@ -1,0 +1,35 @@
+{
+  "name": "secrets-present",
+  "kind": "diff",
+  "description": "An exposed secret (secret=true) with blockOnSecrets on (default) must fail the gate. Both implementations must reach the same verdict, finding id, and severity mapping.",
+  "command": "evaluate",
+  "input": {
+    "findings": [
+      {
+        "id": "SECRETS-8C5562BA",
+        "title": "AWS access key identifier detected in config.js",
+        "scanner": "secrets",
+        "ruleId": "aws-access-key-id",
+        "severity": "HIGH",
+        "confidence": "HIGH",
+        "location": { "file": "config.js", "line": 2, "column": 18 },
+        "secret": true,
+        "remediation": "Rotate the key and load it from a secret manager."
+      }
+    ],
+    "checks": [],
+    "scannerResults": [
+      { "scanner": "secrets", "status": "FAIL", "findings": [], "durationMs": 3, "notes": ["1 secret detected"] },
+      { "scanner": "dependencies", "status": "PASS", "findings": [], "durationMs": 1, "notes": ["clean"] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "FULL",
+    "findingIds": ["SECRETS-8C5562BA"],
+    "severityOf": { "SECRETS-8C5562BA": "HIGH" },
+    "blockingReasonContains": ["Exposed secret SECRETS-8C5562BA"]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "empty-findings",
+  "kind": "diff",
+  "description": "Zero findings at all, no scanner results supplied: the gate still evaluates to a PASS (no evidence to block on) with FULL coverage. This pins the empty-input behavior of both implementations — a missing-evidence run must not become FAIL, but a PASS here is only meaningful when coverage is FULL, which it is here because nothing was skipped.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": []
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "PASS",
+    "exitCode": 0,
+    "coverage": "FULL",
+    "findingIds": [],
+    "blockingReasonContains": []
+  }
+}

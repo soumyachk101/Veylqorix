@@ -80,9 +80,9 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 150px;
+      top: 140px;
       text-align: center;
-      font-size: 118px;
+      font-size: 104px;
       font-weight: 800;
       letter-spacing: -0.03em;
       color: #0e2a3d;
@@ -96,7 +96,7 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 330px;
+      top: 380px;
       text-align: center;
       font-family: "JetBrains Mono", monospace;
       font-size: 28px;
@@ -131,15 +131,15 @@
     }
     .s6-g .b {
       font-family: "Hanken Grotesk", sans-serif;
-      font-size: 44px;
+      font-size: 38px;
       font-weight: 800;
       letter-spacing: -0.01em;
     }
     .s6-g.pass {
-      border-color: #14b3ad;
+      border-color: #6fe9e2;
     }
     .s6-g.pass .b {
-      color: #0c8a86;
+      color: #6fe9e2;
     }
     .s6-g.fail {
       border-color: #ef5f5f;
@@ -151,11 +151,11 @@
       border-color: #f0ac1b;
     }
     .s6-g.incomp .b {
-      color: #b97b0b;
+      color: #f0ac1b;
     }
     .s6-g .code {
       font-family: "JetBrains Mono", monospace;
-      font-size: 28px;
+      font-size: 24px;
       color: #3c5b6a;
       display: flex;
       flex-direction: column;
@@ -193,10 +193,10 @@
 
     <div id="s6-tick" class="clip s6-tick" data-start="0" data-duration="9" data-layout-ignore data-track-index="6"></div>
 
-    <div id="s6-gate" class="clip s6-gate" data-start="4.0" data-duration="5.0" data-track-index="7">
+    <div id="s6-gate" class="clip s6-gate" data-start="0" data-duration="9" data-track-index="7">
       <div id="s6-gpass" class="s6-g pass">
         <span class="b">PASS</span>
-        <span class="code"><span><span class="dot" style="background:#14b3ad"></span>exit 0</span></span>
+        <span class="code"><span><span class="dot" style="background:#6fe9e2"></span>exit 0</span></span>
       </div>
       <div id="s6-gfail" class="s6-g fail">
         <span class="b">FAIL</span>
@@ -226,12 +226,13 @@
     tl.fromTo("#s6-sub", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.4);
     tl.to("#s6-word", { opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in" }, 6.8);
     tl.to("#s6-sub", { opacity: 0, duration: 0.25 }, 6.8);
-    // the gate trio: the big visual payoff, lands at 4.0, each card a frame apart
-    tl.fromTo("#s6-gpass", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.15);
-    tl.fromTo("#s6-gfail", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.28);
-    tl.fromTo("#s6-ginc", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 4.41);
+    // the gate trio: the big visual payoff, lands exactly at 4.0 (host 44.0)
+    tl.set(["#s6-gpass", "#s6-gfail", "#s6-ginc"], { opacity: 0, y: 34 }, 0);
+    tl.to("#s6-gpass", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 3.6);
+    tl.to("#s6-gfail", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 3.7);
+    tl.to("#s6-ginc", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.3)", transformOrigin: "center" }, 3.8);
     // pass card gets a one-time confidence glow
-    tl.fromTo("#s6-gpass", { boxShadow: "5px 5px 0 rgba(15,44,64,0.16)" }, { boxShadow: "0 0 40px rgba(20,179,173,0.4)", duration: 0.5, ease: "power2.out" }, 5.0);
+    tl.fromTo("#s6-gpass", { boxShadow: "5px 5px 0 rgba(15,44,64,0.16)" }, { boxShadow: "0 0 40px rgba(20,179,173,0.4)", duration: 0.5, ease: "power2.out" }, 4.6);
     // the modules fade back so the gate trio is the clear focus
     tl.to("#s6-mods", { opacity: 0.35, duration: 0.5, ease: "power2.out" }, 4.2);
     // hold the confident composition; dip into end card

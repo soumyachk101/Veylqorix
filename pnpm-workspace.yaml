@@ -1,6 +1,19 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Approve postinstall scripts for the two packages in this tree that need
+# native binaries or install-time codegen. pnpm >= 11 skips postinstall
+# scripts unless they are explicitly allowed here; `true` = allow, `false`
+# = explicitly forbid. esbuild installs its platform binary in postinstall;
+# sharp links its platform libvips package.
 allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
+  esbuild: true
+  sharp: true
+
+# Force patched transitive versions under next@15.5.28 (see
+# docs/engineering/SUPPLY_CHAIN.md §1.1). pnpm >= 11 reads overrides from
+# here, not from the pnpm field in package.json.
+overrides:
+  postcss: 8.5.31
+  sharp: 0.35.5

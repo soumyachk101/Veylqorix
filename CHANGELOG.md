@@ -4,6 +4,57 @@ All notable changes to Veylqorix are documented here.
 
 ## Unreleased
 
+### Plugin SDK (`@veylqorix/plugin`)
+- New `packages/plugin`: the **scanner extension SDK**. `definePlugin`
+  validates/freezes a plugin (custom scanners + quality checks);
+  `toAuditOptions` / `withPlugin` / `runPluginAudit` hand its evidence to
+  `runAudit`. Plugins are purely additive: their findings pass through the
+  core's `normalizeFindings` (deterministic ids, severity/confidence
+  clamping, malformed entries dropped), their exec is the core's shell-free
+  `execFileAsync`, and the gate stays single-sourced (Rust engine when the
+  binary is available, byte-compatible TypeScript engine otherwise).
+- `@veylqorix/core`: `runAudit` accepts optional `externalScanners`
+  (`ScannerDefinition[]`, executed under the same safe wrapper — a thrown
+  error or overrun becomes an `ERROR` result, never a pass) and
+  `externalChecks` (`ExternalCheck[]`, run after the built-in checks, honoring
+  `skipQualityChecks`; a failing runner is recorded as an `ERROR` check).
+  Defaults are empty, so existing `runAudit` callers are unaffected.
+  `ExternalCheck` / `ExternalCheckContext` are exported from the package
+  entry; `ExecResult` / `ExecOptions` are now re-exported too.
+- Tests: `packages/plugin/src/plugin.test.ts` (20 tests: validation,
+  bridge mapping, finding normalization, end-to-end `runPluginAudit` on
+  both gate authorities) and
+  `packages/core/src/audit-external.test.ts` (7 regression tests pinning
+  the no-silent-pass invariant for the extension slots).
+- Docs: [docs/plugin.md](docs/plugin.md) (authoring guide + API reference);
+  README gains a Plugin SDK section, a "Surfaces at a glance" row, and the
+  layout/docs entries. Not yet published to npm — consume from source
+  (`workspace:*`) until publish, same as the CLI.
+
+### Release readiness (`@veylqorix/cli` + `@veylqorix/core`)
+- Packaging hardened for external publication: `files` set to `["dist"]` on
+  both packages (no `src/`, `tsconfig.json`, lockfiles, or test output in the
+  tarball), `engines` (`node >=20.18`) and `publishConfig.access` added. The
+  `workspace:*` dependency is resolved by publishing `@veylqorix/core`
+  alongside the CLI at matching semver (core first, so the range resolves) —
+  `workspace:` is never shipped to a consumer.
+- `.github/workflows/release.yml` (new, opt-in, no token secret): on `v*`
+  tag only, builds, packs, and `npm publish --provenance` via GitHub OIDC
+  trusted publishing (no commit/tag push, no write permissions). **Inert
+  until the owner registers the trusted publisher + bot user** — publish
+  fails closed otherwise.
+- `docs/engineering/RELEASE_READINESS.md`: dry-run pack contents, engine
+  binary resolution (`VEYLQORIX_ENGINE` env var + developer-checkout walk,
+  no bundled/downloaded binary), the labeled degraded-coverage behavior when
+  the engine is absent, owner setup steps, and clean-consumer validation
+  commands + expected outputs.
+- `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
+  and exit-code examples matching the implementation.
+- Status: packaging validated locally (dry-run only). **Owner actions
+  remaining:** trusted-publisher + bot-user setup, first `v*` tag, and an
+  engine-binary distribution story (a verified platform artifact or
+  documented build step). No publish/release/tag has been performed yet.
+
 ### Rust security engine (`crates/veylqorix-engine`)
 - New pure-Rust engine crate (`crates/`, workspace manifest at
   `crates/Cargo.toml`): deterministic policy resolution, gate evaluation,

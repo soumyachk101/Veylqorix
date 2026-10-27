@@ -49,11 +49,11 @@
       white-space: nowrap;
     }
     .s1-chip .k {
-      color: #0c8a86;
+      color: #13a6a1;
       font-weight: 700;
     }
     .s1-chip .r {
-      color: #a83232;
+      color: #ef5f5f;
       font-weight: 700;
     }
     .s1-title {
@@ -72,11 +72,8 @@
       display: inline-block;
       margin: 0 0.18em;
     }
-    .s1-title .w.hl {
-      color: #0a6b67;
-    }
   </style>
-  <div id="root" data-composition-id="s1" data-width="1920" data-height="1080">
+  <div id="root" data-composition-id="s1" data-width="1920" data-height="1080" data-motion-blur="on">
     <div id="s1-grid" class="clip s1-grid" data-start="0" data-duration="5" data-layout-ignore data-track-index="0"></div>
 
     <div id="s1-pixels" class="clip" data-start="0" data-duration="5" data-track-index="1" data-layout-ignore>
@@ -84,10 +81,10 @@
       <div class="s1-pix p" style="left: 850px; top: 205px"></div>
       <div class="s1-pix p" style="left: 930px; top: 240px"></div>
       <div class="s1-pix p" style="left: 1010px; top: 205px"></div>
-      <div class="s1-pix p" style="left: 1080px; top: 240px; background: #14b3ad"></div>
+      <div class="s1-pix p" style="left: 1080px; top: 240px"></div>
       <div class="s1-pix p" style="left: 890px; top: 300px"></div>
       <div class="s1-pix p" style="left: 970px; top: 300px"></div>
-      <div class="s1-pix p" style="left: 1050px; top: 300px; background: #ef5f5f"></div>
+      <div class="s1-pix p" style="left: 1050px; top: 300px"></div>
     </div>
 
     <div id="s1-chips" class="clip" data-start="0.9" data-duration="4.1" data-track-index="2">
@@ -96,12 +93,12 @@
       <div class="s1-chip c" style="left: 1490px; top: 760px">manifest.json</div>
     </div>
 
-    <h1 id="s1-title" class="clip" data-start="1.6" data-duration="3.2" data-track-index="3">
+    <h1 id="s1-title" class="clip s1-title" data-start="1.6" data-duration="3.2" data-track-index="3">
       <span class="t">
         <span class="w">Every</span>
         <span class="w">line</span>
         <span class="w">of</span>
-        <span class="w hl">code</span>
+        <span class="w">code</span>
         <span class="w">carries</span>
         <span class="w">a</span>
         <span class="w">decision.</span>
@@ -109,6 +106,7 @@
     </h1>
   </div>
   <script>
+    window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
     // grid drifts slowly (camera, not content)
     tl.fromTo("#s1-grid", { x: 0, y: 0 }, { x: -48, y: -32, duration: 4.9, ease: "power1.out" }, 0);

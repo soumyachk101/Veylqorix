@@ -100,7 +100,15 @@ jobs:
         if: steps.prepare.outputs.monorepo == 'true'
         run: cargo build --manifest-path crates/Cargo.toml --workspace --release
 
-      # (c) Run the scan, capturing the exit code. Produces JSON + SARIF.
+      # (c) Run the scan, capturing the exit code.
+      #
+      # One authoritative scan feeds every report format: a single CLI
+      # invocation renders JSON (stdout), Markdown, and SARIF from the same
+      # audit result via the shared `renderAllReports` path in @veylqorix/core
+      # (file writers live in apps/cli and delegate to it). The gate never
+      # runs a second scan to keep a stdout stream clean. The exit code of
+      # this run drives the gate; report-generation failure exits 70 and fails
+      # this step, so a promised artifact is never silently missing.
       - name: Run Veylqorix scan
         id: scan
         if: steps.prepare.outputs.cli-src == 'true'
@@ -112,32 +120,62 @@ jobs:
           fi
           cli="node apps/cli/dist/index.js"
           if [ ! -d "apps/cli" ]; then cli="veylqorix"; fi
-          # One authoritative scan produces both machine-readable JSON and a
-          # SARIF document for GitHub code scanning. The exit code of this run
-          # drives the gate.
+          # shellcheck disable=SC2086
           set +e
           "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" \
-            $no_tests --json > veylqorix.json 2> veylqorix.stderr
+            $no_tests --json --report-out veylqorix.md --sarif-out veylqorix.sarif \
+            > veylqorix.json 2> veylqorix.stderr
           code=$?
-          set -e
-          # Emit the SARIF document for GitHub code scanning from the same scan
-          # flags (a separate invocation keeps the JSON stdout clean).
-          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" \
-            $no_tests --sarif-out veylqorix.sarif > /dev/null 2>&1 || true
+          set -euo pipefail
           echo "exit=${code}" >> "$GITHUB_OUTPUT"
           echo "Scan exit code: ${code}"
+          if [ ! -s veylqorix.sarif ]; then
+            echo "::error::SARIF artifact veylqorix.sarif was not produced by the scan step (CLI exit code ${code}). The report path failed; see veylqorix.json / veylqorix.stderr for context. The gate cannot be green."
+            exit 70
+          fi
 
-      # (d) Always: upload artifacts, and post to code scanning when non-empty.
-      - name: Upload Veylqorix artifacts
-        if: steps.prepare.outputs.cli-src == 'true'
+      # (d) Preserve the raw scan output and report artifacts on success AND
+      # on failure. When the scan step hard-failed, some files may be
+      # missing; `if-no-files-found: ignore` uploads what exists without
+      # failing this step on an empty match. A missing SARIF is already a
+      # visible `::error` from the scan step.
+      - name: Upload Veylqorix scan artifacts
+        if: steps.prepare.outputs.cli-src == 'true' && (failure() || !cancelled())
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: veylqorix-scan
           path: |
             veylqorix.json
+            veylqorix.md
             veylqorix.sarif
             veylqorix.stderr
+          if-no-files-found: ignore
 
+      # (d2) Verify the SARIF before posting it. A valid 2.1.0 document with at
+      # least one run is required by code scanning; anything else fails here
+      # with explicit context instead of reaching the upload as a misleading
+      # success. (Mirrors `validateSarifFile` in @veylqorix/core, which the
+      # unit tests in tests/report-gate.test.ts exercise directly.)
+      - name: Validate SARIF artifact
+        if: steps.prepare.outputs.cli-src == 'true' && hashFiles('veylqorix.sarif') != ''
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs = require("node:fs");
+            const doc = JSON.parse(fs.readFileSync("veylqorix.sarif", "utf8"));
+            if (doc.version !== "2.1.0") {
+              throw new Error("SARIF artifact has version " + JSON.stringify(doc.version) + "; expected 2.1.0. Refusing to upload.");
+            }
+            if (!Array.isArray(doc.runs) || doc.runs.length === 0) {
+              throw new Error("SARIF artifact has no runs; a code-scanning upload would post nothing. Refusing.");
+            }
+            console.log("SARIF artifact is a valid 2.1.0 document (" + doc.runs[0].results.length + " result(s)); posting to code scanning.");
+          '
+
+      # (d3) Upload the SARIF produced by the same scan to GitHub code
+      # scanning. An upload failure here (missing security-events permission,
+      # code scanning disabled, ...) fails this step red — it is never
+      # reported as a successful upload.
       - name: Upload SARIF to code scanning
         if: steps.prepare.outputs.cli-src == 'true' && hashFiles('veylqorix.sarif') != ''
         uses: github/codeql-action/upload-sarif@4e828ff8d448a8a6e532957b1811f387a63867e8 # v3.29.4
@@ -145,10 +183,18 @@ jobs:
           sarif_file: veylqorix.sarif
 
       # (e) Distinct failure handling so INCOMPLETE is never silently green.
+      #
+      # When no usable CLI is available (`cli-src == false`), the gate cannot
+      # be evaluated at all: fail with a distinct message instead of letting
+      # the skipped steps leave the check green.
       - name: Evaluate gate result
-        if: steps.prepare.outputs.cli-src == 'true'
+        if: steps.prepare.outputs.cli-src == 'true' || !cancelled()
         run: |
           set -u
+          if [ "${{ steps.prepare.outputs.cli-src }}" != "true" ]; then
+            echo "Gate: NO-SCAN - no usable Veylqorix CLI in this calling repo; the gate cannot pass without a scan."
+            exit 70
+          fi
           code="${{ steps.scan.outputs.exit }}"
           case "${code}" in
             0)
@@ -163,6 +209,10 @@ jobs:
               # green; fail with a distinct message.
               echo "Gate: INCOMPLETE - the scanner could not run to completion. Failing so this is never silently green."
               exit 2
+              ;;
+            70)
+              echo "Gate: REPORT-ERROR - the scan process hit an unexpected error (exit 70). See veylqorix.stderr for context."
+              exit 70
               ;;
             *)
               echo "Gate: UNEXPECTED exit code ${code}."

@@ -1,0 +1,30 @@
+{
+  "name": "scanner-timeout",
+  "kind": "diff",
+  "description": "The dependency scanner reported an ETIMEDOUT error result (it timed out before producing any advisory data). Both implementations must treat it as an errored mandatory scanner: a hard FAIL is forced by blockOnScannerError (default), and even with it off the coverage must be INCOMPLETE — never a clean pass. The same evidence feeds both the Rust gate and the TS gate.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": [
+      {
+        "scanner": "dependencies",
+        "status": "ERROR",
+        "findings": [],
+        "durationMs": 30000,
+        "error": { "message": "npm audit timed out after 30000ms", "code": "ETIMEDOUT" },
+        "notes": ["dependency coverage is incomplete, not a pass"]
+      },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "LIMITED",
+    "findingIds": [],
+    "blockingReasonContains": ["Required scanner 'dependencies' errored"],
+    "incompleteContains": ["Scanner 'dependencies' errored"]
+  }
+}

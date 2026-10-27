@@ -1,0 +1,13 @@
+{
+  "name": "redaction-values",
+  "kind": "redaction",
+  "description": "Golden vectors for redact_secret / redactSecret: both implementations must produce byte-identical masking for each input. These are the documented report contract — a redaction drift is a security-visibility regression.",
+  "cases": [
+    { "input": "AKIA0123456789ABCDEF", "expected": "AKIA…CDEF (20 chars, redacted)" },
+    { "input": "ghp_0123456789abcdefghijklmnopqrstuvwxyz0123456789", "expected": "ghp_…6789 (50 chars, redacted)" },
+    { "input": "short1", "expected": "****" },
+    { "input": "", "expected": "****" },
+    { "input": "éééééééééé", "expected": "éééé…éééé (10 chars, redacted)" }
+  ],
+  "expect": { "neverContainsRaw": true }
+}

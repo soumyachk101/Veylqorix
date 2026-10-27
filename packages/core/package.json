@@ -4,6 +4,15 @@
   "description": "Security audit engine: project detection, scanners, policy evaluation, quality gate, and report generation.",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.18"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

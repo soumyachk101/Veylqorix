@@ -5,6 +5,9 @@
  * Commands:
  *   veylqorix scan [root]      Run the full security audit + quality gate.
  *   veylqorix check  [root]    Run only the quality checks (type, lint, tests).
+ *                               No scanners run: the gate reports INCOMPLETE
+ *                               (exit 2, secrets unverified). Use `scan` for
+ *                               secret coverage.
  *   veylqorix report [root]    Emit a human-readable Markdown report.
  *   veylqorix config validate [policy-file]   Validate a policy JSON file.
  *   Legacy aliases: audit, deps, secrets, checks, gate.
@@ -32,7 +35,7 @@ import {
   runAudit,
   toJson,
   toMarkdown,
-  toSarif,
+  renderAllReports,
   listStagedFiles,
   validatePolicyFile,
   findPolicyFile,
@@ -50,7 +53,8 @@ Usage:
 
 Commands:
   scan             Run the full security audit + quality gate (default)
-  check            Run only the quality checks
+  check            Run only the quality checks (no scanners; gate is
+                   INCOMPLETE / exit 2 - secrets unverified, run scan)
   report           Emit a Markdown report
   config validate  Validate a policy JSON file
 
@@ -355,14 +359,18 @@ async function main(): Promise<void> {
 
   const result = await runAudit(options);
 
-  // Write report files when requested.
-  if (parsed.reportOut) {
-    fs.writeFileSync(parsed.reportOut, toMarkdown(result), 'utf8');
-    if (parsed.format !== 'json' && parsed.format !== 'sarif') console.log(`Markdown report written to ${parsed.reportOut}`);
-  }
-  if (parsed.sarifOut) {
-    fs.writeFileSync(parsed.sarifOut, toSarif(result), 'utf8');
-    if (parsed.format !== 'json' && parsed.format !== 'markdown') console.log(`SARIF report written to ${parsed.sarifOut}`);
+  // Write report files when requested — all derived from the same scan result
+  // via the shared rendering path, so a file-write failure here is a visible
+  // scan failure, never a silently swallowed gap.
+  if (parsed.reportOut || parsed.sarifOut) {
+    const written = renderAllReports(result, {
+      markdownPath: parsed.reportOut,
+      sarifPath: parsed.sarifOut,
+    });
+    if (written.markdownPath && parsed.format !== 'json' && parsed.format !== 'sarif')
+      console.log(`Markdown report written to ${written.markdownPath}`);
+    if (written.sarifPath && parsed.format !== 'json' && parsed.format !== 'markdown')
+      console.log(`SARIF report written to ${written.sarifPath}`);
   }
 
   // Decide the stdout shape: --json/--format json wins, then markdown

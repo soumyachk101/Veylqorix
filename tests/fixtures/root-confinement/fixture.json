@@ -1,0 +1,13 @@
+{
+  "name": "root-confinement",
+  "kind": "protocol",
+  "description": "The engine confines filesystem access to the audit root it is given. Pointing a `scan` at a root that does not exist, or that is a file rather than a directory, must exit 65 with a root-not-found error frame and no gate. The staged-files scope must stay within that root. This pins the out-of-band root error so a caller that only reads stdout can still record the confinement failure, and so a missing root can never be read as a clean scan.",
+  "scanRoot": "tests/fixtures/does-not-exist",
+  "expectedRustExitCode": 65,
+  "expect": {
+    "protocolError": true,
+    "rustExitCode": 65,
+    "errorFrame": { "code": "root-not-found", "ok": false, "noGate": true },
+    "tsRaises": "EngineProtocolError"
+  }
+}

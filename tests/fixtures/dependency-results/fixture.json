@@ -1,0 +1,48 @@
+{
+  "name": "dependency-results",
+  "kind": "diff",
+  "description": "A vulnerable dependency (HIGH, blocker) plus a non-blocking MEDIUM finding: the gate must FAIL, but both severities must map identically on both sides. The orchestrator's dependency scanner result (FAIL with findings) is merged into the gate just like engine evidence.",
+  "command": "evaluate",
+  "input": {
+    "findings": [
+      {
+        "id": "DEP-NPM-1093-4f2a",
+        "title": "Vulnerable dependency lodash@4.17.20 (npm-audit)",
+        "scanner": "dependencies",
+        "ruleId": "npm-audit",
+        "severity": "HIGH",
+        "confidence": "CONFIRMED",
+        "dependency": { "name": "lodash", "installedVersion": "4.17.20", "fixedVersion": ">=4.17.21", "packageManager": "npm" },
+        "remediation": "Update lodash to >=4.17.21."
+      },
+      {
+        "id": "DEP-NPM-2021-7b3c",
+        "title": "Low-severity maintenance advisory for qs",
+        "scanner": "dependencies",
+        "ruleId": "npm-audit",
+        "severity": "MEDIUM",
+        "confidence": "CONFIRMED",
+        "dependency": { "name": "qs", "installedVersion": "6.5.2" },
+        "remediation": "Upgrade qs."
+      }
+    ],
+    "checks": [],
+    "scannerResults": [
+      { "scanner": "dependencies", "status": "FAIL", "findings": [], "durationMs": 40, "notes": ["2 advisories"] },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "FAIL",
+    "exitCode": 1,
+    "coverage": "FULL",
+    "findingIds": ["DEP-NPM-1093-4f2a", "DEP-NPM-2021-7b3c"],
+    "severityOf": {
+      "DEP-NPM-1093-4f2a": "HIGH",
+      "DEP-NPM-2021-7b3c": "MEDIUM"
+    },
+    "blockingReasonContains": ["HIGH finding DEP-NPM-1093-4f2a"],
+    "reportContains": ["DEP-NPM-2021-7b3c"]
+  }
+}

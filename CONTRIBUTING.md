@@ -10,6 +10,21 @@ pnpm test
 
 Requires Node 20.18+ and pnpm 9+.
 
+Engine work (the Rust security engine) additionally requires a stable
+Rust toolchain. All cargo commands target the workspace manifest at
+`crates/Cargo.toml` (there is no `Cargo.toml` at the repo root):
+
+```
+cargo fmt --manifest-path crates/Cargo.toml --all -- --check
+cargo clippy --manifest-path crates/Cargo.toml --workspace --all-targets --all-features -- -D warnings
+cargo test --manifest-path crates/Cargo.toml --workspace --all-features
+cargo build --manifest-path crates/Cargo.toml --workspace --release
+```
+
+Engineering reference: `docs/engineering/` (security hardening, engine
+parity, release readiness, storage and operations, supply chain, and
+baseline audit notes).
+
 ## Layout
 
 - `packages/core` — the security engine. All scanner, policy, gate, and report

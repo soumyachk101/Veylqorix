@@ -1,0 +1,45 @@
+{
+  "name": "malformed-findings",
+  "kind": "diff",
+  "description": "A scanner result carrying findings that violate the shared Finding schema (bad severity enum, missing required ruleId, negative line, wrong types). The TypeScript side must reject the whole round-trip as a protocol/shape error — it must NOT coerce the record into a pass, and it must NOT apply the Rust serde defaults silently. The Rust side (deny_unknown_fields + strict enum) rejects the same document with exit 64. Both sides: a malformed finding document is a protocol error, never a decision.",
+  "command": "evaluate",
+  "input": {
+    "findings": [
+      {
+        "id": "BROKEN-0001",
+        "title": "Finding with an invalid severity enum value",
+        "scanner": "dependencies",
+        "ruleId": "npm-audit",
+        "severity": "EXTREME",
+        "confidence": "HIGH"
+      },
+      {
+        "id": "BROKEN-0002",
+        "title": "Finding missing the required ruleId",
+        "scanner": "secrets",
+        "severity": "LOW",
+        "confidence": "LOW"
+      },
+      {
+        "id": "BROKEN-0003",
+        "title": "Finding with a negative line and non-string location",
+        "scanner": "quality",
+        "ruleId": "insecure-code",
+        "severity": "MEDIUM",
+        "confidence": "HIGH",
+        "location": { "file": 42, "line": -1, "column": "x" }
+      }
+    ],
+    "checks": [],
+    "scannerResults": [
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "protocolError": true,
+    "rustExitCode": 64,
+    "tsRaises": "EngineProtocolError",
+    "neverPass": true
+  }
+}

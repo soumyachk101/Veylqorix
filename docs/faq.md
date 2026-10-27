@@ -56,6 +56,24 @@ When the API is unreachable the dashboard renders clearly-labeled sample data
 and shows a **DEMO MODE** banner. It never presents the demo as a live
 result. Start the API to get real data — see `docs/dashboard.md`.
 
+### Is the REST API open to the network by default?
+
+No. The API binds to `127.0.0.1` (loopback-only) by default, so remote
+hosts cannot reach it. To expose it on another address you must run it in
+protected mode: set `VEYLQORIX_API_HOST` **and** `VEYLQORIX_API_TOKEN` —
+a non-loopback host without a token refuses to start. With a token, every
+`/api` route except `GET /api/health` requires the bearer token, and CORS
+is an exact-origin allowlist (`VEYLQORIX_CORS_ORIGINS`), never a
+wildcard.
+
+### Does scan data survive an API restart?
+
+Yes. The API persists repositories and scan results to a JSON file
+(`VEYLQORIX_STORE_PATH`, default `./.veylqorix-store.json`) with atomic
+writes, so state survives restarts. Scans still running when the process
+exits are re-stamped `INTERRUPTED` on the next start (never shown as
+completed) and can be re-run.
+
 ### Can an AI agent suppress findings to force a pass?
 
 No. Exceptions must carry a documented reason, are capped by

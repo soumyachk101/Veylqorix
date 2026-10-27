@@ -46,6 +46,12 @@ export function isKnownCommand(word: string): boolean {
   return KNOWN_COMMANDS.has(word);
 }
 
+/** Scanner names the audit engine knows how to dispatch (`--scanners` values). */
+export const VALID_SCANNERS = ['dependencies', 'secrets', 'licenses'];
+
+/** Severity tokens accepted by `--block-on`. */
+export const VALID_SEVERITIES = ['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+
 /** Normalize legacy aliases to modern verbs. */
 export function normalizeCommand(command: string): string {
   switch (command) {
@@ -125,18 +131,34 @@ export function parseArgs(argv: string[], cwd: string = process.cwd()): ParsedAr
         case '--config':
           parsed.policyFile = path.resolve(value);
           break;
-        case '--scanners':
-          parsed.scanners = value
+        case '--scanners': {
+          const names = value
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean);
+          const unknown = names.filter((name) => !VALID_SCANNERS.includes(name));
+          if (unknown.length > 0) {
+            throw new Error(
+              `--scanners: '${unknown.join(`, `)}' is not a known scanner (expected: ${VALID_SCANNERS.join(', ')})`,
+            );
+          }
+          parsed.scanners = names;
           break;
-        case '--block-on':
+        }
+        case '--block-on': {
+          const severities = value.split(',').map((s) => s.trim().toUpperCase());
+          const unknown = severities.filter((s) => !VALID_SEVERITIES.includes(s));
+          if (unknown.length > 0) {
+            throw new Error(
+              `--block-on: '${unknown.join(`, `)}' is not a valid severity (expected: ${VALID_SEVERITIES.join(', ')})`,
+            );
+          }
           parsed.policy = {
             ...parsed.policy,
-            blockOnSeverity: value.split(',').map((s) => s.trim().toUpperCase()) as Policy['blockOnSeverity'],
+            blockOnSeverity: severities as Policy['blockOnSeverity'],
           };
           break;
+        }
       }
       continue;
     }

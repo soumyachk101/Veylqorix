@@ -1,0 +1,31 @@
+{
+  "name": "scanner-missing-binary",
+  "kind": "diff",
+  "description": "A mandatory external scanner (e.g. `pip-audit`) was SKIPPED because the binary was missing (ENOENT). Under the default policy (blockOnSkippedCheck on) this is a recorded blocking reason but degrades to INCOMPLETE coverage — it must NEVER flip to PASS. This is the labeled reduced-coverage case: the verdict is INCOMPLETE, exit 2, and the reason is recorded verbatim.",
+  "command": "evaluate",
+  "input": {
+    "findings": [],
+    "checks": [],
+    "scannerResults": [
+      {
+        "scanner": "dependencies/pip",
+        "status": "SKIPPED",
+        "findings": [],
+        "durationMs": 0,
+        "error": { "message": "pip-audit is not installed", "code": "ENOENT", "missingDependency": true },
+        "notes": ["pip-audit binary not found; install it to enable Python dependency scanning. This is not a pass."]
+      },
+      { "scanner": "secrets", "status": "PASS", "findings": [], "durationMs": 2, "notes": [] }
+    ]
+  },
+  "strict": false,
+  "expect": {
+    "verdict": "INCOMPLETE",
+    "exitCode": 2,
+    "coverage": "LIMITED",
+    "findingIds": [],
+    "blockingReasonContains": ["Mandatory scanner 'dependencies/pip' was skipped"],
+    "incompleteContains": ["Scanner 'dependencies/pip' was skipped"],
+    "neverPass": true
+  }
+}

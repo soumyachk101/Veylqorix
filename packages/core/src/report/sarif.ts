@@ -1,16 +1,17 @@
 import type { AuditResult, Finding, Location } from '../types.js';
 
 /**
- * SARIF 2.1.0 level (0.0-1.0) for a severity, adjusted down one step when
+ * SARIF 2.1.0 `result.level` is an enum string: `none` | `note` | `warning` |
+ * `error`. We start from the finding's severity and adjust down one step when
  * the finding's confidence is below CONFIRMED so unconfirmed findings are
- * reported as weaker signals. INFO never maps above 0.0.
+ * reported as weaker signals. INFO/LOW never map above `note`.
  */
-const SARIF_LEVELS: Record<string, Record<string, number>> = {
-  INFO: { CONFIRMED: 0.0, HIGH: 0.0, MEDIUM: 0.0, LOW: 0.0 },
-  LOW: { CONFIRMED: 0.1, HIGH: 0.1, MEDIUM: 0.0, LOW: 0.0 },
-  MEDIUM: { CONFIRMED: 0.5, HIGH: 0.5, MEDIUM: 0.4, LOW: 0.3 },
-  HIGH: { CONFIRMED: 0.9, HIGH: 0.9, MEDIUM: 0.8, LOW: 0.7 },
-  CRITICAL: { CONFIRMED: 1.0, HIGH: 1.0, MEDIUM: 1.0, LOW: 0.9 },
+const SARIF_LEVELS: Record<string, Record<string, string>> = {
+  INFO: { CONFIRMED: 'none', HIGH: 'none', MEDIUM: 'none', LOW: 'none' },
+  LOW: { CONFIRMED: 'note', HIGH: 'note', MEDIUM: 'none', LOW: 'none' },
+  MEDIUM: { CONFIRMED: 'warning', HIGH: 'warning', MEDIUM: 'note', LOW: 'note' },
+  HIGH: { CONFIRMED: 'error', HIGH: 'error', MEDIUM: 'warning', LOW: 'warning' },
+  CRITICAL: { CONFIRMED: 'error', HIGH: 'error', MEDIUM: 'error', LOW: 'warning' },
 };
 
 /**
@@ -71,9 +72,9 @@ export function toSarif(audit: AuditResult): string {
   return JSON.stringify(clean(doc), null, 2);
 }
 
-function levelFor(f: Finding): number {
+function levelFor(f: Finding): string {
   const levels = SARIF_LEVELS[f.severity] ?? SARIF_LEVELS.INFO;
-  return levels?.[f.confidence] ?? 0.0;
+  return levels?.[f.confidence] ?? 'note';
 }
 
 /** Location paths are root-relative and are resolved against the `veylqorixRoot` URI base. */

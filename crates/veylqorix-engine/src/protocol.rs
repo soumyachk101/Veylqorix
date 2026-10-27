@@ -6,17 +6,23 @@
 //! response from stdout. Both directions are size-capped so a malformed or
 //! oversized payload is rejected, not processed.
 //!
-//! Error model: the binary exits 0 with a response on success, and exits
-//! non-zero (without a response) on protocol errors:
-//! - 64 malformed request (bad JSON, unknown command, unsupported protocol)
+//! Error model: on success the binary exits 0 and writes one response frame
+//! to stdout. On protocol errors it writes a *structured error frame* to
+//! stdout (a response document with `ok: false` and an `error` object, plus
+//! the same version fields) **and** exits non-zero, printing a short
+//! human-readable reason to stderr:
+//! - 64 malformed request (bad JSON, unknown command or field, unsupported
+//!   protocol version, oversized input)
 //! - 65 root not found / not a directory
 //! - 70 engine internal error
 //!
-//! The stderr line, when present, is a short human-readable reason. This is
-//! how the engine distinguishes *scanner failure* from *a successful scan
-//! with findings* from *a successful scan with no findings*: the gate result
-//! and exit code in the response carry the decision, and protocol errors are
-//! out-of-band, structurally unable to be read as a pass.
+//! The non-zero exit code is authoritative: an error frame can never be read
+//! as a pass. stdout is reserved strictly for protocol JSON in both
+//! directions; diagnostics go to stderr only. This is how the engine
+//! distinguishes *scanner failure* from *a successful scan with findings*
+//! from *a successful scan with no findings*: the gate result and exit code
+//! in the response carry the decision, and protocol errors are out-of-band,
+//! structurally unable to be read as a pass.
 
 use std::io::{BufRead, Write};
 use std::path::Path;
@@ -139,7 +145,28 @@ pub struct Response {
     /// Scanner results contributed by the engine for this run.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub engine_scanner_results: Option<Vec<ScannerResult>>,
+    /// Present only on an error frame (`ok: false`); the structured error the
+    /// caller must not read as a decision. Additive field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<ProtocolError>,
     pub notes: Vec<String>,
+}
+
+/// A structured, machine-readable protocol error. The binary also exits with
+/// the corresponding code; the frame exists so callers can record *why* the
+/// round-trip failed without parsing stderr.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProtocolError {
+    /// One of [`exit::MALFORMED`], [`exit::ROOT_NOT_FOUND`],
+    /// [`exit::INTERNAL`] (as a stable string label). An owned `String`
+    /// (not `&'static str`) so the response can keep serde's derived
+    /// `Deserialize` without a `'static` bound on the response lifetime.
+    pub code: String,
+    /// The exit code the binary uses for this error class.
+    pub exit_code: i32,
+    /// Human-readable, safe-to-log reason.
+    pub message: String,
 }
 
 /// Exit codes used by the binary for out-of-band protocol errors.
@@ -152,16 +179,53 @@ pub mod exit {
     pub const INTERNAL: i32 = 70;
 }
 
+/// The stable classes of protocol error. Each maps to both a structured
+/// error frame (`ProtocolError::code`) and an exit code, so a failure is
+/// describable machine-readable and out-of-band at once.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ErrorKind {
+    Malformed,
+    RootNotFound,
+    Internal,
+}
+
+impl ErrorKind {
+    /// The stable label used in error frames.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ErrorKind::Malformed => "malformed-request",
+            ErrorKind::RootNotFound => "root-not-found",
+            ErrorKind::Internal => "internal-error",
+        }
+    }
+
+    /// The exit code the binary uses for this class.
+    pub fn exit_code(self) -> i32 {
+        match self {
+            ErrorKind::Malformed => exit::MALFORMED,
+            ErrorKind::RootNotFound => exit::ROOT_NOT_FOUND,
+            ErrorKind::Internal => exit::INTERNAL,
+        }
+    }
+}
+
 /// Validate a raw request document: JSON must parse, the protocol version
 /// must match, and known fields must be sane.
-pub fn parse_request(raw: &str) -> Result<Request, String> {
-    let req: Request =
-        serde_json::from_str(raw).map_err(|e| format!("request is not valid engine JSON: {e}"))?;
+pub fn parse_request(raw: &str) -> Result<Request, (ErrorKind, String)> {
+    let req: Request = serde_json::from_str(raw).map_err(|e| {
+        (
+            ErrorKind::Malformed,
+            format!("request is not valid engine JSON: {e}"),
+        )
+    })?;
     if req.protocol_version != crate::PROTOCOL_VERSION {
-        return Err(format!(
-            "unsupported protocol version {} (this engine speaks {})",
-            req.protocol_version,
-            crate::PROTOCOL_VERSION
+        return Err((
+            ErrorKind::Malformed,
+            format!(
+                "unsupported protocol version {} (this engine speaks {})",
+                req.protocol_version,
+                crate::PROTOCOL_VERSION
+            ),
         ));
     }
     Ok(req)
@@ -169,11 +233,12 @@ pub fn parse_request(raw: &str) -> Result<Request, String> {
 
 /// Execute a validated request and produce a response document.
 ///
-/// Errors here are out-of-band: the caller prints them to stderr and exits
-/// non-zero. A scanner *failure* inside a scan is never an error out of this
-/// function — it is a SKIPPED/ERROR scanner result in the response, so the
-/// gate can degrade coverage instead of pretending.
-pub fn execute(req: &Request) -> Result<Response, (i32, String)> {
+/// Errors here are out-of-band: the caller prints the structured reason to
+/// stderr and exits with the class's code. A scanner *failure* inside a scan
+/// is never an error out of this function — it is a SKIPPED/ERROR scanner
+/// result in the response, so the gate can degrade coverage instead of
+/// pretending.
+pub fn execute(req: &Request) -> Result<Response, (ErrorKind, String)> {
     match req.command {
         Command::Ping => Ok(Response {
             protocol_version: crate::PROTOCOL_VERSION,
@@ -185,6 +250,7 @@ pub fn execute(req: &Request) -> Result<Response, (i32, String)> {
             strict_exit_code: None,
             findings: None,
             engine_scanner_results: None,
+            error: None,
             notes: vec!["engine ready".to_string()],
         }),
         Command::Evaluate => evaluate_only(req),
@@ -193,7 +259,7 @@ pub fn execute(req: &Request) -> Result<Response, (i32, String)> {
 }
 
 /// Gate-only evaluation over supplied evidence (no filesystem access).
-fn evaluate_only(req: &Request) -> Result<Response, (i32, String)> {
+fn evaluate_only(req: &Request) -> Result<Response, (ErrorKind, String)> {
     let resolved = resolve_policy(req.args.policy.as_ref());
     let merged_findings = merge_findings(req.args.findings.clone());
     let gate = evaluate_gate(GateInput {
@@ -219,24 +285,25 @@ fn evaluate_only(req: &Request) -> Result<Response, (i32, String)> {
         strict_exit_code: strict,
         findings: Some(sorted),
         engine_scanner_results: None,
+        error: None,
         notes: resolved.notes.clone(),
     })
 }
 
 /// Run the engine's built-in scanners and evaluate the gate over their
 /// results plus the supplied orchestrator evidence.
-fn scan(req: &Request) -> Result<Response, (i32, String)> {
+fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
     let args = &req.args;
     let root = args.root.as_ref().ok_or_else(|| {
         (
-            exit::MALFORMED,
+            ErrorKind::Malformed,
             "`root` is required for the scan command".to_string(),
         )
     })?;
     let root_path = Path::new(root);
     if !root_path.is_dir() {
         return Err((
-            exit::ROOT_NOT_FOUND,
+            ErrorKind::RootNotFound,
             format!("audit root '{root}' does not exist or is not a directory"),
         ));
     }
@@ -268,7 +335,7 @@ fn scan(req: &Request) -> Result<Response, (i32, String)> {
         }
         let files = collect_files(root_path, &options, &staged).map_err(|e| {
             (
-                exit::INTERNAL,
+                ErrorKind::Internal,
                 format!("secret scan could not read the audit root: {e}"),
             )
         })?;
@@ -340,6 +407,7 @@ fn scan(req: &Request) -> Result<Response, (i32, String)> {
         strict_exit_code: strict,
         findings: Some(sorted),
         engine_scanner_results: Some(engine_results),
+        error: None,
         notes,
     })
 }
@@ -407,14 +475,11 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
             };
         }
     };
-    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error.
-    let parsed = if result.stdout.trim().is_empty() {
-        serde_json::Value::Array(Vec::new())
-    } else {
-        serde_json::from_str::<serde_json::Value>(&result.stdout)
-            .unwrap_or(serde_json::Value::Array(Vec::new()))
-    };
-    let leaks = parsed.as_array().cloned().unwrap_or_default();
+    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error. Truncated or
+    // otherwise unparseable stdout degrades to "no leaks" (never a panic and
+    // never a fabricated finding); the non-zero exit still records the error
+    // below.
+    let leaks = parse_gitleaks_stdout(&result.stdout);
     let mut findings: Vec<Finding> = Vec::new();
     for leak in &leaks {
         let root_str = root.to_string_lossy();
@@ -510,6 +575,25 @@ fn gitleaks_note(res: &ScannerResult) -> String {
     }
 }
 
+/// Parse gitleaks' JSON stdout into its leak records. Truncated, non-JSON, or
+/// malformed output degrades to an empty list: the caller classifies the
+/// tool's *exit code* (an error exit is an ERROR result, never a pass), and
+/// a parse failure must never panic or fabricate findings.
+pub fn parse_gitleaks_stdout(stdout: &str) -> Vec<serde_json::Value> {
+    if stdout.trim().is_empty() {
+        return Vec::new();
+    }
+    let parsed = serde_json::from_str::<serde_json::Value>(stdout)
+        .unwrap_or(serde_json::Value::Array(Vec::new()));
+    gitleaks_leaks(&parsed)
+}
+
+/// Extract the array of leak records from a parsed gitleaks document.
+/// Tolerates a missing or non-array shape.
+fn gitleaks_leaks(doc: &serde_json::Value) -> Vec<serde_json::Value> {
+    doc.as_array().cloned().unwrap_or_default()
+}
+
 fn cargo_note(res: &ScannerResult) -> String {
     match res.status {
         ScannerStatus::Skipped => res.notes.first().cloned().unwrap_or_default(),
@@ -570,46 +654,94 @@ fn civil_from_days(z: i64) -> (i64, u32, u32) {
     (if m <= 2 { y + 1 } else { y }, m as u32, d as u32)
 }
 
+/// An error frame: a response document with `ok: false` carrying a structured
+/// [`ProtocolError`]. It is written to stdout so a caller that only reads
+/// stdout can still record *why* the round-trip failed, while the non-zero
+/// exit code remains authoritative — the frame can never be read as a pass.
+fn error_frame(kind: ErrorKind, message: String) -> Response {
+    Response {
+        protocol_version: crate::PROTOCOL_VERSION,
+        engine_version: crate::ENGINE_VERSION.to_string(),
+        schema_version: crate::model::SCHEMA_VERSION,
+        ok: false,
+        gate: None,
+        exit_code: None,
+        strict_exit_code: None,
+        findings: None,
+        engine_scanner_results: None,
+        error: Some(ProtocolError {
+            code: kind.as_str().to_string(),
+            exit_code: kind.exit_code(),
+            message,
+        }),
+        notes: Vec::new(),
+    }
+}
+
 /// Read one request document from stdin (capped), execute it, and write one
 /// response document to stdout (capped). Used by the binary.
 ///
-/// Returns the process exit code.
+/// stdout carries only protocol JSON; every diagnostic goes to stderr.
+/// On any protocol error the binary writes a structured error frame to
+/// stdout, prints the reason to stderr, and returns the error's exit code.
 pub fn serve() -> i32 {
     let mut input = String::new();
     match std::io::stdin().lock().read_line(&mut input) {
         Ok(0) => {
-            eprintln!("veylqorix-engine: empty request; expected one JSON document on stdin");
+            let reason = "veylqorix-engine: empty request; expected one JSON document on stdin";
+            let frame = error_frame(
+                ErrorKind::Malformed,
+                "empty request; expected one JSON document on stdin".into(),
+            );
+            write_error(&frame, reason);
             return exit::MALFORMED;
         }
         Ok(n) if n > MAX_INPUT_BYTES => {
-            eprintln!("veylqorix-engine: request exceeds the {MAX_INPUT_BYTES}-byte input cap");
+            let reason =
+                format!("veylqorix-engine: request exceeds the {MAX_INPUT_BYTES}-byte input cap");
+            let frame = error_frame(
+                ErrorKind::Malformed,
+                format!("request exceeds the {MAX_INPUT_BYTES}-byte input cap"),
+            );
+            write_error(&frame, &reason);
             return exit::MALFORMED;
         }
         Ok(_) => {}
         Err(e) => {
-            eprintln!("veylqorix-engine: failed to read request: {e}");
+            let reason = format!("veylqorix-engine: failed to read request: {e}");
+            let frame = error_frame(ErrorKind::Internal, format!("failed to read request: {e}"));
+            write_error(&frame, &reason);
             return exit::INTERNAL;
         }
     }
     let req = match parse_request(&input) {
         Ok(r) => r,
-        Err(msg) => {
-            eprintln!("veylqorix-engine: {msg}");
-            return exit::MALFORMED;
+        Err((kind, msg)) => {
+            let frame = error_frame(kind, msg.clone());
+            write_error(&frame, &format!("veylqorix-engine: {msg}"));
+            return kind.exit_code();
         }
     };
     let response = match execute(&req) {
         Ok(r) => r,
-        Err((code, msg)) => {
-            eprintln!("veylqorix-engine: {msg}");
-            return code;
+        Err((kind, msg)) => {
+            let frame = error_frame(kind, msg.clone());
+            write_error(&frame, &format!("veylqorix-engine: {msg}"));
+            return kind.exit_code();
         }
     };
     let doc = match serde_json::to_string(&response) {
         Ok(d) if d.len() <= MAX_OUTPUT_BYTES => d,
         _ => {
-            eprintln!(
-                "veylqorix-engine: response exceeds the {MAX_OUTPUT_BYTES}-byte output cap; aborting"
+            let frame = error_frame(
+                ErrorKind::Internal,
+                format!("response exceeds the {MAX_OUTPUT_BYTES}-byte output cap; aborting"),
+            );
+            // The error frame itself must fit the cap; if even it cannot,
+            // fall back to stderr-only so the exit code stays authoritative.
+            write_error(
+                &frame,
+                &format!("veylqorix-engine: response exceeds the {MAX_OUTPUT_BYTES}-byte output cap; aborting"),
             );
             return exit::INTERNAL;
         }
@@ -622,6 +754,24 @@ pub fn serve() -> i32 {
     0
 }
 
+/// Write an error frame to stdout and the same reason to stderr. The stdout
+/// write is best-effort: if it fails the exit code still carries the error
+/// out-of-band, so a failure can never be read as a pass.
+fn write_error(frame: &Response, stderr_reason: &str) {
+    match serde_json::to_string(frame) {
+        Ok(doc) => {
+            let mut stdout = std::io::stdout().lock();
+            if let Err(e) = writeln!(stdout, "{doc}") {
+                eprintln!("veylqorix-engine: failed to write error frame: {e}; {stderr_reason}");
+            }
+        }
+        Err(e) => {
+            eprintln!("veylqorix-engine: failed to serialize error frame: {e}; {stderr_reason}");
+        }
+    }
+    eprintln!("{stderr_reason}");
+}
+
 /// Print a short usage line and the versions.
 pub fn banner() -> String {
     format!(
@@ -630,4 +780,103 @@ pub fn banner() -> String {
         protocol = crate::PROTOCOL_VERSION,
         schema = crate::model::SCHEMA_VERSION,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_unknown_fields_in_the_request() {
+        let raw = r#"{"protocolVersion":1,"command":"ping","args":{},"surprise":1}"#;
+        let (kind, msg) = parse_request(raw).unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+        assert!(msg.contains("not valid engine JSON"));
+    }
+
+    #[test]
+    fn rejects_a_malformed_json_request() {
+        let (kind, msg) = parse_request("this is not JSON").unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+        assert!(msg.contains("not valid engine JSON"));
+    }
+
+    #[test]
+    fn rejects_a_truncated_json_request() {
+        let (kind, _) = parse_request(r#"{"protocolVersion":1,"command":"pi"#).unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+    }
+
+    #[test]
+    fn rejects_an_unknown_command() {
+        let (kind, msg) =
+            parse_request(r#"{"protocolVersion":1,"command":"explode","args":{}}"#).unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+        assert!(msg.contains("not valid engine JSON"), "got: {msg}");
+    }
+
+    #[test]
+    fn rejects_an_unknown_protocol_version() {
+        let (kind, msg) =
+            parse_request(r#"{"protocolVersion":99,"command":"ping","args":{}}"#).unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+        assert!(msg.contains("unsupported protocol version 99"));
+    }
+
+    #[test]
+    fn accepts_a_well_formed_ping() {
+        let req = parse_request(r#"{"protocolVersion":1,"command":"ping","args":{}}"#).unwrap();
+        assert_eq!(req.command, Command::Ping);
+        let resp = execute(&req).expect("ping must succeed");
+        assert!(resp.ok);
+        assert!(resp.error.is_none());
+        assert!(resp.gate.is_none());
+    }
+
+    #[test]
+    fn scan_without_root_is_malformed_not_a_decision() {
+        let req =
+            parse_request(r#"{"protocolVersion":1,"command":"scan","args":{"runSecrets":true}}"#)
+                .unwrap();
+        let (kind, _) = execute(&req).unwrap_err();
+        assert_eq!(kind, ErrorKind::Malformed);
+    }
+
+    #[test]
+    fn error_frames_carry_a_structured_error_and_never_a_gate() {
+        let frame = error_frame(ErrorKind::RootNotFound, "no root".into());
+        assert!(!frame.ok);
+        let err = frame
+            .error
+            .as_ref()
+            .expect("the error frame must carry a ProtocolError");
+        assert_eq!(err.code, "root-not-found");
+        assert_eq!(err.exit_code, 65);
+        assert!(
+            frame.gate.is_none(),
+            "an error frame must never carry a gate decision"
+        );
+        assert!(frame.findings.is_none());
+        // The frame must be serializable on stdout.
+        assert!(serde_json::to_string(&frame).is_ok());
+    }
+
+    #[test]
+    fn error_kind_exits_map_to_the_documented_codes() {
+        assert_eq!(ErrorKind::Malformed.exit_code(), 64);
+        assert_eq!(ErrorKind::RootNotFound.exit_code(), 65);
+        assert_eq!(ErrorKind::Internal.exit_code(), 70);
+    }
+
+    #[test]
+    fn gitleaks_stdout_parse_never_panics_on_malformed_input() {
+        assert!(parse_gitleaks_stdout("").is_empty());
+        assert!(parse_gitleaks_stdout("garbage, not json").is_empty());
+        assert!(
+            parse_gitleaks_stdout(r#"[{"RuleID":"aws" "#.trim()).is_empty(),
+            "truncated JSON must degrade to no leaks"
+        );
+        assert!(parse_gitleaks_stdout(r#"{"not":"an-array"}"#).is_empty());
+        assert!(parse_gitleaks_stdout(r#"[{"RuleID":"aws"},{"RuleID":"slack"}]"#).len() == 2);
+    }
 }

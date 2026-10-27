@@ -9,10 +9,19 @@
  *
  * Wire contract (see `crates/veylqorix-engine/src/protocol.rs`):
  * - one JSON request document on stdin, one JSON response document on stdout
- * - exit 0: a response was written; the gate decision is IN the response
+ * - stdout is reserved strictly for protocol JSON in both directions; every
+ *   diagnostic the engine produces goes to stderr
+ * - exit 0: a successful response document was written; the gate decision is
+ *   IN the response
  * - exit 64: malformed request / unsupported protocol
  * - exit 65: audit root missing
  * - exit 70: engine internal error
+ *
+ * On every non-zero exit the engine additionally writes a structured error
+ * frame to stdout (a response with `ok: false` and an `error` object). This
+ * adapter *never parses stderr as protocol data*; the frame (when present)
+ * is the machine-readable reason, and stderr is kept only as a short,
+ * optional human-readable annotation.
  *
  * A scanner failing *inside* a scan never causes a non-zero exit: it is a
  * SKIPPED/ERROR scanner result in the response, so a failure can never be
@@ -53,6 +62,26 @@ export const ENGINE_EXIT = {
   INTERNAL: 70,
 } as const;
 
+/**
+ * Read the structured error frame the engine writes to stdout on a non-zero
+ * exit, returning its `message` (or `undefined` when stdout carried no
+ * frame). This is the only place stdout is parsed as protocol data on the
+ * error path; stderr is never parsed here.
+ */
+function parseErrorFrame(stdout: string): string | undefined {
+  const trimmed = stdout.trim();
+  if (!trimmed) return undefined;
+  try {
+    const frame = JSON.parse(trimmed) as { ok?: boolean; error?: { message?: string } };
+    if (frame && frame.ok === false && frame.error && typeof frame.error.message === 'string') {
+      return frame.error.message;
+    }
+  } catch {
+    /* not a frame; the caller falls back to the stderr annotation */
+  }
+  return undefined;
+}
+
 /* ------------------------------------------------------------------------ *
  * Response / request wire types
  * ------------------------------------------------------------------------ */
@@ -67,6 +96,8 @@ export interface EngineResponse {
   strictExitCode?: number;
   findings?: Finding[];
   engineScannerResults?: ScannerResult[];
+  /** Present only on an error frame (`ok: false`): the structured protocol error. */
+  error?: { code: string; exitCode: number; message: string };
   notes: string[];
 }
 
@@ -161,19 +192,65 @@ export class EngineTimeoutError extends EngineError {
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
+/** The program name as it appears on PATH / in install locations. */
+const ENGINE_PROGRAM = process.platform === 'win32' ? 'veylqorix-engine.exe' : 'veylqorix-engine';
+
+/**
+ * The documented install locations for a *user*-installed engine binary, in
+ * priority order. These are standard, per-user or system locations — never
+ * a developer's working tree, which the upward walk below discovers.
+ * (documented in docs/engineering/ENGINE_PARITY.md)
+ */
+function installLocationCandidates(): string[] {
+  const out: string[] = [];
+  const home = process.env.HOME ?? process.env.USERPROFILE;
+  if (process.platform === 'win32') {
+    const local = process.env.LOCALAPPDATA;
+    if (local) out.push(path.join(local, 'veylqorix', 'bin', 'veylqorix-engine.exe'));
+    if (home) out.push(path.join(home, '.veylqorix', 'bin', 'veylqorix-engine.exe'));
+    out.push(path.join('C:', 'Program Files', 'Veylqorix', 'veylqorix-engine.exe'));
+  } else {
+    if (home) {
+      out.push(path.join(home, '.local', 'bin', 'veylqorix-engine'));
+      out.push(path.join(home, '.veylqorix', 'bin', 'veylqorix-engine'));
+    }
+    out.push('/usr/local/bin/veylqorix-engine');
+    out.push('/usr/bin/veylqorix-engine');
+  }
+  return out;
+}
+
+/** Find `program` on PATH; returns the first existing executable, or undefined. */
+function whichOnPath(program: string): string | undefined {
+  const pathVar = process.env.PATH ?? '';
+  for (const dir of pathVar.split(path.delimiter)) {
+    if (!dir) continue;
+    const candidate = path.isAbsolute(dir) ? path.join(dir, program) : path.resolve(dir, program);
+    try {
+      if (fs.statSync(candidate).isFile()) return candidate;
+    } catch {
+      /* not here; keep looking */
+    }
+  }
+  return undefined;
+}
+
 /**
  * Resolve the engine binary.
  *
- * Order:
+ * Order (documented; see docs/engineering/ENGINE_PARITY.md):
  * 1. `VEYLQORIX_ENGINE` env var, when set to an existing file.
- * 2. Walk up from the given start directory (default `process.cwd()`) to
+ * 2. A `veylqorix-engine` on `PATH` (platform-correct name).
+ * 3. Documented install locations (per-user `~/.local/bin` etc.).
+ * 4. Walk up from the given start directory (default `process.cwd()`) to
  *    find a directory containing `crates/Cargo.toml`, then
  *    `crates/target/release/veylqorix-engine`, then
  *    `crates/target/debug/veylqorix-engine`.
- * 3. Fall back to a walk up from the package source location so the resolved
+ * 5. Fall back to a walk up from the package source location so the resolved
  *    path works when the package is consumed from `dist/` as well.
  *
- * Returns `undefined` when no usable binary is found.
+ * No developer-local path is ever *assumed*: every candidate is stat-checked
+ * before it is returned. Returns `undefined` when no usable binary is found.
  */
 export function resolveEngineBinary(startDir?: string): string | undefined {
   const explicit = process.env.VEYLQORIX_ENGINE;
@@ -185,6 +262,21 @@ export function resolveEngineBinary(startDir?: string): string | undefined {
     }
   }
 
+  // 2: PATH. A binary on PATH is a deliberate install; prefer it over the
+  // developer tree so release builds in the same machine always win.
+  const onPath = whichOnPath(ENGINE_PROGRAM);
+  if (onPath) return onPath;
+
+  // 3: documented install locations.
+  for (const candidate of installLocationCandidates()) {
+    try {
+      if (fs.statSync(candidate).isFile()) return candidate;
+    } catch {
+      /* keep looking */
+    }
+  }
+
+  // 4 + 5: upward walk from the start dir, then from the package location.
   const candidates = new Set<string>();
   const roots: string[] = [];
   if (startDir) roots.push(startDir);
@@ -199,8 +291,8 @@ export function resolveEngineBinary(startDir?: string): string | undefined {
     for (let i = 0; i < 12 && dir; i++) {
       const manifest = path.join(dir, 'crates', 'Cargo.toml');
       if (fs.existsSync(manifest)) {
-        candidates.add(path.join(dir, 'crates', 'target', 'release', 'veylqorix-engine'));
-        candidates.add(path.join(dir, 'crates', 'target', 'debug', 'veylqorix-engine'));
+        candidates.add(path.join(dir, 'crates', 'target', 'release', ENGINE_PROGRAM));
+        candidates.add(path.join(dir, 'crates', 'target', 'debug', ENGINE_PROGRAM));
       }
       dir = path.dirname(dir);
       if (dir === path.dirname(dir)) break; // reached filesystem root
@@ -258,11 +350,20 @@ export class RustEngineAdapter {
     }
   }
 
-  /** The resolved binary, or `undefined` when no engine is available. */
+  /**
+   * Whether the resolved binary is usable *now*: it exists as a file AND is
+   * executable. A binary that is present but not executable (EACCES) must be
+   * treated as unavailable so `runAudit` takes the labeled TypeScript
+   * compatibility path instead of crashing on spawn.
+   */
   get available(): boolean {
     if (!this.binaryPath) return false;
     try {
-      return fs.statSync(this.binaryPath).isFile();
+      if (!fs.statSync(this.binaryPath).isFile()) return false;
+      // An executable bit check catches a present-but-unusable binary so the
+      // caller degrades instead of failing at spawn.
+      fs.accessSync(this.binaryPath, fs.constants.X_OK);
+      return true;
     } catch {
       return false;
     }
@@ -272,12 +373,18 @@ export class RustEngineAdapter {
    * Perform one engine round-trip: spawn the binary, write one JSON request
    * line to its stdin, and read one JSON response line from its stdout under
    * a byte cap and a wall-clock timeout. Error classification:
-   * - spawn ENOENT / unusable binary  -> EngineUnavailableError
-   * - exit 64/65/70                   -> EngineProtocolError (with the code)
+   * - spawn ENOENT (binary not found) / EACCES (not executable) / unusable
+   *   binary -> EngineUnavailableError (engine unavailable -> the documented
+   *   fallback, never a pass)
+   * - exit 64/65/70                   -> EngineProtocolError (with the code;
+   *   the structured error frame on stdout, when present, is read as
+   *   `reason`; stderr is kept only as a human-readable annotation and is
+   *   never parsed as protocol data)
    * - exit 0 with unparseable JSON, a response that is not valid engine JSON,
    *   or a protocolVersion mismatch -> EngineProtocolError (never a silent
    *   fallback to the TypeScript gate)
-   * - wall-clock timeout              -> EngineTimeoutError
+   * - wall-clock timeout              -> EngineTimeoutError (the child and
+   *   its pipes are killed/cleaned up before the reject)
    */
   async request(request: Record<string, unknown>): Promise<EngineResponse> {
     if (!this.binaryPath) {
@@ -329,20 +436,55 @@ export class RustEngineAdapter {
         fn();
       };
 
-      timer = setTimeout(() => {
-        timedOut = true;
+      /**
+       * Deterministically tear down the child: kill it, then destroy every
+       * pipe so buffered data handlers cannot fire after we have settled and
+       * so a lingering writer cannot pin the event loop.
+       */
+      const teardown = (signal: NodeJS.Signals = 'SIGKILL') => {
         try {
-          child.kill('SIGKILL');
+          child.kill(signal);
         } catch {
           /* already dead */
         }
+        try {
+          child.stdin?.destroy();
+        } catch {
+          /* already destroyed */
+        }
+        try {
+          child.stdout?.destroy();
+        } catch {
+          /* already destroyed */
+        }
+        try {
+          child.stderr?.destroy();
+        } catch {
+          /* already destroyed */
+        }
+      };
+
+      timer = setTimeout(() => {
+        timedOut = true;
+        teardown();
         finish(() => reject(new EngineTimeoutError(timeoutMs, binary)));
       }, timeoutMs);
 
       child.on('error', (error: NodeJS.ErrnoException) => {
+        teardown();
         finish(() => {
           if (error.code === 'ENOENT') {
-            reject(new EngineUnavailableError(`Engine binary not found: ${binary}`, 'not-found', binary));
+            reject(
+              new EngineUnavailableError(`Engine binary not found: ${binary}`, 'not-found', binary),
+            );
+          } else if (error.code === 'EACCES') {
+            reject(
+              new EngineUnavailableError(
+                `Engine binary is not executable: ${binary}`,
+                'spawn-failed',
+                binary,
+              ),
+            );
           } else {
             reject(
               new EngineUnavailableError(
@@ -376,6 +518,8 @@ export class RustEngineAdapter {
         stdout += chunk.toString('utf8');
       });
 
+      // stderr is captured only as a short human-readable annotation (capped);
+      // it is never parsed as protocol data.
       child.stderr.on('data', (chunk: Buffer) => {
         if (stderr.length < 8192) stderr += chunk.toString('utf8');
       });
@@ -387,17 +531,49 @@ export class RustEngineAdapter {
           return;
         }
         if (exit !== ENGINE_EXIT.OK) {
-          // Protocol error codes carry out-of-band reasons on stderr; any
-          // other non-zero code is reported as a protocol failure too, so a
-          // failed engine run is never read as a pass.
-          const reason = stderr.trim() || undefined;
+          // The engine writes a structured error frame to stdout on every
+          // non-zero exit (a `Response` with `ok: false` and an `error`
+          // object). Read it when present — that is the machine-readable
+          // reason. On very old engines that lack the frame, fall back to
+          // the stderr annotation only. Any other non-zero code is reported
+          // as a protocol failure too, so a failed engine run is never read
+          // as a pass.
+          const frameError = parseErrorFrame(stdout);
+          const reason = frameError ?? (stderr.trim() || undefined);
           finish(() => {
             if (exit === ENGINE_EXIT.MALFORMED) {
-              reject(new EngineProtocolError('Engine rejected the request as malformed', exit, reason, binary));
+              reject(
+                new EngineProtocolError(
+                  frameError
+                    ? `Engine rejected the request as malformed: ${frameError}`
+                    : 'Engine rejected the request as malformed',
+                  exit,
+                  reason,
+                  binary,
+                ),
+              );
             } else if (exit === ENGINE_EXIT.ROOT_NOT_FOUND) {
-              reject(new EngineProtocolError('Engine could not find the audit root', exit, reason, binary));
+              reject(
+                new EngineProtocolError(
+                  frameError
+                    ? `Engine could not find the audit root: ${frameError}`
+                    : 'Engine could not find the audit root',
+                  exit,
+                  reason,
+                  binary,
+                ),
+              );
             } else if (exit === ENGINE_EXIT.INTERNAL) {
-              reject(new EngineProtocolError('Engine hit an internal error', exit, reason, binary));
+              reject(
+                new EngineProtocolError(
+                  frameError
+                    ? `Engine hit an internal error: ${frameError}`
+                    : 'Engine hit an internal error',
+                  exit,
+                  reason,
+                  binary,
+                ),
+              );
             } else {
               reject(new EngineProtocolError(`Engine exited with code ${exit}`, exit, reason, binary));
             }
@@ -440,9 +616,9 @@ export class RustEngineAdapter {
           finish(() =>
             reject(
               new EngineProtocolError(
-                `Engine response was not valid: ${response.notes?.[0] ?? '(unparseable shape)'}`,
+                `Engine response was not valid: ${response.error?.message ?? response.notes?.[0] ?? '(unparseable shape)'}`,
                 exit,
-                response.notes?.[0],
+                response.error?.message ?? response.notes?.[0],
                 binary,
               ),
             ),

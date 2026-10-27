@@ -22,12 +22,13 @@ properties, based on the committed source.
   run is never impersonated. This degradation is honest and labeled, not a
   silent fallback.
 - The adapter resolves the binary in this order: the `VEYLQORIX_ENGINE`
-  environment variable (when set to an existing file), then an upward walk
-  from the working directory to a directory containing
-  `crates/Cargo.toml` and the `crates/target/release/veylqorix-engine`
-  binary, then `crates/target/debug/veylqorix-engine`. A fresh adapter is
-  constructed per `runAudit` call so the environment variable is honored
-  without any cross-call caching.
+  environment variable (when set to an existing file), then
+  `veylqorix-engine` on `PATH`, then documented install locations, then
+  an upward walk from the working directory to a directory containing
+  `crates/Cargo.toml` and the `crates/target/{release,debug}`
+  `veylqorix-engine` binary (a fresh adapter is constructed per `runAudit`
+  call so the environment variable is honored without any cross-call
+  caching). See [Binary resolution order](#binary-resolution-order).
 - Results the engine produces are **byte-compatible** with the TypeScript
   core: same stable finding ids (e.g. `SECRETS-8C5562BA` on
   `tests/fixtures/secret-repo/config.js`), same redaction format
@@ -48,7 +49,7 @@ properties, based on the committed source.
 | `redact.rs` | Single masking function `redact_secret`: values ≤ 8 chars become `****`; longer values keep first/last 4 characters plus a length annotation. Golden vectors match the TypeScript `redactSecret`. |
 | `finding.rs` | `make_finding` + deterministic ids: SHA-1 over `scanner\|ruleId\|location\|dependencyName\|version`, first 8 hex chars uppercased, prefixed by the scanner name (uppercased, non-alphanumeric collapsed to `-`, truncated to 12 chars) — e.g. `SECRETS-8C5562BA`. Byte-compatible with `packages/core/src/finding.ts`. |
 | `exec.rs` | Safe, shell-free subprocess execution: explicit argument arrays (never a shell), `which` pre-check, timeout with kill, bounded trailing output window (default 256 KB per stream, with a truncation marker). |
-| `dependencies.rs` | `cargo audit --lock-path <root>/Cargo.lock --json` for Rust ecosystems; normalized findings with advisory/affected/patched fields. |
+| `dependencies.rs` | `cargo audit -f <root>/Cargo.lock --json` for Rust ecosystems; normalized findings with advisory/affected/patched fields. |
 | `protocol.rs` | The JSON-over-stdio protocol: request/response types, size caps, gitleaks delegation, command dispatch, `serve()` entry point. |
 | `lib.rs` / `main.rs` | Crate facade (`PROTOCOL_VERSION = 1`, `ENGINE_VERSION`, `EngineError`) and the binary (one request line in, one response line out, `--version`/`-V` banner, `--help`). |
 
@@ -69,15 +70,17 @@ The TypeScript core (`packages/core`) still owns, today:
 - the npm/pip **dependency subprocess** (`npm audit`, `pip-audit` via
   `util/exec.ts`), license scanning, and quality checks,
 - reporting (JSON/Markdown/SARIF) and the API/MCP plumbing and dashboard,
-- and — until the adapter lands — the live secret-scan/policy/gate path that
-  the CLI, MCP server, and API actually run.
+- the **labeled fallback path**: when the engine binary cannot be resolved,
+  `runAudit` degrades to the byte-compatible TypeScript secret scanner and
+  policy engine and records an explicit "degraded compatibility mode" note on
+  the secret scanner result (never a silent fallback).
 
-The engine is designed to be invoked **per scan** by a TypeScript adapter in
-`packages/core`: the orchestrator hands it its own evidence (dependency
-findings, license results, quality checks) and the engine merges in its own
-scanner results, evaluates the gate over the union, and returns the decision.
-That keeps one gate authority per run. Note: no such adapter is committed
-yet; the protocol below is the contract it would use.
+The engine is invoked **per scan** by the TypeScript adapter in
+`packages/core/src/engine/index.ts`: `runAudit`
+(`packages/core/src/audit.ts`) hands the engine its own evidence
+(dependency findings, license results, quality checks), the engine merges in
+its own scanner results, evaluates the gate over the union, and returns the
+decision. That keeps one gate authority per run.
 
 ## JSON-over-stdio protocol
 
@@ -135,34 +138,49 @@ signals out-of-band protocol errors.
 
 A scanner being unavailable **inside** a `scan` never produces 64/65/70: it is
 a `SKIPPED`/`ERROR` entry in `engineScannerResults` with an explanatory note,
-so a failure can never be read as a pass. A protocol error exits non-zero with
-a short stderr reason and no response, so it is structurally distinguishable
-from a successful scan.
+so a failure can never be read as a pass. On a protocol error the engine
+exits with that class's code, writes a short human-readable reason to stderr,
+**and** writes a structured error frame to stdout (a response document with
+`ok: false` and an `error` object) so the machine-readable reason does not
+depend on parsing stderr.
 
-## Binary resolution order (intended adapter)
+## Binary resolution order
 
-The designed resolution order for a TypeScript adapter to locate the binary is:
+The adapter (`packages/core/src/engine/index.ts`, `resolveEngineBinary`)
+locates the binary in this order:
 
-1. `VEYLQORIX_ENGINE` — an explicit path from the environment, if set;
-2. `crates/target/release/veylqorix-engine`;
-3. `crates/target/debug/veylqorix-engine`.
+1. `VEYLQORIX_ENGINE` — an explicit path from the environment, when it
+   points at an existing file;
+2. `veylqorix-engine` on `PATH` (platform-correct name);
+3. documented install locations (per-user `~/.local/bin`,
+   `~/.veylqorix/bin`, `/usr/local/bin`, `/usr/bin`; Windows
+   equivalents);
+4. an upward walk from the working directory (and from the package
+   location, so the adapter also works when consumed from `dist/`) to a
+   directory containing `crates/Cargo.toml`, then
+   `crates/target/release/veylqorix-engine`, then
+   `crates/target/debug/veylqorix-engine`.
 
-When none exists, the adapter runs in a **labeled degraded compatibility
-mode**: the in-process TypeScript secret scanner, policy engine, and gate
-remain the fallback, and the scan notes are labeled accordingly (degraded /
-compatibility mode, engine binary unavailable) — never a silent pass. This
-keeps every outcome attributable and audit-stable.
+Every candidate is stat-checked before it is used; no developer-local
+path is ever assumed. When none exists, the adapter runs in a **labeled
+degraded compatibility mode**: the in-process TypeScript secret scanner,
+policy engine, and gate remain the fallback, and the secret scanner
+result carries an explicit "degraded compatibility mode, engine binary
+unavailable" note — never a silent pass. This keeps every outcome
+attributable and audit-stable: a scan whose coverage degrades still
+evaluates to `INCOMPLETE` (exit 2) rather than a clean pass.
 
 Because the engine's findings, gate decisions, and exit codes are
 byte-compatible with `packages/core` (see **Status** above), running the
 labeled TypeScript fallback while the binary is missing is a genuine
 compatibility guarantee, not a reduced-coverage shortcut: the same inputs
-produce the same ids, redaction, and gate verdict in either implementation.
+produce the same ids, redaction, and gate verdict in either
+implementation.
 
-**What is not in the code yet:** no committed TypeScript code implements
-this resolution order, and no such adapter exists. The binary is currently
-invoked directly (by the Rust integration tests via `CARGO_BIN_EXE` and by
-CI, which builds `crates/target/release/veylqorix-engine`).
+The binary is also invoked directly by the Rust integration tests (via
+`CARGO_BIN_EXE`) and by CI, which builds
+`crates/target/release/veylqorix-engine` before the TypeScript suite
+runs.
 
 ## Security properties
 
