@@ -115,17 +115,62 @@ jobs:
       - name: Run Veylqorix scan
         id: scan
         if: steps.prepare.outputs.cli-src == 'true'
+        env:
+          # Caller-controlled inputs are passed through the environment, not
+          # interpolated into the shell source. Direct `${{ inputs.x }}`
+          # interpolation lets a calling repo break out of the quotes and
+          # run arbitrary commands in this job.
+          VQX_ROOT: ${{ inputs.root }}
+          VQX_BLOCK_ON: ${{ inputs.block-on }}
         run: |
           set -u
           no_tests="--no-tests"
           if [ "${{ inputs.run-tests }}" = "true" ]; then
             no_tests=""
           fi
+          # Validate both inputs before use: a scan root is a relative path
+          # (the default is "."), and block-on is a comma-separated severity
+          # list. Anything outside those character sets — whitespace, quotes,
+          # `;`, `$(...)` — is rejected here, not by the shell.
+          case "$VQX_ROOT" in
+            ""|/*|*[!A-Za-z0-9._/-]*)
+              echo "::error::Invalid root input: '$VQX_ROOT' (expected a relative path like '.' or 'packages/app')"
+              exit 64
+              ;;
+          esac
+          if [ -z "$VQX_BLOCK_ON" ]; then
+            echo "::error::Invalid block-on input: it must not be empty"
+            exit 64
+          fi
+          case "$VQX_BLOCK_ON" in
+            *[!A-Za-z,]*)
+              echo "::error::Invalid block-on input: '$VQX_BLOCK_ON' (expected a comma-separated severity list like 'HIGH,CRITICAL')"
+              exit 64
+              ;;
+          esac
+          case "$VQX_BLOCK_ON" in
+            ,*)
+              echo "::error::Invalid block-on input: '$VQX_BLOCK_ON' (leading comma)"
+              exit 64
+              ;;
+          esac
+          case "$VQX_BLOCK_ON" in
+            *,)
+              echo "::error::Invalid block-on input: '$VQX_BLOCK_ON' (trailing comma)"
+              exit 64
+              ;;
+          esac
+          case "$VQX_BLOCK_ON" in
+            *,,*)
+              echo "::error::Invalid block-on input: '$VQX_BLOCK_ON' (empty severity)"
+              exit 64
+              ;;
+          esac
           cli="node apps/cli/dist/index.js"
           if [ ! -d "apps/cli" ]; then cli="veylqorix"; fi
           # shellcheck disable=SC2086
           set +e
-          "$cli" scan --root "${{ inputs.root }}" --block-on "${{ inputs.block-on }}" \
+          "$cli" scan --root "$VQX_ROOT" --block-on "$VQX_BLOCK_ON" \
             $no_tests --json --report-out veylqorix.md --sarif-out veylqorix.sarif \
             > veylqorix.json 2> veylqorix.stderr
           code=$?

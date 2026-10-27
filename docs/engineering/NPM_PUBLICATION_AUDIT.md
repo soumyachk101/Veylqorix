@@ -4,6 +4,16 @@ Phase 1 = getting the monorepo's CI green under the toolchain it was authored wi
 Phase 2 = readiness of `.github/workflows/release.yml` for the first npm publish.
 Owner: Ensembyte agent head (CI pnpm lockfile fix + this audit). Date: 2026-07-11.
 
+**Update 2026-10-27 (second audit round).** The `v0.1.0` tag run failed for a
+reason unrelated to auth: the `publish` job's download step extracted the
+tarballs into the workspace root while the publish steps globbed
+`packaged-tarballs/`, so `npm publish` was never invoked. That is fixed
+(`path: packaged-tarballs` on the download step). Both package versions are
+now `0.1.1`, and `@veylqorix/core` no longer declares unused `semver`/`zod`
+dependencies. The release procedure lives in
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`; the current state is
+summarized in `docs/engineering/NPM_PUBLICATION_REPORT.md`.
+
 ## CI blocker (Phase 1)
 
 `pnpm install --frozen-lockfile` failed with `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`.
@@ -20,7 +30,7 @@ Diagnosis:
   `pnpm/action-setup` (commit `a7487c7e89a18df4991f7f222e4898a00d66ddda`, v4.1.0)
   with `version: 9`; local install uses pnpm 11.9.0, which passes frozen install.
 
-Fix applied this session (one line each): `version: 9` → `version: 11` in the
+Fix applied this session (one line each): `version: 9` → `version: "11.9.0"` in the
 "Set up pnpm" step of `ci.yml` and `veylqorix-gate.yml`. Action pin, the
 `cache: pnpm` setup-node step, and all other steps unchanged. Also added
 `"packageManager": "pnpm@11.9.0"` to the root `package.json` so tooling that
@@ -34,12 +44,12 @@ lockfile was authored under.
 | Field | Value | Location |
 |---|---|---|
 | name | `@veylqorix/core` | line 2 |
-| version | `0.1.0` | line 3 |
+| version | `0.1.1` | line 3 |
 | license | `MIT` | line 5 |
 | type | `module` | line 6 |
 | engines | `node >=20.18` | lines 7–9 |
 | files | `["dist"]` | lines 10–12 |
-| publishConfig | `{ access: "public" }` | lines 13–15 |
+| publishConfig | `{ access: "public", provenance: true }` | lines 13–15 |
 | main | `dist/index.js` | line 16 |
 | types | `dist/index.d.ts` | line 17 |
 | exports | `{ ".", "./scanners/*", "./gate", "./report" }` each `{types, import}` | lines 18–35 |
@@ -54,12 +64,12 @@ preserved by the `tsc` build step before publish. Dependencies: `semver 7.7.3`,
 | Field | Value | Location |
 |---|---|---|
 | name | `@veylqorix/cli` | line 2 |
-| version | `0.1.0` | line 3 |
+| version | `0.1.1` | line 3 |
 | license | `MIT` | line 5 |
 | type | `module` | line 6 |
 | engines | `node >=20.18` | lines 7–9 |
 | files | `["dist"]` | lines 14–16 |
-| publishConfig | `{ access: "public" }` | lines 17–19 |
+| publishConfig | `{ access: "public", provenance: true }` | lines 17–19 |
 | main | `dist/index.js` | line 10 |
 | bin | `{ "veylqorix": "dist/index.js" }` | lines 11–13 |
 | dependencies | `{ "@veylqorix/core": "workspace:*" }` | lines 24–26 |
@@ -71,7 +81,7 @@ would carry `"@veylqorix/core": "workspace:*"` verbatim, which is not
 resolvable on the registry. `pnpm pack` **does** rewrite it to the concrete
 version of the linked workspace package — verified locally this session:
 `pnpm -C apps/cli pack` produced a tarball whose `package/package.json`
-carries `"@veylqorix/core": "0.1.0"`.
+carries `"@veylqorix/core": "0.1.1"`.
 `release.yml` therefore packs with `pnpm --filter <name> pack` (not `npm
 pack`); publishing a `workspace:*`-carrying tarball with any packer would
 make the CLI uninstallable for consumers. The core tarball is unaffected
@@ -84,7 +94,7 @@ From `.github/workflows/release.yml` (reworked this session into two jobs):
 - Trigger: `push: tags: ["v*"]` — no workflow_dispatch, no PR path; owner
   pushes a tag to publish.
 - Job `pack`: `contents: read` only; SHA-pinned actions (checkout v4.2.2,
-  pnpm/action-setup v4.1.0 with `version: 11`, setup-node v4.2.0 with
+  pnpm/action-setup v4.1.0 with `version: "11.9.0"`, setup-node v4.2.0 with
   `node-version: 24` and `cache: pnpm`); runs `pnpm install
   --frozen-lockfile`, targeted builds (`pnpm --filter @veylqorix/core build`
   then `--filter @veylqorix/cli build`, the web app is not rebuilt), packs

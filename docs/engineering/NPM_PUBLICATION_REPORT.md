@@ -1,7 +1,260 @@
 # NPM Publication Validation Report
 
-Date: 2026-10-27. Prepared by the release-validation session for the first
-public npm release of `@veylqorix/core` and `@veylqorix/cli` (both `0.1.0`).
+**This document covers two sessions.** The current release state is the
+"Second audit round" section below (2026-10-27, evidence-backed, against the
+real GitHub Actions history and the live npm registry). The earlier session's
+record is retained underneath under "First validation session" as history —
+where the two disagree, the second round wins.
+
+**Single source of truth for the release procedure:**
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`. This report is the
+evidence log; that doc is the procedure.
+
+---
+
+# Second audit round (2026-10-27)
+
+Scope: full release audit of the repository, the release workflow, the live
+registry state, and the actual Actions history for the `v0.1.0` tag. No
+package was published, no tag was moved, no push was made.
+
+## 1. Verified repository facts
+
+**Git state**
+- Branch `main`, HEAD `4d694d4` ("docs(release): record the real v0.1.0 tag
+  run and the Node-24 CI fix"), equal to `origin/main`.
+- Exactly one tag: `v0.1.0`, a **lightweight** tag pointing at commit
+  `e768d08fc14ca444baf72e595a6df1f22b8195b1` ("feat(release): npm
+  trusted-publishing pipeline for @veylqorix/core + cli"). Present locally
+  and on the remote at the same SHA — no divergence.
+- `main` is **2 commits ahead** of the tag (`624f678` Node-24 CI fix,
+  `4d694d4` docs), linearly — no fork. The tagged commit is an ancestor of
+  HEAD.
+- Consequence: `v0.1.0` points at a commit whose **CI was failing** (run
+  `40500840104` failed at "Set up Node" — Node 20 vs pnpm 11.9.0). The
+  Node-24 fix is on `main`, not in the tag.
+
+**npm registry (live, read-only probes)**
+- `npm ping` → PONG. `npm view @veylqorix/core` → **E404**;
+  `npm view @veylqorix/cli` → **E404**. Neither package has ever been
+  published; no versions, no dist-tags, no `0.1.0` on the registry.
+- The **`@veylqorix` scope exists** on the registry:
+  `/-/org/veylqorix/package` → HTTP 200 with an empty package list, while a
+  control unknown scope → 404. So the scope is held by a user account or
+  organization named exactly `veylqorix`.
+- Ownership of that account/org **cannot be verified from the CLI** (private
+  settings are not exposed) — the owner must confirm it in the npm UI.
+- `npm whoami` returned **401**: the `_authToken` in `~/.npmrc` is not
+  currently accepted. The bootstrap publish will need a working credential.
+- Version availability: everything is free, including `0.0.1` (bootstrap),
+  `0.1.0` and `0.1.1`.
+
+**GitHub Actions history**
+- Exactly one `release.yml` run exists: **run `40500854557`**, event `push`,
+  tag `v0.1.0`, head SHA `e768d08`, conclusion **failure**, 34s.
+  https://github.com/soumyachk101/Veylqorix/actions/runs/40500854557
+- `pack` job: **passed every step**. The tag/version guard printed
+  `Tag v0.1.0 matches both manifest versions (0.1.0)`. Both tsc builds
+  succeeded. `pnpm pack` produced `veylqorix-core-0.1.0.tgz` (74,296 B) and
+  `veylqorix-cli-0.1.0.tgz` (11,160 B), uploaded as artifact
+  `packaged-tarballs`; the publish job downloaded it with a matching SHA256.
+- `publish` job: **failed at the first publish step**, with a verbatim error
+  that is *not* an auth or npm error:
+
+      ls: cannot access 'packaged-tarballs/veylqorix-core-*.tgz': No such file or directory
+      ##[error]Process completed with exit code 2.
+
+  Root cause: the download step had no `path:` input, so
+  `actions/download-artifact` extracted the tarballs into the **workspace
+  root** while the publish steps globbed `packaged-tarballs/`.
+- **`npm publish` was never invoked** for either package — the failure was
+  before npm. The "Publish @veylqorix/cli" step was **skipped**, confirming
+  the core-before-CLI fail-safe ordering works. **Nothing was published**;
+  both packages still 404.
+- No provenance attestation exists for either package.
+- CI on `main`: latest run **`40502140372`**, SHA `4d694d4` (= HEAD),
+  conclusion **success**. https://github.com/soumyachk101/Veylqorix/actions/runs/40502140372
+  The Node-24 fix run `40501372986` (`624f678`) also succeeded.
+
+**Workflow audit (`release.yml`)** — every checklist item verified against
+the file and the run history: tag-only trigger with a semver tag/version
+guard checked against both manifests; Node 24 (pnpm 11.9.0 needs >= 22.13);
+`pnpm/action-setup` pinned to exactly `11.9.0`, matching the root
+`packageManager`; `pnpm install --frozen-lockfile`; targeted core-then-cli
+builds; `pnpm pack` (not `npm pack`) so the CLI's `workspace:*` becomes a
+concrete version; `pack` job `contents: read` only; `publish` job
+`contents: read` + `id-token: write`; every external action pinned to a full
+40-char SHA (zero `@vN` floats); no `NPM_TOKEN` and no `npm login`; core
+published before CLI; no retry/`|| true` masking a duplicate version.
+
+**Toolchain consistency:** root `packageManager: pnpm@11.9.0` = workflow pin
+`11.9.0` = lockfile `lockfileVersion: '9.0'` (still written by pnpm 11);
+`pnpm-workspace.yaml` `allowBuilds`/`overrides` match the lockfile header.
+
+## 2. Fixes implemented in this round
+
+| File | Change | Why |
+|---|---|---|
+| `.github/workflows/release.yml` | download step now sets `path: packaged-tarballs` | **The actual cause of the v0.1.0 failure.** Without it the tarballs extract to the workspace root and the publish globs find nothing. |
+| `.github/workflows/release.yml` | publish steps use `ls ... \| head -n 1` | Robustness: an unmatched glob previously produced an opaque `ls` error; `head -n 1` plus `set -o pipefail` still fails the step but the glob resolves deterministically. |
+| `.github/workflows/release.yml` | new step "Wait for @veylqorix/core to be visible on the registry" (reads the concrete core version out of the packed tarball, polls `npm view` up to 60s, fails closed) | The CLI's published manifest depends on a concrete `@veylqorix/core` version. npm's registry is eventually consistent, so publishing the CLI immediately after core could ship a CLI whose dependency does not yet resolve. The wait makes the ordering guarantee real rather than assumed. |
+| `.github/workflows/veylqorix-gate.yml` | `inputs.root` and `inputs.block-on` are passed via `env:` instead of being interpolated into the shell source, and are validated (relative-path character set; comma-separated severities) before use | **Command injection.** A calling repo could pass `root: x"; <cmd>"` and execute arbitrary commands in the gate job. The input was previously interpolated directly into the `run:` script. |
+| `packages/core/package.json` | removed the `semver` and `zod` dependencies | Verified unused: no import of either in `packages/core/src` or `apps/cli/src`, and neither appears in the built `dist/`. They were dead supply-chain surface — consumers downloaded two packages the code never loads. (`@veylqorix/mcp-server` declares its own `zod`, so removing core's does not orphan it.) |
+| `packages/core/package.json`, `apps/cli/package.json` | version `0.1.0` → `0.1.1`; `publishConfig.provenance: true` added | `0.1.0` was never published, but `0.1.1` matches the new release plan and keeps the bootstrap (`0.0.1`) strictly below the release version. `provenance: true` makes the attestation request explicit in the manifest. |
+| `package.json` (root) | version → `0.1.1`; `engines.node` `>=20.18` → `>=22.13` | The root `engines` floor understated the toolchain: pnpm 11.9.0 requires Node >= 22.13 and crashes on Node 20. The *published* packages keep `>=20.18` — that is a consumer runtime floor, a different thing, and is correct as-is. |
+| `pnpm-lock.yaml` | regenerated after the dependency removal and the root version bump | `packages/core` importer is now `{}`; `pnpm install --frozen-lockfile` passes. |
+| `docs/engineering/*.md` | all four release docs reconciled to the verified facts | They still described the v0.1.0 run as an npm auth failure (it was a path bug) and still referenced `0.1.0` as the release version. |
+
+Nothing was weakened to make a check pass: CI still runs with
+`--frozen-lockfile`, tests, typecheck, lint and the Rust checks; no test was
+skipped and no error suppressed. The website, its UI, SEO, content and
+deployment configuration were not touched.
+
+## 3. Checks that passed (this checkout)
+
+```
+pnpm install --frozen-lockfile            PASS (pnpm 11.9.0, lockfile up to date)
+pnpm --filter @veylqorix/core build       PASS (tsc)
+pnpm --filter @veylqorix/cli  build       PASS (tsc)
+pnpm test                                 PASS — 18 files, 308 tests
+pnpm typecheck                            PASS
+pnpm lint                                 PASS (eslint --max-warnings 0)
+cargo check --manifest-path crates/Cargo.toml   PASS
+pnpm --filter @veylqorix/core pack        PASS → artifacts/veylqorix-core-0.1.1.tgz (74,285 B)
+pnpm --filter @veylqorix/cli  pack        PASS → artifacts/veylqorix-cli-0.1.1.tgz  (11,172 B)
+npm install <both tarballs> (clean dir)   PASS — 2 packages, 0 vulnerabilities
+node_modules/.bin/veylqorix --help        PASS — usage block, exit 0
+import('@veylqorix/core')                 PASS — 59 exports resolve
+```
+
+Packed-tarball verification:
+- Core tarball: `dist/**` only (js + d.ts + maps) plus `package.json`. No
+  `src/`, no `*.test.ts`, no `tsconfig.json`, no lockfile, no `.env`.
+- CLI tarball: `dist/cli-args.*`, `dist/index.*`, `LICENSE`, `package.json`.
+  `dist/index.js` carries `#!/usr/bin/env node` and mode 755.
+- **CLI dependency resolution:** the packed CLI manifest carries
+  `"@veylqorix/core": "0.1.1"` — a concrete version, not `workspace:*`.
+  Confirmed from the tarball, not from the source manifest.
+- Core now has **zero** runtime dependencies in its packed manifest.
+
+Workflow validation:
+- `release.yml` parses under a strict YAML loader that rejects duplicate
+  mapping keys — no duplicates, `pack`/`publish` jobs intact.
+- The registry-visibility step's version extraction was run against the real
+  tarball: it correctly yields `0.1.1`, matching the CLI's declared
+  dependency.
+
+## 4. Checks that failed
+
+- **`npm view @veylqorix/core@0.1.1`** → E404. Expected: nothing is
+  published yet. This is the state the bootstrap must change.
+- **`npm whoami`** → 401. The npm credential configured in `~/.npmrc` is not
+  currently accepted by the registry. The bootstrap publish needs a working
+  credential (2FA or a valid token). No credential was used, inspected, or
+  requested.
+- The GitHub Actions release run itself remains **red** — but only against
+  the old workflow. The fix is in the working tree and unproven until a tag
+  is pushed; it cannot be exercised locally.
+
+## 5. Actions requiring the owner's npm / GitHub account
+
+These are the only steps that can move the release forward. Full detail in
+`NPM_TRUSTED_PUBLISHING_SETUP.md`.
+
+1. **Confirm the `@veylqorix` scope owner** on npmjs.com: that the account or
+   organization named `veylqorix` is one the owner controls, and that it has
+   2FA enabled. The scope exists but its owner cannot be read from the CLI.
+2. **Bootstrap-publish both packages once, from the owner's own machine** —
+   required because npm's trusted-publisher record lives on a package's
+   settings page, so a package must exist before a publisher can be attached
+   (npm/cli#8544, still open). Version `0.0.1`, core first, then the CLI
+   (whose packed manifest depends on the core version in effect at pack
+   time). The owner's npm credential/2FA is used **on the owner's machine
+   only** — never a repository secret, never an `NPM_TOKEN` in CI, never an
+   `npm login` on the runner.
+3. **Add a trusted publisher for each package separately** (per-package, not
+   per-scope): npmjs.com → package → Publishing → Trusted publishers →
+   GitHub Actions; Organization or user `soumyachk101`; Repository
+   `Veylqorix`; Workflow filename `release.yml`; Environment name **unset**
+   (the workflow declares no `environment:`); and **explicitly enable direct
+   `npm publish`** — configurations created after 2026-09-03 default to
+   stage-only, and the workflow publishes directly.
+4. **Publish within 2 days** of creating each configuration: a newly created
+   trusted publisher must complete its first successful publish within 2 days
+   or it expires and must be deleted and re-created.
+5. **Create and push the `v0.1.1` tag** (owner action — not performed here),
+   and monitor the run.
+
+## 6. Remaining release blockers
+
+| # | Blocker | Priority | Who |
+|---|---|---|---|
+| 1 | Neither package exists on npm, so no trusted publisher can be configured — the first publish must be a manual bootstrap | **P0** | Owner |
+| 2 | The release workflow fix and the `0.1.1` manifests are uncommitted/unpushed; the `v0.1.1` tag does not exist, and the `pack` job's tag/version guard will reject a mismatch | **P0** | Owner (commit + push + tag) |
+| 3 | No trusted-publisher record for either package — the OIDC publish fails closed with 401/403 until step 3 above is done | **P0** | Owner |
+| 4 | The npm credential in `~/.npmrc` returns 401 — the bootstrap publish cannot authenticate until that is fixed | **P1** | Owner |
+| 5 | `@veylqorix` scope ownership unconfirmed | **P1** | Owner |
+| 6 | The `publishConfig.provenance: true` / `--provenance` attestation path and the new registry-visibility wait are unverified against a real npm registry — only a real tag run proves them | **P2** | Verified by the release run |
+| 7 | The `v0.1.0` tag points at a red-CI commit; it is left in place deliberately (a published tag must not be moved) and is superseded by `v0.1.1` | **P3** | Accepted |
+
+## 7. Exact next commands — INSTRUCTIONS ONLY, NOT EXECUTED
+
+Nothing below was run. Every command is the owner's to execute.
+
+```bash
+# --- on the owner's machine, in a clean checkout of the release commit ---
+
+# 1. Confirm the registry is still empty (read-only)
+npm view @veylqorix/core versions   # expect E404
+npm view @veylqorix/cli versions    # expect E404
+
+# 2. Bootstrap: temporarily set BOTH manifests to 0.0.1 (local-only, do not commit)
+#    packages/core/package.json -> "version": "0.0.1"
+#    apps/cli/package.json      -> "version": "0.0.1"
+
+# 3. Build, pack, and publish core FIRST, then the CLI
+pnpm install --frozen-lockfile
+pnpm --filter @veylqorix/core build
+pnpm --filter @veylqorix/cli  build
+pnpm --filter @veylqorix/core pack --pack-destination ./artifacts
+pnpm --filter @veylqorix/cli  pack --pack-destination ./artifacts
+npm publish ./artifacts/veylqorix-core-0.0.1.tgz --access public
+npm publish ./artifacts/veylqorix-cli-0.0.1.tgz  --access public
+
+# 4. Restore 0.1.1 in both manifests (git restore the two files)
+
+# 5. In npm's UI, add a trusted publisher for EACH package
+#    (GitHub Actions / soumyachk101 / Veylqorix / release.yml / no environment /
+#     direct npm publish ENABLED)
+
+# 6. Commit the release fixes and push, then cut the tag
+git add .github/workflows/release.yml .github/workflows/veylqorix-gate.yml         packages/core/package.json apps/cli/package.json package.json pnpm-lock.yaml         docs/engineering/
+git commit -m "fix(release): correct artifact download path, harden gate inputs, release 0.1.1"
+git push origin main
+git tag v0.1.1
+git push origin v0.1.1
+
+# 7. Verify
+npm view @veylqorix/core versions   # expect 0.0.1 and 0.1.1
+npm view @veylqorix/cli versions    # expect 0.0.1 and 0.1.1
+```
+
+**Do not** move, delete or recreate `v0.1.0`, and do not attempt to
+republish any version that already exists on the registry — npm versions are
+immutable.
+
+---
+
+# First validation session (2026-10-27, retained for history)
+
+> The sections below record the earlier session. They contain two claims that
+> the second round above corrects: the v0.1.0 release run's failure was
+> attributed to a missing trusted publisher (it was in fact the artifact
+> download path — `npm publish` was never invoked), and `0.1.0` was described
+> as the release version (the release version is now `0.1.1`).
+
+The "Files changed" table below therefore does **not** list the second round's
+changes — those are in the table in section 2 above.
 
 ## Files changed
 

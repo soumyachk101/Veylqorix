@@ -15,7 +15,11 @@ triggered only by tag pushes to this repo (`v*`), with **no environment
 configured**, and two jobs: a `pack` job (installs with pnpm 11.9.0, builds,
 packs both packages) and a `publish` job that requests `id-token: write` and
 publishes both tarballs with `npm publish <tgz> --provenance` using GitHub's
-OIDC token — no `NPM_TOKEN` secret, no `npm login` on the runner. npm accepts
+OIDC token — no `NPM_TOKEN` secret, no `npm login` on the runner. The publish
+job downloads the packed tarballs into `packaged-tarballs/` (the download
+step sets `path:` to that directory so the publish steps' globs resolve) and
+waits until the freshly published `@veylqorix/core` version is visible on the
+registry before publishing the CLI. npm accepts
 that token only for a package whose trusted-publisher record matches this
 exact workflow and the tag subject. The repo-side workflow, the pnpm pin
 (`11.9.0` in all three workflows, matching the root `packageManager` field
@@ -45,12 +49,12 @@ workflow's OIDC publish can ever run:
 
   ```bash
   # on the owner's machine, with the owner's npm account and 2FA:
-  npm install -g npm@latest          # npm >= 11.5.1 (Node >= 22.14.0)
+  npm install -g npm@latest          # npm >= 11.15.0 (Node >= 22.14.0)
   pnpm install --frozen-lockfile
   pnpm --filter @veylqorix/core build
   pnpm --filter @veylqorix/cli build
   # temporarily set each package.json version to 0.0.1 locally
-  # (do not commit the change; the repo keeps 0.1.0 for the tag)
+  # (do not commit the change; the repo keeps 0.1.1 for the tag)
   pnpm --filter @veylqorix/core pack --pack-destination ./artifacts
   pnpm --filter @veylqorix/cli  pack --pack-destination ./artifacts
   npm publish ./artifacts/veylqorix-core-0.0.1.tgz --access public
@@ -71,12 +75,12 @@ workflow's OIDC publish can ever run:
      resolves to `0.0.1` — the version that now exists — so the CLI's
      install will resolve. Publishing the CLI first would leave its
      dependency pointing at a core version the registry has not seen.
-  3. Restore `0.1.0` in both `packages/core/package.json` and
-     `apps/cli/package.json` for the tagged release (the repo keeps
-     `0.1.0`; the `0.0.1` change is local-only and must not be
+  3. Restore the release version (`0.1.1`) in both
+     `packages/core/package.json` and `apps/cli/package.json` for the
+     tagged release (the `0.0.1` change is local-only and must not be
      committed).
 
-  Use a bootstrap version **below** the release version (`0.1.0` in the repo
+  Use a bootstrap version **below** the release version (`0.1.1` in the repo
   manifests) so the first tag-push publish does not hit
   `EPUBLISHCONFLICT`. Alternative that npm's docs also support:
   `npm stage publish` per package — staging does not require 2FA and,
@@ -111,7 +115,7 @@ Ordered npm-side actions (the whole of what's left to do):
 3. Add the trusted-publisher record for `@veylqorix/core`
    (section 2 fields, **including the "allow npm publish" action**).
 4. Add the trusted-publisher record for `@veylqorix/cli` (same).
-5. Push the `v0.1.0` tag so `release.yml` publishes both via OIDC —
+5. Push the `v0.1.1` tag so `release.yml` publishes both via OIDC —
    this is the first successful publish that *validates* both
    configurations; both must complete it **within 2 days** of being
    created (section 2), or each configuration expires and must be
@@ -147,7 +151,7 @@ Before configuring anything, confirm on npm:
    by an account with write access to the scope (see section 0).
 2. **Whether the packages already exist.** A published npm version is
    immutable — it cannot be overwritten or re-tagged. Before relying on
-   "0.1.0" being available, run:
+   "0.1.1" being available, run:
 
    ```bash
    npm view @veylqorix/core versions
@@ -155,12 +159,12 @@ Before configuring anything, confirm on npm:
    ```
 
    If either returns published versions, the release version numbers in the
-   repo (`0.1.0` in both `packages/core/package.json` and
+   repo (`0.1.1` in both `packages/core/package.json` and
    `apps/cli/package.json`) must be above the highest published version, or
    publication will be rejected with `EPUBLISHCONFLICT`. Both packages
    currently 404 on the registry, so the section 0 bootstrap (`0.0.1` or
    the staging-placeholder `0.0.0-stage`) is the only version that will
-   exist ahead of the first tag — both below `0.1.0`, so the conflict
+   exist ahead of the first tag — both below `0.1.1`, so the conflict
    check passes by construction.
 
 ## 2. Per-package trusted publisher configuration
@@ -198,7 +202,8 @@ Checked against the live npm docs (2026-10-27):
   the workflow's explicit `npm publish <tgz> --provenance` is still
   valid and is harmless, since it requests the same attestation npm
   would generate anyway. It is **not** disabled by
-  `publishConfig.provenance: false` — neither package sets that.
+  `publishConfig.provenance: false` — both packages set
+  `publishConfig.provenance: true`, which requests the same attestation.
 - **Allowed actions.** Per npm's docs, configurations created after
   2026-09-03 are automatically allowed to `npm stage publish`, and
   direct `npm publish` is an additional explicit choice. Because
@@ -211,7 +216,7 @@ Checked against the live npm docs (2026-10-27):
   validated within 2 days it **expires and can no longer be used or
   edited** — delete it, create a new one, and complete the first
   publish within 2 days. The owner should therefore have the
-  `v0.1.0` tag ready to push immediately after creating both records.
+  `v0.1.1` tag ready to push immediately after creating both records.
 - **Limits.** Each package accepts up to **10 trusted publishers** at
   once. Existing trusted-publisher connections **cannot be edited** —
   the provider and required fields are fixed once created; to change

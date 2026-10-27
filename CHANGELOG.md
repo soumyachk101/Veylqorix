@@ -41,8 +41,8 @@ All notable changes to Veylqorix are documented here.
 - `.github/workflows/release.yml` (new, opt-in, no token secret): on `v*`
   tag only, builds, packs, and `npm publish --provenance` via GitHub OIDC
   trusted publishing (no commit/tag push, no write permissions). **Inert
-  until the owner registers the trusted publisher + bot user** — publish
-  fails closed otherwise.
+  until the owner registers the trusted publisher for each package** —
+  publish fails closed otherwise. No bot user or GitHub App is involved.
 - `docs/engineering/RELEASE_READINESS.md`: dry-run pack contents, engine
   binary resolution (`VEYLQORIX_ENGINE` env var + developer-checkout walk,
   no bundled/downloaded binary), the labeled degraded-coverage behavior when
@@ -51,9 +51,34 @@ All notable changes to Veylqorix are documented here.
 - `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
   and exit-code examples matching the implementation.
 - Status: packaging validated locally (dry-run only). **Owner actions
-  remaining:** trusted-publisher + bot-user setup, first `v*` tag, and an
+  remaining:** trusted-publisher setup for each package, first `v*` tag, and an
   engine-binary distribution story (a verified platform artifact or
   documented build step). No publish/release/tag has been performed yet.
+
+### Release fixes (`0.1.1`)
+- `@veylqorix/core` and `@veylqorix/cli` are now `0.1.1`. Nothing was
+  published at `0.1.0` — the `v0.1.0` release run failed **before** npm was
+  ever called, so `0.1.0` remains free on the registry.
+- `.github/workflows/release.yml`: the publish job's artifact download now
+  extracts into `packaged-tarballs/`, matching the path the publish steps
+  glob. This path mismatch is the actual cause of the `v0.1.0` run failure
+  (`ls: cannot access 'packaged-tarballs/veylqorix-core-*.tgz'`); npm was
+  never invoked and nothing was published. A new step waits until the
+  published `@veylqorix/core` version is visible on the registry before the
+  CLI is published, so the CLI's concrete core dependency always resolves.
+- `.github/workflows/veylqorix-gate.yml`: `root` and `block-on` inputs are
+  passed through the environment and validated, instead of being
+  interpolated into the shell source. A calling repository could previously
+  break out of the quotes and run arbitrary commands in the gate job.
+- `@veylqorix/core` no longer declares `semver` and `zod`: neither is
+  imported by the package's source or its build output. The published core
+  tarball now has zero runtime dependencies.
+- Root `engines.node` raised to `>=22.13` (the floor pnpm 11.9.0 requires);
+  the published packages keep `>=20.18`, which is the consumer runtime floor.
+- Docs: `NPM_PUBLICATION_AUDIT.md`, `NPM_PUBLICATION_REPORT.md`,
+  `NPM_TRUSTED_PUBLISHING_SETUP.md` and `RELEASE_READINESS.md` reconciled
+  with the verified state of the registry, the Actions history and the
+  release procedure.
 
 ### Rust security engine (`crates/veylqorix-engine`)
 - New pure-Rust engine crate (`crates/`, workspace manifest at

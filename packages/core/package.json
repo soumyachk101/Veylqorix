@@ -1,6 +1,6 @@
 {
   "name": "@veylqorix/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Security audit engine: project detection, scanners, policy evaluation, quality gate, and report generation.",
   "license": "MIT",
   "repository": {
@@ -16,7 +16,8 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -41,9 +42,5 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
-  },
-  "dependencies": {
-    "semver": "7.7.3",
-    "zod": "4.6.7"
   }
 }

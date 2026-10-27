@@ -152,11 +152,16 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packaged-tarballs
+          # The publish steps glob `packaged-tarballs/veylqorix-*.tgz`, so the
+          # artifact must extract into that subdirectory. Without `path`,
+          # download-artifact extracts into the workspace root and the globs
+          # find nothing (this is exactly what broke the v0.1.0 run).
+          path: packaged-tarballs
 
       - name: Publish @veylqorix/core
         run: |
           set -euo pipefail
-          core_tgz="$(ls packaged-tarballs/veylqorix-core-*.tgz)"
+          core_tgz="$(ls packaged-tarballs/veylqorix-core-*.tgz | head -n 1)"
           # Provenance ties this tarball to this exact commit + workflow;
           # no token secret is involved.
           # A duplicate publish is rejected by npm with HTTP 403
@@ -164,8 +169,26 @@ jobs:
           # that failure stops the workflow — it is not retried or skipped.
           npm publish "$core_tgz" --provenance --access public
 
+      - name: Wait for @veylqorix/core to be visible on the registry
+        run: |
+          set -euo pipefail
+          # Read the concrete core version the CLI tarball depends on (pnpm
+          # pack rewrote workspace:* into it), then wait until that version
+          # is actually visible on the registry before publishing the CLI.
+          core_version="$(tar -xOf packaged-tarballs/veylqorix-core-*.tgz package/package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")"
+          echo "Waiting for @veylqorix/core@${core_version} to appear on the registry"
+          for attempt in $(seq 1 30); do
+            if npm view "@veylqorix/core@${core_version}" version >/dev/null 2>&1; then
+              echo "@veylqorix/core@${core_version} is visible after ${attempt} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::@veylqorix/core@${core_version} did not become visible within 60s; refusing to publish the CLI against an unresolvable dependency"
+          exit 1
+
       - name: Publish @veylqorix/cli
         run: |
           set -euo pipefail
-          cli_tgz="$(ls packaged-tarballs/veylqorix-cli-*.tgz)"
+          cli_tgz="$(ls packaged-tarballs/veylqorix-cli-*.tgz | head -n 1)"
           npm publish "$cli_tgz" --provenance --access public
