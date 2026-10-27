@@ -1,11 +1,16 @@
 # CLI Release Readiness
 
 Status of publishing `@veylqorix/cli` (with its workspace dependency
-`@veylqorix/core`) to the npm registry. Last validated: 2026-07-08.
+`@veylqorix/core`) to the npm registry. Last validated: 2026-10-27.
 
-**Nothing has been published, no release has been created, and no tag or
-commit has been pushed.** This document records what is validated locally and
-what remains as owner actions.
+**Nothing has been published and no release has been created.** The release
+changes have been committed and pushed to `main`, and the tag `v0.1.0` was
+created and pushed at the owner's instruction — the workflow it triggered
+built and packed both packages successfully and then failed closed at the
+npm publish step, because no trusted publisher is configured on npm yet and
+neither package exists on the registry. The remaining work is the npm-side
+setup, not repository work. This document records what is validated and what
+remains as owner actions.
 
 ## 1. Packaging correctness
 
@@ -251,12 +256,14 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
 
 ### B) Owner actions (in order; each is a separate action)
 
-- [ ] **(i)** Push the release changes from (A) to the release branch and
+- [x] **(i)** Push the release changes from (A) to the release branch and
       confirm CI is green on that branch (bump, `packageManager` pin,
       reworked `release.yml`, manifest/pack validation, and the
       `veylqorix --help` fix). Verify the version is `0.1.0` in both
       `packages/core/package.json` and `apps/cli/package.json` before
-      pushing.
+      pushing. **Done** — pushed as `e768d08`, then `624f678` (the Node-24
+      CI fix that the exact pnpm pin exposed); CI run `40501372986` on
+      `624f678` is green at every step.
 - [ ] **(ii)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
       enabled on the owning account/org (`NPM_TRUSTED_PUBLISHING_SETUP.md`
       §1). Both packages currently 404 — nothing is published yet.
@@ -275,16 +282,26 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       allowed** (new configurations default to stage-only; the direct
       publish action must be explicitly ticked, otherwise the workflow's
       publish step is rejected).
-- [ ] **(v)** Create and push the tag **within 2 days of creating both
-      trusted-publisher configurations** — a configuration that does not
-      complete its first successful publish within 2 days expires and must
-      be deleted and re-created:
+- [x] **(v)** Create and push the tag — **done**: `v0.1.0` was created and
+      pushed at the owner's instruction, and the release run it triggered
+      built, packed, and then failed closed at the publish step (nothing
+      published — the npm-side setup in (iii) and (iv) had not been done
+      yet). The remaining action is to **re-trigger** it within 2 days of
+      creating both trusted-publisher configurations:
 
       ```bash
-      # documentation only — do not execute until explicitly authorized
-      git tag v0.1.0
-      git push origin v0.1.0
+      # documentation only — the v0.1.0 tag already exists and points at
+      # commit e768d08. Simplest path: re-run the existing workflow from
+      # the GitHub Actions UI ("Re-run all jobs"), which reuses the same
+      # commit and the same 0.1.0 version. A NEW tag requires a matching
+      # version bump in both manifests:
+      git tag v0.1.1
+      git push origin v0.1.1
       ```
+
+      A trusted-publisher configuration that does not complete its first
+      successful publish within 2 days expires and must be deleted and
+      re-created.
 
       **Tag/version guard (in the `pack` job of `release.yml`):** the
       workflow verifies the pushed tag matches the version declared in
@@ -293,7 +310,8 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       manifest versions is rejected by the workflow — and because a
       published npm version is immutable, a bad tag cannot be fixed by
       re-tagging; it must be caught before publish. The `v0.1.0` tag
-      therefore matches `0.1.0` in both manifests.
+      therefore matches `0.1.0` in both manifests, and the guard was
+      confirmed to accept it in the real run.
 - [ ] **(vi)** Monitor the actual GitHub Actions run of `release.yml` the
       tag push triggers — both publish steps (core, then CLI) must
       succeed.

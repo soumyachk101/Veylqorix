@@ -123,5 +123,12 @@ From `.github/workflows/release.yml` (reworked this session into two jobs):
 ## Out of scope for this session
 
 No installs, builds, tests, or lint runs from this head; no changes to
-`pnpm-lock.yaml` or `pnpm-workspace.yaml`. No package published, no tag
-created, nothing pushed.
+`pnpm-lock.yaml` or `pnpm-workspace.yaml`. No package published, no GitHub
+release created, no website changes.
+
+Subsequent to this audit, the release changes were committed and pushed
+(`e768d08`, then `624f678` for the Node-24 CI fix) and the tag `v0.1.0` was
+created and pushed at the owner's instruction. The tag-triggered release run
+failed closed at the npm publish step (no trusted publisher configured yet);
+nothing was published. See `docs/engineering/NPM_PUBLICATION_REPORT.md` for
+the verified run results.

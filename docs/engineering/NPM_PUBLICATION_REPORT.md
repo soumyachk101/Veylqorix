@@ -7,8 +7,8 @@ public npm release of `@veylqorix/core` and `@veylqorix/cli` (both `0.1.0`).
 
 | File | Change |
 |---|---|
-| `.github/workflows/ci.yml` | `pnpm/action-setup` `version:` corrected to exactly `"11.9.0"` to match the root `packageManager` (was `9`, then `11`; pnpm/action-setup v4 compares the two strings with strict equality and fails the step on mismatch). |
-| `.github/workflows/veylqorix-gate.yml` | same one-line exact pin `version: "11.9.0"`. |
+| `.github/workflows/ci.yml` | `pnpm/action-setup` `version:` corrected to exactly `"11.9.0"` to match the root `packageManager` (was `9`, then `11`; pnpm/action-setup v4 compares the two strings with strict equality and fails the step on mismatch); `node-version` raised `"20"` → `"24"` (pnpm 11.9.0 requires Node >= 22.13 — it uses `node:sqlite`, so Node 20 crashed in setup-node's pnpm cache step with `ERR_UNKNOWN_BUILTIN_MODULE`). |
+| `.github/workflows/veylqorix-gate.yml` | same two changes: exact pin `version: "11.9.0"` and `node-version: "24"`. |
 | `package.json` | added `"packageManager": "pnpm@11.9.0"` — the anchor the three workflows' pnpm pins must match. |
 | `.github/workflows/release.yml` | reworked into two jobs: `pack` (contents:read; pnpm `11.9.0`, Node 24, frozen install, new tag/version guard step, targeted builds, `pnpm --filter <name> pack`, upload-artifact v4.6.2 SHA-pinned) and `publish` (needs pack; id-token:write, download-artifact v4.3.0, two separate `npm publish <tgz> --provenance --access public` steps under `set -euo pipefail`). Header comments updated; stale "GitHub App" reference removed. |
 | `packages/core/package.json` | exports `./gate` → `dist/gate/index.js(.d.ts)`, `./report` → `dist/report/index.js(.d.ts)` (the old flat paths do not exist in the built layout); added `repository` and `homepage` metadata matching the GitHub repository. |
@@ -35,6 +35,12 @@ fields were added to both `packages/core/package.json` and
    `package.json` instead, so `pnpm install --frozen-lockfile` failed with
    `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`. Fixed by pinning pnpm 11 in both
    workflows; no lockfile rewrite, no `--no-frozen-lockfile` workaround.
+   The exact-pin requirement was found afterwards: pnpm/action-setup v4
+   compares its `version:` input against the root `packageManager` field
+   with **strict string equality** and throws "Multiple versions of pnpm
+   specified" on mismatch — so `version: 11` against `pnpm@11.9.0` would
+   have failed every workflow at the setup step. All three workflows now
+   pin exactly `"11.9.0"`.
 2. **Packed CLI would be uninstallable.** The old release workflow packed
    with `npm pack`, which copies the manifest verbatim — the CLI tarball
    would carry `"@veylqorix/core": "workspace:*"`, unresolvable on the
@@ -125,18 +131,28 @@ Notes on two results:
 
 ## Results summary
 
-- **Clean-checkout CI locally:** green (frozen install, build, 308 vitest
-  tests, typecheck, lint, fmt, clippy, cargo test). The GitHub Actions run
-  itself was not executed from here — the pnpm-9 mismatch was reproduced in
-  CI and the fix is version-pinning only, but CI is not independently
-  re-confirmed on GitHub until the changes are pushed.
-- **Trusted publishing verified?** No. No live OIDC publish has been run;
-  the `--provenance` publish path is structurally ready and fails closed
-  until the owner registers trusted publishers for **both** packages on
-  npm. Nothing has been claimed as published.
+- **CI on GitHub: green.** Run `40501372986` on commit `624f678` — every
+  step passed (install, build, Rust toolchain, cargo-audit, gitleaks,
+  fmt, clippy, cargo test, engine release build, 308 vitest tests,
+  typecheck, lint). The earlier failure of runs `40500840104` /
+  `40479270045` was the pnpm-version mismatch, then the Node-20 vs
+  pnpm-11.9.0 incompatibility — both fixed (see below).
+- **Release workflow: exercised, and failed closed as designed.** Run
+  `40500854557` was triggered by the `v0.1.0` tag. The `pack` job
+  succeeded at every step — including the new tag/version guard, which
+  accepted `v0.1.0` against both manifests. The `publish` job failed at
+  "Publish @veylqorix/core" (exit 2, no trusted publisher configured
+  on npm) and the "Publish @veylqorix/cli" step was **skipped** — the
+  core-before-CLI fail-safe ordering is confirmed working. Nothing was
+  published.
+- **Trusted publishing verified?** No. No successful OIDC publish has
+  occurred. The workflow demonstrably builds, packs, and reaches the
+  publish step; it stops at npm's auth check until the owner completes
+  the npm-side setup. Provenance generation is therefore **not yet
+  confirmed**.
 - **npm version availability:** `@veylqorix/core` and `@veylqorix/cli`
   both 404 on the registry as of 2026-10-27 — `0.1.0` is free, no bump
-  needed, tag `v0.1.0`.
+  needed.
 - **Security:** pnpm audit and cargo audit clean; overrides
   (postcss 8.5.31 / sharp 0.35.5) consistent across workspace file,
   lockfile, and SUPPLY_CHAIN.md; published-package dependency trees
@@ -146,45 +162,78 @@ Notes on two results:
   absent/unresolvable → SKIPPED/INCOMPLETE (exit 2), binary present but
   broken → exit 70 (documented, not silent).
 
+## Tag and CI status (actual, 2026-10-27)
+
+- Commit `e768d08` pushed to `main`; tag `v0.1.0` pushed (it points at
+  `e768d08`).
+- The tag-triggered release run failed closed as described above.
+- The Node-24 CI fix landed as `624f678` (after the tag). **`v0.1.0`
+  therefore points at a commit whose CI was still failing on Node 20.**
+  The fix is on `main` and CI is green there, but the tagged commit has
+  not been re-tagged — and it cannot be: npm versions are immutable and
+  a published tag cannot be moved. If the owner bootstraps and
+  re-triggers, the publish will build from the tagged commit `e768d08`,
+  which is functionally identical for packaging purposes (same manifests,
+  same packer, same workflow) but predates the Node-24 CI fix. The
+  Node-24 change affects only the CI and gate workflows, not the
+  release workflow, which already used Node 24 — so the tagged release
+  path is unaffected.
+
 ## Owner actions still required (in order)
 
-1. Push the release changes and confirm CI green on the branch.
-2. Confirm `@veylqorix` scope ownership and 2FA on the npm account that
+1. Confirm `@veylqorix` scope ownership and 2FA on the npm account that
    controls it; run `npm view @veylqorix/{core,cli} versions` (see
    `NPM_TRUSTED_PUBLISHING_SETUP.md` §1). Both packages currently 404.
-3. Perform the one-time bootstrap publication of **each** package from the
+2. Perform the one-time bootstrap publication of **each** package from the
    owner's machine under 2FA (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0):
    publish core at the bootstrap version first, then the CLI with a
    dependency range matching that bootstrap core version, then restore
    `0.1.0` in both manifests for the tagged release. The tag push alone
    does **not** publish either package until this bootstrap exists.
-4. Register the trusted publisher for **each** of `@veylqorix/core` and
+3. Register the trusted publisher for **each** of `@veylqorix/core` and
    `@veylqorix/cli` (§2 of that doc; Provider = GitHub Actions, owner
    `soumyachk101`, repo `Veylqorix`, workflow `release.yml`, no
    environment), with **direct `npm publish` allowed** — new
    configurations default to stage-only, and the workflow's publish step
    requires the direct-publish action to be enabled.
-5. Push the tag **within 2 days of creating both trusted-publisher
-   configurations** (each config expires if its first successful publish
-   is not completed within 2 days, and must be deleted and re-created):
+4. Re-trigger the release within **2 days** of creating both
+   trusted-publisher configurations (each config expires if its first
+   successful publish is not completed within 2 days, and must be deleted
+   and re-created):
 
    ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
+   # documentation only — the v0.1.0 tag is already pushed; this shows
+   # the intended re-trigger command if a new version tag is needed
+   git tag v0.1.1
+   git push origin v0.1.1
    ```
 
-   The `pack` job's tag/version guard rejects any tag that disagrees with
-   the `0.1.0` version declared in both manifests before anything
-   publishes.
-6. Monitor the release run it triggers on GitHub Actions — both publish
+   A new tag requires a matching version bump in both manifests — the
+   `pack` job's tag/version guard rejects any tag that disagrees with
+   the declared versions before anything publishes. The existing
+   `v0.1.0` tag can be re-run from the GitHub Actions UI ("Re-run all
+   jobs"), which uses the same tagged commit and the same `0.1.0`
+   version, and is the simplest path since `0.1.0` is still unpublished.
+5. Monitor the release run it triggers on GitHub Actions — both publish
    steps (core, then CLI) must succeed.
-7. Confirm both `@veylqorix/core` and `@veylqorix/cli` npm package pages
+6. Confirm both `@veylqorix/core` and `@veylqorix/cli` npm package pages
    show a provenance attestation for `0.1.0` (per
    `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
 
 ## Confirmations
 
-No package was published, no npm dry-run wrote to the registry, no tag was
-created or pushed, no GitHub release was created, no commits or pushes were
-made, and no website UI/SEO/deployment configuration was changed. The only
-registry-touching commands were read-only (`npm view`).
+No package was published — the release run failed closed at the publish
+step and the npm registry still returns 404 for both packages. No npm
+dry-run wrote to the registry; the only registry-touching commands were
+read-only (`npm view`).
+
+Commits `e768d08` and `624f678` were pushed to `main`, and the tag
+`v0.1.0` was created and pushed, at the owner's explicit instruction.
+The tag-triggered workflow ran and failed closed as designed. No GitHub
+release was created, no repository settings were changed, and no website
+UI/SEO/deployment configuration was touched. The unrelated `video/`
+working-tree changes present in the checkout were left uncommitted and
+untouched.
+
+Provenance is **not** yet confirmed: no successful publish has occurred,
+so no attestation exists on either package page yet.
