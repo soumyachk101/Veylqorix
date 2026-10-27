@@ -161,7 +161,11 @@ jobs:
       - name: Publish @veylqorix/core
         run: |
           set -euo pipefail
-          core_tgz="$(ls packaged-tarballs/veylqorix-core-*.tgz | head -n 1)"
+          # The path MUST start with "./" (or be absolute): a bare
+          # `dir/file.tgz` with one path segment is parsed by npm >= 11 as a
+          # `github:owner/repo` package spec and npm tries to git-clone it
+          # (EALLOWGIT / exit 128). Verified against the v0.1.1 run 40558249646.
+          core_tgz="$(ls ./packaged-tarballs/veylqorix-core-*.tgz | head -n 1)"
           # Provenance ties this tarball to this exact commit + workflow;
           # no token secret is involved.
           # A duplicate publish is rejected by npm with HTTP 403
@@ -190,5 +194,6 @@ jobs:
       - name: Publish @veylqorix/cli
         run: |
           set -euo pipefail
-          cli_tgz="$(ls packaged-tarballs/veylqorix-cli-*.tgz | head -n 1)"
+          # "./" prefix: see the note in the core publish step above.
+          cli_tgz="$(ls ./packaged-tarballs/veylqorix-cli-*.tgz | head -n 1)"
           npm publish "$cli_tgz" --provenance --access public

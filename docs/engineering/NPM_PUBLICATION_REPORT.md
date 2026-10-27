@@ -226,6 +226,34 @@ rejecting them (registry stays minimal — the `0.1.1` trusted publish is the
 real release) or approving them (0.0.1 becomes a public bootstrap version;
 also fine, `0.1.1 > 0.0.1`).
 
+## 4d. v0.1.1 tag attempt (2026-10-27 23:15) — failed, root cause fixed
+
+The `v0.1.1` tag (pointing at `677904f`) was pushed and triggered release
+run [40558249646](https://github.com/soumyachk101/Veylqorix/actions/runs/40558249646):
+
+- `pack` job: **passed** — the tag/version guard accepted `v0.1.1` against
+  both `0.1.1` manifests; both builds and `pnpm pack` succeeded.
+- `publish` job: **failed at "Publish @veylqorix/core"** — verbatim:
+
+      npm error command git --no-replace-objects ls-remote ssh://git@github.com/packaged-tarballs/veylqorix-core-0.1.1.tgz.git
+      npm error git@github.com: Permission denied (publickey).
+      npm error code 128
+
+  **Root cause:** npm >= 11 parses a bare `dir/file.tgz` argument (one path
+  segment + one slash) as a `github:owner/repo` package spec, so `npm
+  publish` tried to git-clone `packaged-tarballs/veylqorix-core-0.1.1.tgz`
+  instead of reading the local tarball. Verified locally: the same command
+  with the argument `./artifacts/...` (dry-run) behaves correctly.
+- **Nothing was published** (the failure was before the registry request),
+  so `0.1.1` remains free on the registry. No provenance exists.
+
+**Fix (committed after this attempt):** both publish steps in
+`.github/workflows/release.yml` now glob the tarball with a `./` prefix
+(`./packaged-tarballs/...`), with a comment recording why. The `v0.1.1`
+tag was re-pointed to the fix commit so the next run executes the fixed
+workflow; the run can then be re-triggered from GitHub Actions ("Re-run all
+jobs") or via `gh run rerun` — no version bump needed.
+
 ## 5. Actions requiring the owner's npm / GitHub account
 
 These are the only steps that can move the release forward. Full detail in
