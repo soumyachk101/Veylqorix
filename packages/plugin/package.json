@@ -1,0 +1,31 @@
+{
+  "name": "@veylqorix/plugin",
+  "version": "0.1.0",
+  "description": "Scanner extension SDK: define custom scanners and quality checks that plug into the Veylqorix audit, normalized into the unified finding schema and honored by the gate — no silent passes.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.18"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@veylqorix/core": "workspace:*"
+  }
+}

@@ -39,6 +39,7 @@
 - [REST API and dashboard](#rest-api-and-dashboard)
 - [GitHub Actions gate](#github-actions-gate)
 - [Agent skills](#agent-skills)
+- [Plugin SDK](#plugin-sdk)
 - [Programmatic API](#programmatic-api)
 - [Rust security engine](#rust-security-engine)
 - [Policy and exceptions](#policy-and-exceptions)
@@ -202,6 +203,7 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 | REST API + dashboard          | `packages/api`, `apps/web`               | Dependency-free API on `:4173`; Next.js dashboard on `:3000` with a clearly-labeled **SAMPLE DATA** fallback when the API is down. | [docs/api.md](docs/api.md) · [docs/dashboard.md](docs/dashboard.md) |
 | GitHub Actions gate           | `.github/workflows/veylqorix-gate.yml`   | Reusable `workflow_call` gate: real scan + SARIF upload, SHA-pinned actions, least-privilege permissions. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
 | Agent skills                  | `packages/skills`                        | Portable `SKILL.md` + ready-made MCP configs for Claude Code, Codex, and Cursor.                                              | [packages/skills](packages/skills) |
+| Plugin SDK (`@veylqorix/plugin`) | `packages/plugin`                     | Custom scanners/checks that plug into `runAudit` and the gate; shell-free `exec`, no silent passes. **Not published to npm — run from source via `workspace:*` until publish.** | [docs/plugin.md](docs/plugin.md) |
 | Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 60 tests; called by the TypeScript core through the engine adapter. | below |
 
 **Honest note:** the gate and the CLI hooks are *advisory* until
@@ -482,6 +484,67 @@ compatible entry points — no duplicated security rules:
 | **MCP server**              | six validated tools (see [MCP server](#mcp-server)) — the programmatic entry point    |
 | **Portable skill** (`packages/skills`) | `SKILL.md` in Agent Skills format that guides the agent's verify-don't-trust workflow, plus ready-made MCP client configs for Claude Code, Codex, and Cursor |
 | **Git hooks**               | `hooks install` adds a safe pre-commit/pre-push layer: dry-run by default, backs up existing hooks, never touches `git config` |
+
+## Plugin SDK
+
+`@veylqorix/plugin` is a thin **scanner extension SDK** over the core:
+author custom scanners and quality checks (wrapping an in-house SAST tool,
+an SBOM policy check, a coverage gate, a house rule) and hand that
+evidence to `runAudit` — it flows into the unified finding schema and the
+same authoritative gate, never a re-implemented one.
+
+```ts
+import { definePlugin, runPluginAudit } from '@veylqorix/plugin';
+
+const myPlugin = definePlugin({
+  id: 'acme/security',
+  scanners: [
+    {
+      id: 'acme-sast',
+      // the context gives you `root`, `timeoutMs`, and a shell-free `exec`
+      run: async (ctx) => {
+        const { code, stdout } = await ctx.exec('semgrep', ['run', '--json'], {
+          cwd: ctx.root,
+          timeoutMs: ctx.timeoutMs,
+        });
+        return normalizeMyToolOutput(stdout); // Finding[] — normalized for you
+      },
+    },
+  ],
+  checks: [
+    {
+      id: 'coverage-floor',
+      command: 'node scripts/check-coverage.mjs',
+      run: async (ctx) => runCoverageFloor(ctx),
+    },
+  ],
+});
+
+const result = await runPluginAudit({ root: '/path/to/repo' }, myPlugin);
+process.exit(result.exitCode); // 0 · 1 · 2
+```
+
+Security properties:
+
+- **No silent passes.** A plugin scanner that throws or times out is
+  recorded `ERROR`, which blocks the gate under the default policy and
+  degrades coverage to `INCOMPLETE` (exit 2). A missing optional tool is
+  reported `SKIPPED` with a note — never a clean result.
+- **Normalized evidence.** Plugin findings go through the core's
+  `normalizeFindings` (deterministic ids, severity/confidence clamping,
+  malformed entries dropped), so reports and gate reasons behave exactly
+  as if a built-in scanner had produced them.
+- **Shell-free execution.** The only process API a plugin gets is the
+  core's `execFileAsync` (explicit argument arrays, hard timeouts, bounded
+  output).
+- **No gate weakening.** Plugins contribute evidence only; thresholds and
+  exceptions stay with the committed, auditable policy file. Secret values
+  must be redacted by the scanner author before emitting findings.
+
+The gate stays single-sourced: plugin evidence is merged into the audit
+and evaluated by the Rust engine when its binary is available, else by the
+byte-compatible TypeScript engine — whichever authority `runAudit` already
+uses. Full reference and authoring guide: [docs/plugin.md](docs/plugin.md).
 
 ## Programmatic API
 
@@ -843,6 +906,7 @@ packages/core           engine: detection, scanners, policy, gate, reports,
 packages/mcp-server     MCP server (six tools) for AI coding agents
 packages/api            dependency-free REST API that runs real scans
 packages/skills         portable AI-agent skill + per-client MCP configs
+packages/plugin         scanner extension SDK (custom scanners + checks)
 apps/cli                the veylqorix command-line interface
 apps/web                Next.js dashboard (real API data, labeled demo fallback)
 crates/                 Rust security engine (cargo workspace, veylqorix-engine)
@@ -867,6 +931,7 @@ when it is not.
 | [docs/api.md](docs/api.md) | REST API reference |
 | [docs/dashboard.md](docs/dashboard.md) | running the API + dashboard, environment variables |
 | [docs/github-actions.md](docs/github-actions.md) | reusable gate workflow, enforcement via branch protection |
+| [docs/plugin.md](docs/plugin.md) | plugin SDK: authoring custom scanners/checks, API reference, security properties |
 | [docs/engine.md](docs/engine.md) | the Rust security engine: crate layout, stdio protocol, security properties, build/test |
 | [docs/faq.md](docs/faq.md) | honest limitations and general questions |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | "why did it fail" answers |

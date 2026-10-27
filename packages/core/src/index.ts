@@ -2,7 +2,7 @@ export * from './types.js';
 export * from './policy.js';
 export { findingId, makeFinding } from './finding.js';
 export * from './detect.js';
-export { runAudit, type AuditOptions, type AuditResultWithExit } from './audit.js';
+export { runAudit, type AuditOptions, type AuditResultWithExit, type ExternalCheck, type ExternalCheckContext } from './audit.js';
 export { exitCodeFor, evaluateGate } from './gate/index.js';
 export { toJson, toMarkdown, toSarif, renderAllReports, validateSarifFile, type ReportOutputs, type RenderedReports, type SarifValidation } from './report/index.js';
 export { globMatch } from './policy.js';
@@ -30,7 +30,7 @@ export {
 export { scanSecrets, redactSecret, type SecretScanOptions } from './scanners/secrets.js';
 export { scanLicenses, type LicenseScanOptions } from './scanners/licenses.js';
 export { detectChecks, runCheck, type QualityCheckOptions } from './scanners/quality.js';
-export { execFileAsync, ExecError, extractJson, sha256 } from './util/exec.js';
+export { execFileAsync, ExecError, extractJson, sha256, type ExecResult, type ExecOptions } from './util/exec.js';
 export {
   RustEngineAdapter,
   createEngineAdapter,

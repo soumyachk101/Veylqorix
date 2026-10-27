@@ -1,0 +1,413 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 8
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 4,
+    "findings": [
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 30,
+        "selector": "div.s4-chips > span:nth-of-type(5)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 809.98,
+          "top": 907,
+          "right": 893.98,
+          "bottom": 944,
+          "width": 84,
+          "height": 37
+        },
+        "containerSelector": "#s4-resfail",
+        "text": "tests",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 0.33,
+        "dataAttributes": {},
+        "sourceFile": "compositions/s4-pipeline.html",
+        "bbox": {
+          "x": 809.98,
+          "y": 907,
+          "width": 84,
+          "height": 37
+        },
+        "firstSeen": 30,
+        "lastSeen": 30,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          30
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 36.667,
+        "selector": "#s5-cards > div:nth-of-type(3) > div:nth-of-type(3)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": 246,
+          "top": 1001.42,
+          "right": 498,
+          "bottom": 1116.8,
+          "width": 252,
+          "height": 115.38
+        },
+        "containerSelector": "#root",
+        "text": "live scan dataJSON · Markdown · SARIF",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "bottom": 36.8
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s5-engine.html",
+        "bbox": {
+          "x": 246,
+          "y": 1001.42,
+          "width": 252,
+          "height": 115.38
+        },
+        "firstSeen": 36.667,
+        "lastSeen": 36.667,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          36.667
+        ]
+      },
+      {
+        "code": "panel_out_of_canvas",
+        "severity": "info",
+        "time": 36.667,
+        "selector": "#s5-cards > div:nth-of-type(3)",
+        "message": "Painted panel extends outside the composition canvas.",
+        "rect": {
+          "left": 220,
+          "top": 871.42,
+          "right": 540,
+          "bottom": 1139.98,
+          "width": 320,
+          "height": 268.56
+        },
+        "containerSelector": "#root",
+        "text": "SURFACE 03 Dashboard + API live scan data JSON ·",
+        "fixHint": "Move the panel inward, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "bottom": 59.98
+        },
+        "dataAttributes": {},
+        "sourceFile": "compositions/s5-engine.html",
+        "bbox": {
+          "x": 220,
+          "y": 871.42,
+          "width": 320,
+          "height": 268.56
+        },
+        "firstSeen": 36.667,
+        "lastSeen": 36.667,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          36.667
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 43.333,
+        "selector": "#s6-mods > div:nth-of-type(5) > div:nth-of-type(2)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1530,
+          "top": 504,
+          "right": 1748.41,
+          "bottom": 541,
+          "width": 218.41,
+          "height": 37
+        },
+        "containerSelector": "#s6-tick",
+        "text": "gate decision",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 0.33,
+        "dataAttributes": {},
+        "sourceFile": "compositions/s6-confidence.html",
+        "bbox": {
+          "x": 1530,
+          "y": 504,
+          "width": 218.41,
+          "height": 37
+        },
+        "firstSeen": 43.333,
+        "lastSeen": 43.333,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          43.333
+        ]
+      }
+    ],
+    "duration": 60,
+    "samples": [
+      3.333,
+      10,
+      16.667,
+      23.333,
+      30,
+      36.667,
+      43.333,
+      50,
+      56.667
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 4,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      3.333,
+      16.667,
+      30,
+      43.333,
+      56.667
+    ],
+    "checked": 88,
+    "passed": 88
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "first_frame_empty",
+        "severity": "warning",
+        "message": "Frame 0 shows only the background, and the first frame is the thumbnail on social players: have the title or key image already on screen at 0 s instead of entering from nothing; see references/review.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 8 text elements stay under it for 0.5 s or more, the smallest \"But\" at 24 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "But",
+        "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "compositions/s2-complexity.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 37.03,
+          "height": 31
+        },
+        "time": 5.75,
+        "times": [
+          5.75,
+          5.875,
+          5.875,
+          6,
+          6,
+          6.125,
+          6.125,
+          6.25
+        ],
+        "fontPx": 24,
+        "floorPx": 28,
+        "seconds": 4.5,
+        "elements": [
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(1)",
+            "text": "But",
+            "fontPx": 24,
+            "time": 5.75,
+            "seconds": 4.5
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(2)",
+            "text": "not",
+            "fontPx": 24,
+            "time": 5.875,
+            "seconds": 4.375
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(3)",
+            "text": "every",
+            "fontPx": 24,
+            "time": 5.875,
+            "seconds": 4.375
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(4)",
+            "text": "change",
+            "fontPx": 24,
+            "time": 6,
+            "seconds": 4.25
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(5)",
+            "text": "is",
+            "fontPx": 24,
+            "time": 6,
+            "seconds": 4.25
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(6)",
+            "text": "safe",
+            "fontPx": 24,
+            "time": 6.125,
+            "seconds": 4.125
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(7)",
+            "text": "to",
+            "fontPx": 24,
+            "time": 6.125,
+            "seconds": 4.125
+          },
+          {
+            "selector": "#s2-title > span:nth-of-type(1) > span:nth-of-type(8)",
+            "text": "ship.",
+            "fontPx": 24,
+            "time": 6.25,
+            "seconds": 4
+          }
+        ]
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 5 text elements stay under it for 0.5 s or more, the smallest \"SURFACE 01\" at 26 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "SURFACE 01",
+        "selector": "#s5-cards > div:nth-of-type(1) > div:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "compositions/s5-engine.html",
+        "bbox": {
+          "x": 246,
+          "y": 356.71,
+          "width": 191.11,
+          "height": 52
+        },
+        "time": 32.25,
+        "times": [
+          32.25,
+          32.375,
+          32.5,
+          32.625,
+          32.75
+        ],
+        "fontPx": 26,
+        "floorPx": 28,
+        "seconds": 7.75,
+        "elements": [
+          {
+            "selector": "#s5-cards > div:nth-of-type(1) > div:nth-of-type(1)",
+            "text": "SURFACE 01",
+            "fontPx": 26,
+            "time": 32.25,
+            "seconds": 7.75
+          },
+          {
+            "selector": "#s5-cards > div:nth-of-type(2) > div:nth-of-type(1)",
+            "text": "SURFACE 02",
+            "fontPx": 26,
+            "time": 32.375,
+            "seconds": 7.625
+          },
+          {
+            "selector": "#s5-cards > div:nth-of-type(3) > div:nth-of-type(1)",
+            "text": "SURFACE 03",
+            "fontPx": 26,
+            "time": 32.5,
+            "seconds": 7.5
+          },
+          {
+            "selector": "#s5-cards > div:nth-of-type(4) > div:nth-of-type(1)",
+            "text": "SURFACE 04",
+            "fontPx": 26,
+            "time": 32.625,
+            "seconds": 7.375
+          },
+          {
+            "selector": "#s5-cards > div:nth-of-type(5) > div:nth-of-type(1)",
+            "text": "SURFACE 05",
+            "fontPx": 26,
+            "time": 32.75,
+            "seconds": 7.25
+          }
+        ]
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 480
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

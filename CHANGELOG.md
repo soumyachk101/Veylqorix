@@ -4,6 +4,33 @@ All notable changes to Veylqorix are documented here.
 
 ## Unreleased
 
+### Plugin SDK (`@veylqorix/plugin`)
+- New `packages/plugin`: the **scanner extension SDK**. `definePlugin`
+  validates/freezes a plugin (custom scanners + quality checks);
+  `toAuditOptions` / `withPlugin` / `runPluginAudit` hand its evidence to
+  `runAudit`. Plugins are purely additive: their findings pass through the
+  core's `normalizeFindings` (deterministic ids, severity/confidence
+  clamping, malformed entries dropped), their exec is the core's shell-free
+  `execFileAsync`, and the gate stays single-sourced (Rust engine when the
+  binary is available, byte-compatible TypeScript engine otherwise).
+- `@veylqorix/core`: `runAudit` accepts optional `externalScanners`
+  (`ScannerDefinition[]`, executed under the same safe wrapper — a thrown
+  error or overrun becomes an `ERROR` result, never a pass) and
+  `externalChecks` (`ExternalCheck[]`, run after the built-in checks, honoring
+  `skipQualityChecks`; a failing runner is recorded as an `ERROR` check).
+  Defaults are empty, so existing `runAudit` callers are unaffected.
+  `ExternalCheck` / `ExternalCheckContext` are exported from the package
+  entry; `ExecResult` / `ExecOptions` are now re-exported too.
+- Tests: `packages/plugin/src/plugin.test.ts` (20 tests: validation,
+  bridge mapping, finding normalization, end-to-end `runPluginAudit` on
+  both gate authorities) and
+  `packages/core/src/audit-external.test.ts` (7 regression tests pinning
+  the no-silent-pass invariant for the extension slots).
+- Docs: [docs/plugin.md](docs/plugin.md) (authoring guide + API reference);
+  README gains a Plugin SDK section, a "Surfaces at a glance" row, and the
+  layout/docs entries. Not yet published to npm — consume from source
+  (`workspace:*`) until publish, same as the CLI.
+
 ### Release readiness (`@veylqorix/cli` + `@veylqorix/core`)
 - Packaging hardened for external publication: `files` set to `["dist"]` on
   both packages (no `src/`, `tsconfig.json`, lockfiles, or test output in the

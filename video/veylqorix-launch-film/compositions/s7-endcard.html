@@ -72,6 +72,7 @@
       font-weight: 500;
       letter-spacing: 0.02em;
       color: #0e2a3d;
+      opacity: 0;
     }
     .s7-tag .acc {
       color: #0a6b67;
@@ -89,92 +90,41 @@
       color: #3c5b6a;
       opacity: 0;
     }
-    .s7-corner {
-      position: absolute;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 28px;
-      color: #3c5b6a;
-      letter-spacing: 0.04em;
-      opacity: 0;
-    }
-    .s7-corner.tl {
-      left: 90px;
-      top: 80px;
-    }
-    .s7-corner.br {
-      right: 90px;
-      bottom: 80px;
-    }
   </style>
   <div id="root" data-composition-id="s7" data-width="1920" data-height="1080">
     <div id="s7-grid" class="clip s7-grid" data-start="0" data-duration="11" data-layout-ignore data-track-index="0"></div>
 
     <!-- six small geometric fragments settle into place around the card -->
-    <div id="s7-frag" class="clip" data-start="0.3" data-duration="9" data-layout-ignore data-track-index="1">
+    <div id="s7-frag" class="clip" data-start="0.3" data-duration="10.7" data-layout-ignore data-track-index="1">
       <div class="s7-fx f" style="left: 560px; top: 300px; background: #0f2c40; box-shadow: 4px 4px 0 rgba(15,44,64,0.16)"></div>
       <div class="s7-fx f" style="left: 1360px; top: 300px; background: #14b3ad"></div>
       <div class="s7-fx f" style="left: 1440px; top: 640px; background: #ef5f5f"></div>
       <div class="s7-fx f" style="left: 480px; top: 660px; background: #9a8cf5"></div>
-      <div class="s7-fx f" style="left: 700px; top: 760px; width: 12px; height: 12px; background: #0f2c40"></div>
-      <div class="s7-fx f" style="left: 1240px; top: 760px; width: 12px; height: 12px; background: #14b3ad"></div>
+      <div class="s7-fx f" style="left: 660px; top: 300px; width: 12px; height: 12px; background: #0f2c40"></div>
+      <div class="s7-fx f" style="left: 1260px; top: 300px; width: 12px; height: 12px; background: #14b3ad"></div>
     </div>
 
-    <div id="s7-card" class="clip s7-card" data-start="1.0" data-duration="10.0" data-track-index="2">
+    <div id="s7-card" class="clip s7-card" data-start="3.0" data-duration="8.0" data-track-index="2">
       <div id="s7-markwrap" style="position: relative; width: 560px">
         <img id="s7-logo" src="assets/logo-lockup.png" alt="Veylqorix — No Unsafe Code Gets Through." draggable="false" style="display: block; width: 100%; opacity: 0" />
       </div>
       <div class="s7-rule"></div>
-      <div id="s7-tag" class="s7-tag">Verify <span class="acc">before</span> you ship.</div>
+      <div id="s7-tag" class="s7-tag">No Unsafe Code Gets Through<span class="acc">.</span></div>
     </div>
 
-    <div id="s7-final" class="clip s7-final" data-start="5.5" data-duration="5.5" data-track-index="3">NO UNSAFE CODE GETS THROUGH</div>
-
-    <div id="s7-tl" class="clip s7-corner tl" data-start="6.2" data-duration="4.8" data-track-index="4">veylqorix.com</div>
-    <div id="s7-br" class="clip s7-corner br" data-start="6.2" data-duration="4.8" data-track-index="4">v0.1 · open source</div>
+    <div id="s7-final" class="clip s7-final" data-start="6.0" data-duration="5.0" data-track-index="3">Verify before you ship.</div>
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
-    // the card performs in: a restrained pixel-style reveal — it lands a touch large and
-    // settles (dead still afterwards), while its four "scan" bands resolve top to bottom
-    const card = document.getElementById("s7-card");
-    const logo = document.getElementById("s7-logo");
-    const cw = logo.naturalWidth || 560;
-    const ch = logo.naturalHeight || 190;
-    const bands = [];
-    for (let i = 0; i < 4; i++) {
-      const cv = document.createElement("canvas");
-      cv.width = cw;
-      cv.height = Math.ceil(ch / 4);
-      const ctx = cv.getContext("2d");
-      ctx.drawImage(logo, 0, i * (ch / 4), cw, ch / 4, 0, 0, cw, ch / 4);
-      const im = new Image();
-      im.src = cv.toDataURL("image/png");
-      im.alt = "";
-      im.draggable = false;
-      im.style.cssText =
-        "position:absolute;left:0;width:100%;opacity:0;top:" + (i * 25).toFixed(2) + "%;height:25%;";
-      logo.style.cssText += "position:relative;height:" + ch + "px;overflow:hidden;";
-      logo.appendChild(im);
-      bands.push(im);
-    }
-    tl.set(logo, { opacity: 0 }, 0);
-    // card lands slightly large and settles
-    tl.fromTo(card, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.7, ease: "expo.out", transformOrigin: "center" }, 1.05);
-    // pixel bands resolve across the lockup
-    bands.forEach((b, i) => {
-      tl.fromTo(b, { opacity: 0, filter: "blur(4px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "power3.out" }, 1.35 + i * 0.09);
-    });
-    // fragments settle around it
+    // pixels settle first; then the real lockup card lands at 3.0 (host 52.0),
+    // settling from 1.06 to 1.0 with its hard pixel shadow — dead still after
     tl.fromTo("#s7-frag .f", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.2)", transformOrigin: "center", stagger: 0.09 }, 0.4);
-    // a quiet camera drift so the hold still feels alive
-    tl.to("#s7-card", { y: -6, duration: 4, ease: "power1.inOut" }, 3.0);
-    // the tagline row under the lockup
-    tl.fromTo("#s7-tag", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 2.6);
-    // final pixel line
-    tl.fromTo("#s7-final", { opacity: 0, filter: "blur(5px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 5.6);
-    tl.fromTo("#s7-tl", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.3);
-    tl.fromTo("#s7-br", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.3);
-    // hold the clean, deliberate final frame (no exit)
+    tl.fromTo("#s7-card", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.6, ease: "expo.out", transformOrigin: "center" }, 3.05);
+    tl.fromTo("#s7-logo", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 3.25);
+    // tagline under the lockup at 4.0 (host 53.0)
+    tl.fromTo("#s7-tag", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 4.05);
+    // final pixel line at 6.5 (host 55.5); stillness held to 11.0
+    tl.fromTo("#s7-final", { opacity: 0, filter: "blur(5px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 6.5);
     window.__timelines["s7"] = tl;
   </script>
 </template>
