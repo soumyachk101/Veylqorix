@@ -264,7 +264,15 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       pushing. **Done** — pushed as `e768d08`, then `624f678` (the Node-24
       CI fix that the exact pnpm pin exposed); CI run `40501372986` on
       `624f678` is green at every step.
-- [ ] **(ii)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
+- [ ] **(ii)** **Fix the npm credential — this is currently the single
+      blocker for the whole release.** The `_authToken` in `~/.npmrc` is a
+      40-char `npm_` granular token that the registry rejects with E401
+      ("your authentication token seems to be invalid") under both npm
+      10.9.8 and npm 12.2.1. Run `npm login` on the owner's machine (or
+      install a fresh granular token with write access to the `@veylqorix`
+      scope) and confirm with `npm whoami`. Without it neither the bootstrap
+      publish nor `npm trust` can succeed.
+- [ ] **(ii-b)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
       enabled on the owning account/org (`NPM_TRUSTED_PUBLISHING_SETUP.md`
       §1). Both packages currently 404 — nothing is published yet.
 - [ ] **(iii)** Perform the one-time bootstrap publication of **each**
@@ -281,7 +289,19 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       no GitHub App, no bot user, and with **direct `npm publish`
       allowed** (new configurations default to stage-only; the direct
       publish action must be explicitly ticked, otherwise the workflow's
-      publish step is rejected).
+      publish step is rejected). Via the CLI (npm ≥ 11.15.0; the dry-run of
+      this exact command was verified):
+
+      ```bash
+      npm trust github @veylqorix/core \
+        --file release.yml \
+        --repository soumyachk101/Veylqorix \
+        --allow-publish
+      npm trust github @veylqorix/cli \
+        --file release.yml \
+        --repository soumyachk101/Veylqorix \
+        --allow-publish
+      ```
 - [x] **(v)** Create and push the tag — **done**: `v0.1.0` was created and
       pushed at the owner's instruction, and the release run it triggered
       built, packed, and then failed closed at the publish step (nothing

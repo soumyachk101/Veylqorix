@@ -156,15 +156,53 @@ Workflow validation:
   the old workflow. The fix is in the working tree and unproven until a tag
   is pushed; it cannot be exercised locally.
 
+## 4b. Release execution attempt (2026-10-27, after the merge)
+
+The owner instructed the release to be executed. It is **blocked at the
+credential layer** — everything else was prepared and verified:
+
+- **PR #107** was merged to `main` as `e39f381`; post-merge CI run
+  `40543450655` succeeded. All the release fixes are now on `main`.
+- **npm credential:** the `_authToken` in `~/.npmrc` is a 40-character
+  `npm_`-prefixed granular/automation token, and the registry rejects it:
+  `npm whoami` → `E401` ("your authentication token seems to be invalid"),
+  identically under npm **10.9.8** and npm **12.2.1** — so this is a token
+  validity problem, not an npm-version problem. `npm org ls veylqorix` and
+  `npm access list packages @veylqorix/core` both return 401.
+- **npm CLI upgraded** from 10.9.8 to **12.2.1** (installed under the
+  `~/.npm-global` prefix; note `~/.local/bin/npm` on `PATH` still shadows it
+  and reports 10.9.8 — use `~/.npm-global/bin/npm` for `npm trust`).
+  `npm trust` is therefore available.
+- **`npm trust` dry-run succeeded** and produced exactly the intended
+  configuration for `@veylqorix/core`: file `release.yml`, repository
+  `soumyachk101/Veylqorix`, permissions `publish`. The same command is now
+  documented in `NPM_TRUSTED_PUBLISHING_SETUP.md` as the CLI equivalent of
+  the web-UI steps.
+- **The real `npm trust` call failed with E401** ("You must be logged in to
+  publish packages") — the same rejected token.
+- **Consequence:** the bootstrap publish (`npm publish`) and the trusted
+  publisher creation both require a working credential. Neither was attempted
+  with a fake or borrowed credential, and no OTP/password was requested.
+- **Nothing was published, no tag was created or moved** (`v0.1.0` still at
+  `e768d08`), no release was created. The working tree is unchanged: both
+  manifests match `HEAD` at `0.1.1`; the `video/` changes remain uncommitted.
+
+**This is now the single blocker for the entire release.** Everything on the
+repository side is merged, green, and verified.
+
 ## 5. Actions requiring the owner's npm / GitHub account
 
 These are the only steps that can move the release forward. Full detail in
 `NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
-1. **Confirm the `@veylqorix` scope owner** on npmjs.com: that the account or
+1. **Fix the npm credential** (currently the top blocker): run `npm login`
+   on the owner's machine, or install a fresh granular token with the
+   `@veylqorix` scope's write access. The token currently in `~/.npmrc` is
+   rejected by the registry. Confirm with `npm whoami`.
+2. **Confirm the `@veylqorix` scope owner** on npmjs.com: that the account or
    organization named `veylqorix` is one the owner controls, and that it has
    2FA enabled. The scope exists but its owner cannot be read from the CLI.
-2. **Bootstrap-publish both packages once, from the owner's own machine** —
+3. **Bootstrap-publish both packages once, from the owner's own machine** —
    required because npm's trusted-publisher record lives on a package's
    settings page, so a package must exist before a publisher can be attached
    (npm/cli#8544, still open). Version `0.0.1`, core first, then the CLI
@@ -172,17 +210,20 @@ These are the only steps that can move the release forward. Full detail in
    time). The owner's npm credential/2FA is used **on the owner's machine
    only** — never a repository secret, never an `NPM_TOKEN` in CI, never an
    `npm login` on the runner.
-3. **Add a trusted publisher for each package separately** (per-package, not
+4. **Add a trusted publisher for each package separately** (per-package, not
    per-scope): npmjs.com → package → Publishing → Trusted publishers →
    GitHub Actions; Organization or user `soumyachk101`; Repository
    `Veylqorix`; Workflow filename `release.yml`; Environment name **unset**
    (the workflow declares no `environment:`); and **explicitly enable direct
    `npm publish`** — configurations created after 2026-09-03 default to
-   stage-only, and the workflow publishes directly.
-4. **Publish within 2 days** of creating each configuration: a newly created
+   stage-only, and the workflow publishes directly. Equivalent CLI
+   (npm ≥ 11.15.0, verified by dry-run):
+   `npm trust github @veylqorix/core --file release.yml --repository soumyachk101/Veylqorix --allow-publish`
+   (and the same for `@veylqorix/cli`).
+5. **Publish within 2 days** of creating each configuration: a newly created
    trusted publisher must complete its first successful publish within 2 days
    or it expires and must be deleted and re-created.
-5. **Create and push the `v0.1.1` tag** (owner action — not performed here),
+6. **Create and push the `v0.1.1` tag** (owner action — not performed here),
    and monitor the run.
 
 ## 6. Remaining release blockers
@@ -192,8 +233,9 @@ These are the only steps that can move the release forward. Full detail in
 | 1 | Neither package exists on npm, so no trusted publisher can be configured — the first publish must be a manual bootstrap | **P0** | Owner |
 | 2 | The release workflow fix and the `0.1.1` manifests are uncommitted/unpushed; the `v0.1.1` tag does not exist, and the `pack` job's tag/version guard will reject a mismatch | **P0** | Owner (commit + push + tag) |
 | 3 | No trusted-publisher record for either package — the OIDC publish fails closed with 401/403 until step 3 above is done | **P0** | Owner |
-| 4 | The npm credential in `~/.npmrc` returns 401 — the bootstrap publish cannot authenticate until that is fixed | **P1** | Owner |
+| 4 | The npm credential in `~/.npmrc` returns 401 (`npm whoami` fails under both npm 10.9.8 and 12.2.1) — **this is the only thing blocking the whole release**: the bootstrap publish and `npm trust` both need it | **P0** | Owner |
 | 5 | `@veylqorix` scope ownership unconfirmed | **P1** | Owner |
+| 5b | `~/.local/bin/npm` (10.9.8) shadows the upgraded npm 12.2.1 on `PATH` — use `~/.npm-global/bin/npm` for `npm trust` | **P3** | Local env |
 | 6 | The `publishConfig.provenance: true` / `--provenance` attestation path and the new registry-visibility wait are unverified against a real npm registry — only a real tag run proves them | **P2** | Verified by the release run |
 | 7 | The `v0.1.0` tag points at a red-CI commit; it is left in place deliberately (a published tag must not be moved) and is superseded by `v0.1.1` | **P3** | Accepted |
 

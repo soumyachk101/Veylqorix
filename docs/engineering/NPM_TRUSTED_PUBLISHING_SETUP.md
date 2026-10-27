@@ -189,6 +189,41 @@ with exactly these fields:
 
 Source of truth: <https://docs.npmjs.com/trusted-publishers/>.
 
+### Equivalent CLI command (npm ≥ 11.15.0)
+
+The npm CLI can create the same records instead of using the web UI. Verified
+on npm 12.2.1 with `--dry-run` on 2026-10-27 — it produced exactly the
+configuration described above:
+
+```bash
+npm trust github @veylqorix/core \
+  --file release.yml \
+  --repository soumyachk101/Veylqorix \
+  --allow-publish
+
+npm trust github @veylqorix/cli \
+  --file release.yml \
+  --repository soumyachk101/Veylqorix \
+  --allow-publish
+```
+
+- `--file` takes the **workflow filename only** (no path), matching the UI's
+  "Workflow filename" field.
+- `--repository` takes `owner/repo` — here `soumyachk101/Veylqorix`.
+- `--allow-publish` is the equivalent of ticking **"publish directly with
+  `npm publish`"**. Without it the record is stage-only and `release.yml`'s
+  publish steps are rejected.
+- `--allow-stage-publish` is **not** passed: `release.yml` publishes
+  directly, and the CLI always allows `npm stage publish` for new records.
+- Omit `--environment` — the workflow declares no `environment:`.
+- `--dry-run` prints the configuration without changing anything; useful for
+  confirming the shape before committing.
+- `npm trust list <package>` shows the existing records for a package.
+
+**Caveat:** npm's docs state that the `npm trust` CLI rejects tokens that
+bypass 2FA, so the CLI path needs a credential with 2FA satisfied. If the CLI
+refuses, use the web UI — it accepts the same fields.
+
 Checked against the live npm docs (2026-10-27):
 
 - **Minimum versions.** Trusted publishing requires **npm CLI ≥ 11.5.1**
