@@ -254,6 +254,29 @@ tag was re-pointed to the fix commit so the next run executes the fixed
 workflow; the run can then be re-triggered from GitHub Actions ("Re-run all
 jobs") or via `gh run rerun` — no version bump needed.
 
+## 4e. v0.1.1 release status (checked 2026-10-27, post-`dd2054f`)
+
+- The `./`-prefix tarball fix landed at commit `dd2054f`
+  ("fix(release): publish via ./-prefixed tarball paths"); `main` ==
+  `origin/main` == `dd2054f`. The `v0.1.1` tag was re-pointed to
+  `dd2054f`; `v0.1.0` still points at `e768d08` and was not touched.
+- The tag-push triggered release run [40558927305](https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305),
+  which **failed at the `Publish @veylqorix/core` step** — verbatim:
+
+      npm error code ENEEDAUTH
+      npm error need auth This command requires you to be logged in to https://registry.npmjs.org/
+      npm error need auth You need to authorize this machine using `npm adduser`
+
+- `0.1.1` is **unpublished** (verified via `npm view ... versions`:
+  both packages list only `0.0.0-stage`; `npm view
+  @veylqorix/core@0.1.1` / `@veylqorix/cli@0.1.1` both 404), so the
+  run can be cleanly re-triggered.
+- Remaining owner actions: create the two trusted-publisher records
+  (npm web UI, 2FA session — the configured bypass-2FA token fails
+  `npm trust` with `EOTP`), then re-run the failed run
+  (`gh run rerun 40558927305`). Full step-by-step:
+  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` section 6.
+
 ## 5. Actions requiring the owner's npm / GitHub account
 
 These are the only steps that can move the release forward. Full detail in

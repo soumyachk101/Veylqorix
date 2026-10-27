@@ -361,3 +361,91 @@ Facts npm's current docs state, checked 2026-10-27:
   whether its exact form matters here is not stated clearly — adjust the
   URL form and re-run (the bootstrap publish or the tag) — this is a
   one-line change per manifest and no npm-side step.
+
+## 6. Execute the v0.1.1 release (owner, ~2 min, one clean action)
+
+Dated 2026-10-27. The repo side is done: `main` is at `dd2054f`
+("fix(release): publish via ./-prefixed tarball paths"), the `v0.1.1` tag
+points at `dd2054f`, and `v0.1.0` still points at `e768d08` (do not touch
+it). The release workflow triggered by the `v0.1.1` tag failed at the
+`Publish @veylqorix/core` step with `ENEEDAUTH` (run 40558927305,
+<https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>),
+the expected symptom of the two trusted-publisher records not existing
+yet. The configured granular npm token bypasses 2FA and therefore cannot
+create these records (`npm trust` fails with `EOTP 'requires a one-time
+password'`), so the web UI is the only path.
+
+**STEP 1 — create both trusted-publisher records (required, web UI, 2FA session)**
+
+The bypass-2FA token cannot do this; use the owner's 2FA-enabled npm
+web session. For **BOTH** packages (records are per-package, not
+per-scope — configuring one does not authorize the other), open:
+
+- `@veylqorix/core`: <https://www.npmjs.com/package/@veylqorix/core> →
+  **Publishing → Trusted publishers → Add trusted publisher**
+- `@veylqorix/cli`: <https://www.npmjs.com/package/@veylqorix/cli> →
+  **Publishing → Trusted publishers → Add trusted publisher**
+
+Fields for each record:
+
+| Field | Value |
+|---|---|
+| Provider | **GitHub Actions** |
+| GitHub owner/user | `soumyachk101` |
+| Repository | `Veylqorix` |
+| Workflow filename | `release.yml` |
+| Environment | **leave blank** (the workflow declares no `environment:`) |
+| Allowed actions | enable the **direct `npm publish`** action — post-2026-09-03 configs default to stage-only, and `release.yml` runs `npm publish`, so stage-only will be rejected |
+
+**STEP 2 — optional cleanup of the two staged 0.0.1 versions (your call)**
+
+In the npm UI **Staged Packages** tab, either Reject or Approve the two
+staged `0.0.1` versions:
+
+- Reject: keeps the registry minimal; `0.1.1` is the real release.
+- Approve: makes `0.0.1` a public version.
+
+Either is safe; neither affects the `0.1.1` release. The CLI
+equivalents (also 2FA-gated, so the web UI is the practical path):
+
+```bash
+npm stage reject 94a22c65-2e6e-4c21-8ebc-1f39588b5be6   # @veylqorix/core stage
+npm stage approve df5d9357-7f6d-4916-8ce6-9aa3fcf6a684   # @veylqorix/cli stage
+```
+
+**STEP 3 — trigger the release (same day as STEP 1)**
+
+After both records exist, re-trigger the `v0.1.1` release. Since `0.1.1`
+is unpublished, the cleanest path is to re-run the existing failed run —
+no new tag is needed (`v0.1.1` already exists and points at the green
+`dd2054f`):
+
+```bash
+gh run rerun 40558927305
+```
+
+(or the "Re-run all jobs" button on the GitHub Actions run page,
+<https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>).
+
+**STEP 4 — verify**
+
+```bash
+npm view @veylqorix/core versions --json   # must include 0.1.1
+npm view @veylqorix/cli versions --json     # must include 0.1.1
+npm view @veylqorix/cli@0.1.1 dependencies --json   # must show @veylqorix/core at 0.1.1
+```
+
+Check both package pages show a **Provenance** attestation for `0.1.1`.
+The `0.0.1`/stage entries will NOT have attestations — expected.
+
+**CRITICAL TIMING:** each trusted-publisher config must complete its
+first successful publish **within 2 days of creation** or it expires and
+must be deleted and re-created. So create both records in STEP 1 and run
+STEP 3 the same day.
+
+**SAFETY:** re-running the `v0.1.1` release is fine **only because 0.1.1
+is unpublished** (verified 2026-10-27: both packages list only
+`0.0.0-stage`; `npm view @veylqorix/core@0.1.1` / `@veylqorix/cli@0.1.1`
+404). Do **not** re-run if `0.1.1` has already been published — a
+duplicate publish fails with `EPUBLISHCONFLICT`, and a version is
+immutable once published.
