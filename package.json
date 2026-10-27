@@ -4,6 +4,7 @@
   "private": true,
   "description": "Universal AI code security and quality platform: dependency, secret, and static-analysis scanning with a quality gate, CLI, and MCP server.",
   "license": "MIT",
+  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=20.18"
   },

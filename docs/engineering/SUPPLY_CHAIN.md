@@ -102,7 +102,7 @@ lockfile impact — `allowBuilds` does not participate in lockfile content.
 |---|---|---|
 | pnpm install | Registry packages | ✅ Full-tree SHA-512 SRI integrity in `pnpm-lock.yaml` (439 `integrity:` entries, incl. all `@esbuild/*` and `@img/sharp-*` platform binaries); `--frozen-lockfile` enforced in CI. |
 | Rust crates | crates.io via `Cargo.lock` | ✅ Per-crate SHA-256 in committed `Cargo.lock`; `cargo build --frozen` semantics from lock. |
-| gitleaks (CI only, `.github/workflows/ci.yml:74-84`) | `curl -sSL` of the pinned `v8.30.1` GitHub release tarball | ⚠️ **Gap: no checksum or signature verification** before extraction to `/opt/gitleaks`. Mitigants: version-pinned, `continue-on-error`, engine treats gitleaks as optional with an offline fallback. Recommend adding an expected-SHA-256 comparison before `tar -xzf` (workflow edit = other head's file). |
+| gitleaks (CI only, `.github/workflows/ci.yml`) | `curl -fsSL` of the pinned `v8.30.1` GitHub release tarball, then a recorded `sha256sum` compared to a checked-in digest before extraction | ✅ SHA-256 verified against the digest recorded in `ci.yml` (the gitleaks install step) and `docs/github-actions.md`; a mismatch fails the step before the tarball is unpacked. Version-pinned, `continue-on-error`, engine treats gitleaks as optional with an offline fallback. |
 | Rust engine binary | **Not distributed** — consumers build from source (`cargo build --release` in `crates/`, see ci.yml / gate yml) or set `VEYLQORIX_ENGINE` to a path they control (`packages/core/src/engine/index.ts:178`). No download path exists in code or CI. | ✅ N/A today; the `VEYLQORIX_ENGINE` env is operator-provided, so an operator can always point it at a trusted prebuilt binary. If binary distribution is ever added (npm prebuilds, GitHub releases), checksum/signature verification becomes mandatory — documented here as the standing requirement. |
 | `curl \| sh` patterns | Searched all `package.json` scripts, `crates/` manifests, engine src | ✅ None found. |
 
@@ -123,6 +123,11 @@ trailing comment. No changes made to workflow files (another head owns them).
 | `veylqorix-gate.yml` | `dtolnay/rust-toolchain` | `@683b588c487a69d01f6c6ddf40f036ff682cc2c8` | ✅ SHA (v1) | |
 | `veylqorix-gate.yml` | `actions/upload-artifact` | `@50769540e7f4bd5e21e526ee35c689e35e0d6874` | ✅ SHA (v4.4.0) | |
 | `veylqorix-gate.yml` | `github/codeql-action/upload-sarif` | `@4e828ff8d448a8a6e532957b1811f387a63867e8` | ✅ SHA (v3.29.4) | |
+| `release.yml` | `actions/checkout` | `@11bd71901bbe5b1630ceea73d27597364c9af683` | ✅ SHA (v4.2.2) | |
+| `release.yml` | `pnpm/action-setup` | `@a7487c7e89a18df4991f7f222e4898a00d66ddda` | ✅ SHA (v4.1.0) | |
+| `release.yml` | `actions/setup-node` | `@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a` | ✅ SHA (v4.2.0) | |
+| `release.yml` | `actions/upload-artifact` | `@ea165f8d65b6e75b540449e92b4886f43607fa02` | ✅ SHA (v4.6.2) | tag SHA verified against `v4.6.2` |
+| `release.yml` | `actions/download-artifact` | `@d3f86a106a0bac45b974a628896c90dbdf5c8093` | ✅ SHA (v4.3.0) | tag SHA verified against `v4.3.0` |
 
 Recommended SHAs: **none outstanding** — every action already at a
 commit SHA. Recommended follow-up (workflow head's call): re-verify each

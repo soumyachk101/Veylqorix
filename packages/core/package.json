@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Security audit engine: project detection, scanners, policy evaluation, quality gate, and report generation.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soumyachk101/Veylqorix.git"
+  },
+  "homepage": "https://github.com/soumyachk101/Veylqorix#readme",
   "type": "module",
   "engines": {
     "node": ">=20.18"
@@ -25,12 +30,12 @@
       "import": "./dist/scanners/*.js"
     },
     "./gate": {
-      "types": "./dist/gate.d.ts",
-      "import": "./dist/gate.js"
+      "types": "./dist/gate/index.d.ts",
+      "import": "./dist/gate/index.js"
     },
     "./report": {
-      "types": "./dist/report.d.ts",
-      "import": "./dist/report.js"
+      "types": "./dist/report/index.d.ts",
+      "import": "./dist/report/index.js"
     }
   },
   "scripts": {

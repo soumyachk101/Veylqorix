@@ -94,6 +94,11 @@ interface ParsedArgs {
 
 function parseArgs(argv: string[]): ParsedArgs {
   const first = argv[0];
+  if (first === '-h' || first === '--help') {
+    // Bare `veylqorix --help` (or `-h`): print usage, do not start a scan.
+    console.log(USAGE);
+    process.exit(0);
+  }
   const isConfig = first === 'config' && argv[1] === 'validate';
   const isHooks = first === 'hooks' && (argv[1] === 'install' || argv[1] === 'uninstall');
   const command = isConfig ? 'config' : isHooks ? 'hooks' : (first ?? 'scan');

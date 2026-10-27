@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Veylqorix command-line interface: run security audits and quality gates from the terminal or CI.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soumyachk101/Veylqorix.git"
+  },
+  "homepage": "https://github.com/soumyachk101/Veylqorix#readme",
   "type": "module",
   "engines": {
     "node": ">=20.18"

@@ -132,28 +132,33 @@ missing root or policy file, empty `--staged`; 70 unexpected errors).
   packages whose trusted-publisher record points at this workflow + tag
   subject. Until that record exists, the publish step fails — nothing is
   published untrusted, ever.
-- No `write: contents`/`packages` permissions; no commit/branch/tag push;
-  actions pinned to commit SHAs (matching `ci.yml`).
+- No commit/branch/tag push; the publish job requests `id-token: write`
+  (the GitHub OIDC token used for provenance); actions pinned to commit SHAs
+  (matching `ci.yml`).
 - Publishes `@veylqorix/core` before `@veylqorix/cli` so the dependency
   range resolves.
 
 ### Owner setup for trusted publishing (one-time, repo owner only)
 
-1. Create a GitHub App named e.g. `veylqorix-release` (no permissions
-   required; enable *Node* hosting and *Client ID auto-rotation* — the
-   latter is what makes `--provenance` work).
-2. On npmjs.com → `@veylqorix/cli` (and `@veylqorix/core` if published
-   under the same scope — the owner must own the `@veylqorix` scope):
-   *Publishing → Trusted Publishers → Add Trusted Publisher →
-   Trusted Publisher using OpenID Connect → GitHub App* and select the app.
-   Restrict to the `push` event with tag subject `refs/tags/*` and the
-   workflow file `release.yml` when the picker offers it.
-3. Create at least one bot user (npm *Publishing → Bot users*) and grant it
-   publish rights on the `@veylqorix` scope; OIDC tokens publish *as* the
-   bot user.
-4. Verify: tag a release and confirm the workflow's publish step succeeds
-   (or, for a dry check, that it fails closed with a provenance/trust error
-   before setup is complete).
+One npm-side prerequisite precedes trusted-publisher registration:
+npm's trusted-publisher configuration exists only on packages that
+already exist on the registry, so each package's **first publication
+cannot be performed by this workflow**. It is a one-time, 2FA-protected
+manual bootstrap publish on the owner's own machine (`0.0.1`, or the
+staged-placeholder variant — `NPM_TRUSTED_PUBLISHING_SETUP.md` §0),
+done once before the tag push. The workflow's tag push alone does not
+publish either package until that bootstrap exists.
+
+Configured on the npm side, per package; the source of detail is
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`. In short: on the
+Publishing → Trusted publishers page of **each** of `@veylqorix/core` and
+`@veylqorix/cli`, add a GitHub Actions trusted publisher (owner `soumyachk101`,
+repo `Veylqorix`, workflow `release.yml`, environment left unset — the
+workflow declares no environment). No GitHub App, no bot user, no `NPM_TOKEN`;
+the publish job's `id-token: write` requests a short-lived OIDC token that npm
+accepts only for packages whose trusted-publisher record points at this
+workflow. The full procedure, registry checks, verification, and failure mode
+live in that doc.
 
 ## 5. Changelog
 
@@ -205,9 +210,102 @@ dir) is only meaningful after the owner completes §4 and the first
 `v0.1.0` tag is pushed. No publish/release/push has been performed by this
 work; that is owner action on top of §4.
 
+## 7. Release checklist
+
+Split into (A) automated repository changes that are committed to the release
+branch, and (B) owner actions. The two are independent: nothing in (A)
+publishes anything; nothing in (B) runs until (A) is merged.
+
+### A) Automated repository changes
+
+Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
+
+- [x] Correct `pnpm/action-setup` to the exact pnpm version in all three
+      workflows (`release.yml`, `ci.yml`, `veylqorix-gate.yml`) — previously
+      `ci.yml` and `veylqorix-gate.yml` pinned pnpm major `9` while the lockfile
+      was v9-format produced by pnpm 11, so a pnpm 9 runner failed
+      `--frozen-lockfile` on it; now every workflow pins exactly `"11.9.0"`.
+- [x] Pin `"packageManager": "pnpm@11.9.0"` in the root `package.json` so
+      every consumer and runner resolves the same pnpm major the lockfile was
+      produced with.
+- [x] Rework `.github/workflows/release.yml` into two jobs: `pack`
+      (install, build, manifest/pack validation of core+cli, dry-run
+      validation) and `publish` (`id-token: write`, publishes both tarballs
+      with `npm publish <tgz> --provenance` via GitHub OIDC — no
+      `NPM_TOKEN`, no `npm login`). The `pack` job carries a **tag/version
+      guard**: it fails loudly if the pushed tag does not match the version
+      declared in **both** package manifests (a published npm version is
+      immutable, so a bad tag cannot be fixed by re-tagging).
+- [x] Correct the pnpm version pin to exactly `"11.9.0"` in all three
+      workflows (`release.yml`, `ci.yml`, `veylqorix-gate.yml`) to match
+      the root `packageManager` field — `pnpm/action-setup` v4 compares
+      those two strings with strict equality and fails the step on
+      mismatch. This is a pin correction, not a package version bump (the
+      packages remain `0.1.0`).
+- [x] Manifest/pack validation of both `@veylqorix/core` and
+      `@veylqorix/cli` (exports paths corrected in
+      `packages/core/package.json`; CLI packed with `pnpm pack` so
+      `workspace:*` is rewritten to the concrete version; dry-runs pass).
+- [x] `veylqorix --help` (and `-h`) now prints usage and exits 0 instead of
+      silently starting a scan (`apps/cli/src/index.ts`).
+
+### B) Owner actions (in order; each is a separate action)
+
+- [ ] **(i)** Push the release changes from (A) to the release branch and
+      confirm CI is green on that branch (bump, `packageManager` pin,
+      reworked `release.yml`, manifest/pack validation, and the
+      `veylqorix --help` fix). Verify the version is `0.1.0` in both
+      `packages/core/package.json` and `apps/cli/package.json` before
+      pushing.
+- [ ] **(ii)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
+      enabled on the owning account/org (`NPM_TRUSTED_PUBLISHING_SETUP.md`
+      §1). Both packages currently 404 — nothing is published yet.
+- [ ] **(iii)** Perform the one-time bootstrap publication of **each**
+      package from the owner's machine, under 2FA
+      (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0): publish core at the
+      bootstrap version first, then the CLI with a dependency range that
+      matches that bootstrap core version, then restore `0.1.0` in both
+      manifests for the tagged release. This is a one-time exception on
+      the owner's machine — never a repository secret, never an `NPM_TOKEN`,
+      and never an `npm login` on the runner.
+- [ ] **(iv)** Register the trusted publisher for **each** of
+      `@veylqorix/core` and `@veylqorix/cli` per
+      `NPM_TRUSTED_PUBLISHING_SETUP.md` §2 — per-package, no environment,
+      no GitHub App, no bot user, and with **direct `npm publish`
+      allowed** (new configurations default to stage-only; the direct
+      publish action must be explicitly ticked, otherwise the workflow's
+      publish step is rejected).
+- [ ] **(v)** Create and push the tag **within 2 days of creating both
+      trusted-publisher configurations** — a configuration that does not
+      complete its first successful publish within 2 days expires and must
+      be deleted and re-created:
+
+      ```bash
+      # documentation only — do not execute until explicitly authorized
+      git tag v0.1.0
+      git push origin v0.1.0
+      ```
+
+      **Tag/version guard (in the `pack` job of `release.yml`):** the
+      workflow verifies the pushed tag matches the version declared in
+      **both** `packages/core/package.json` and `apps/cli/package.json`
+      and fails loudly if they disagree. A tag that disagrees with the
+      manifest versions is rejected by the workflow — and because a
+      published npm version is immutable, a bad tag cannot be fixed by
+      re-tagging; it must be caught before publish. The `v0.1.0` tag
+      therefore matches `0.1.0` in both manifests.
+- [ ] **(vi)** Monitor the actual GitHub Actions run of `release.yml` the
+      tag push triggers — both publish steps (core, then CLI) must
+      succeed.
+- [ ] **(vii)** Confirm both `@veylqorix/core` and `@veylqorix/cli` npm
+      package pages show a provenance attestation for `0.1.0` (per
+      `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
+
 ## Open / owner-only
 
-- [ ] npm `@veylqorix` scope ownership + GitHub App + trusted-publisher registration (§4).
-- [ ] First `v0.1.0` tag to activate the release workflow.
+- [ ] npm `@veylqorix` scope ownership, the one-time owner-machine bootstrap publication of both packages, and trusted-publisher registration for both (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0/§1/§2), covered by checklist item B above.
+- [ ] First `v0.1.0` tag to activate the release workflow — push within 2 days of creating both trusted-publisher configurations, or each configuration expires and must be deleted and re-created.
 - [ ] Engine binary distribution (a verified `veylqorix-engine` artifact or a documented build step) — today the prerequisite is "build from source + `VEYLQORIX_ENGINE`"; a signed/platform-artifact story would be a follow-up design decision.
-- [ ] `pnpm-workspace.yaml` `allowBuilds` still carries the placeholder values `set this to true or false` (esbuild/sharp) — outside this task's file list; flag to the owner.
+- [x] `pnpm-workspace.yaml` `allowBuilds` carries `esbuild: true` and
+      `sharp: true` (approved install-time codegen for the two packages with
+      native binaries — verified, not placeholder). No change required.

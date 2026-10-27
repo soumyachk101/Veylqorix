@@ -7,4 +7,6 @@ dist/
 .env*
 # Rust engine build tree (release/debug binaries and intermediate artifacts)
 crates/target/
+# local npm pack output from release validation
+artifacts/
 veylqorix-website/
