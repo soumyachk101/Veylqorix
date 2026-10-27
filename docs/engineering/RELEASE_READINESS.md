@@ -18,11 +18,11 @@ Per-package status:
 
 | Check | `@veylqorix/cli` | `@veylqorix/core` |
 |---|---|---|
-| name / version / license | `@veylqorix/cli` 0.1.0 MIT — OK | `@veylqorix/core` 0.1.0 MIT — OK |
+| name / version / license | `@veylqorix/cli` 0.1.1 MIT — OK | `@veylqorix/core` 0.1.1 MIT — OK |
 | module format | `"type": "module"`, `main` + `bin` → `dist/index.js` (has `#!/usr/bin/env node`) — OK | `"type": "module"`, `main`/`types`/`exports` → `dist/` — OK |
 | `files` field | `["dist"]` — only `dist/` ships. No secrets, no dev-only files, no test output | `["dist"]` — same |
 | `engines` | `node >=20.18` (mirrors repo root) | `node >=20.18` |
-| `publishConfig` | `{ "access": "public" }` — required for a scoped package | same |
+| `publishConfig` | `{ "access": "public", "provenance": true }` — access is required for a scoped package; provenance requests the attestation | same |
 | bin entry | `veylqorix` → `dist/index.js` (on the `files` allowlist) | n/a |
 
 **Workspace dependency strategy (chosen: publish alongside, real semver).**
@@ -41,7 +41,7 @@ resolves it locally; npm ignores it only at install time of the *published*
 tarball, whose `package.json` is the rewritten one). `release.yml` publishes
 core first so the CLI's range resolves.
 
-### Dry-run pack contents (`pnpm pack --dry-run`, validated 2026-07-08)
+### Dry-run pack contents (`pnpm pack --dry-run`, re-validated 2026-10-27)
 
 `@veylqorix/cli` tarball (post-`files: ["dist"]`):
 
@@ -94,7 +94,7 @@ tarball. Documented prerequisite for *authoritative* engine coverage:
 - build or obtain the binary — `cargo build --release
   --manifest-path crates/Cargo.toml -p veylqorix-engine` produces
   `crates/target/release/veylqorix-engine` (target dir matches the binary's
-  name `veylqorix-engine`, version 0.1.0);
+  name `veylqorix-engine`);
 - point the runtime at it: `VEYLQORIX_ENGINE=/abs/path/veylqorix-engine
   veylqorix scan` (or install it on `PATH` and set `VEYLQORIX_ENGINE` to the
   resolved absolute path, e.g. `VEYLQORIX_ENGINE="$(command -v
@@ -182,7 +182,7 @@ mkdir /tmp/vqx-consumer && cd /tmp/vqx-consumer
 npm init -y >/dev/null
 # Simulate registry consumption of the CLI tarball; its dependency on
 # @veylqorix/core must be satisfied from the local core tarball:
-npm install /tmp/vqx-artifacts/veylqorix-cli-0.1.0.tgz /tmp/vqx-artifacts/veylqorix-core-0.1.0.tgz
+npm install /tmp/vqx-artifacts/veylqorix-cli-0.1.1.tgz /tmp/vqx-artifacts/veylqorix-core-0.1.1.tgz
 
 # 3. Help text — expected: usage block, exit 0.
 ./node_modules/.bin/veylqorix --help
@@ -210,9 +210,9 @@ VEYLQORIX_ENGINE=/nonexistent ../node_modules/.bin/veylqorix scan --root . --off
 ```
 
 Notes: steps 1–3 are safe to run today (no publish involved); step 4's
-*registry-install* variant (`npm install @veylqorix/cli@0.1.0` into a clean
-dir) is only meaningful after the owner completes §4 and the first
-`v0.1.0` tag is pushed. No publish/release/push has been performed by this
+*registry-install* variant (`npm install @veylqorix/cli@0.1.1` into a clean
+dir) is only meaningful after the owner completes §4 and the `v0.1.1` tag
+is pushed. No publish/release/push has been performed by this
 work; that is owner action on top of §4.
 
 ## 7. Release checklist
@@ -246,7 +246,7 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       the root `packageManager` field — `pnpm/action-setup` v4 compares
       those two strings with strict equality and fails the step on
       mismatch. This is a pin correction, not a package version bump (the
-      packages remain `0.1.0`).
+      packages are now `0.1.1`).
 - [x] Manifest/pack validation of both `@veylqorix/core` and
       `@veylqorix/cli` (exports paths corrected in
       `packages/core/package.json`; CLI packed with `pnpm pack` so
@@ -259,7 +259,7 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
 - [x] **(i)** Push the release changes from (A) to the release branch and
       confirm CI is green on that branch (bump, `packageManager` pin,
       reworked `release.yml`, manifest/pack validation, and the
-      `veylqorix --help` fix). Verify the version is `0.1.0` in both
+      `veylqorix --help` fix). Verify the version is `0.1.1` in both
       `packages/core/package.json` and `apps/cli/package.json` before
       pushing. **Done** — pushed as `e768d08`, then `624f678` (the Node-24
       CI fix that the exact pnpm pin exposed); CI run `40501372986` on
@@ -271,7 +271,7 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       package from the owner's machine, under 2FA
       (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0): publish core at the
       bootstrap version first, then the CLI with a dependency range that
-      matches that bootstrap core version, then restore `0.1.0` in both
+      matches that bootstrap core version, then restore `0.1.1` in both
       manifests for the tagged release. This is a one-time exception on
       the owner's machine — never a repository secret, never an `NPM_TOKEN`,
       and never an `npm login` on the runner.
@@ -290,11 +290,11 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       creating both trusted-publisher configurations:
 
       ```bash
-      # documentation only — the v0.1.0 tag already exists and points at
-      # commit e768d08. Simplest path: re-run the existing workflow from
-      # the GitHub Actions UI ("Re-run all jobs"), which reuses the same
-      # commit and the same 0.1.0 version. A NEW tag requires a matching
-      # version bump in both manifests:
+      # documentation only — the v0.1.0 tag already exists, points at commit
+      # e768d08, and published nothing (the run failed before npm was called).
+      # It must NOT be moved or recreated. The next release needs a NEW tag on
+      # the fixed commit, and the tag/version guard requires the tag to match
+      # the manifest version (0.1.1 in both manifests):
       git tag v0.1.1
       git push origin v0.1.1
       ```
@@ -303,6 +303,10 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       successful publish within 2 days expires and must be deleted and
       re-created.
 
+      The existing `v0.1.0` tag cannot be reused for the `0.1.1` release: it
+      points at `e768d08`, whose manifests declare `0.1.0`, and the pack job's
+      tag/version guard would reject a version mismatch anyway.
+
       **Tag/version guard (in the `pack` job of `release.yml`):** the
       workflow verifies the pushed tag matches the version declared in
       **both** `packages/core/package.json` and `apps/cli/package.json`
@@ -310,19 +314,19 @@ Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
       manifest versions is rejected by the workflow — and because a
       published npm version is immutable, a bad tag cannot be fixed by
       re-tagging; it must be caught before publish. The `v0.1.0` tag
-      therefore matches `0.1.0` in both manifests, and the guard was
-      confirmed to accept it in the real run.
+      matched `0.1.0` in both manifests and the guard was confirmed to
+      accept it in the real run; the `v0.1.1` tag must match `0.1.1`.
 - [ ] **(vi)** Monitor the actual GitHub Actions run of `release.yml` the
       tag push triggers — both publish steps (core, then CLI) must
       succeed.
 - [ ] **(vii)** Confirm both `@veylqorix/core` and `@veylqorix/cli` npm
-      package pages show a provenance attestation for `0.1.0` (per
+      package pages show a provenance attestation for `0.1.1` (per
       `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
 
 ## Open / owner-only
 
 - [ ] npm `@veylqorix` scope ownership, the one-time owner-machine bootstrap publication of both packages, and trusted-publisher registration for both (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0/§1/§2), covered by checklist item B above.
-- [ ] First `v0.1.0` tag to activate the release workflow — push within 2 days of creating both trusted-publisher configurations, or each configuration expires and must be deleted and re-created.
+- [ ] First successful `v0.1.1` tag to activate the release workflow — push within 2 days of creating both trusted-publisher configurations, or each configuration expires and must be deleted and re-created.
 - [ ] Engine binary distribution (a verified `veylqorix-engine` artifact or a documented build step) — today the prerequisite is "build from source + `VEYLQORIX_ENGINE`"; a signed/platform-artifact story would be a follow-up design decision.
 - [x] `pnpm-workspace.yaml` `allowBuilds` carries `esbuild: true` and
       `sharp: true` (approved install-time codegen for the two packages with

@@ -1,6 +1,6 @@
 {
   "name": "@veylqorix/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Veylqorix command-line interface: run security audits and quality gates from the terminal or CI.",
   "license": "MIT",
   "repository": {
@@ -20,7 +20,8 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
