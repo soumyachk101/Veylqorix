@@ -52,7 +52,10 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
-          node-version: "20"
+          # pnpm 11.9.0 requires Node >= 22.13 (it uses node:sqlite); the
+          # setup-node cache step invokes pnpm, so Node 20 crashes here
+          # with ERR_UNKNOWN_BUILTIN_MODULE before the install step runs.
+          node-version: "24"
           cache: pnpm
 
       # (b) Obtain a usable Veylqorix CLI.
