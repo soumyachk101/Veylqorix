@@ -16,7 +16,9 @@ This directory contains seven PNGs:
 | `04_ai_integrations.png` | AI clients, Skill/MCP/plugin/CLI integration | Implemented — the AI integration is the MCP server (`packages/mcp-server`) plus a portable skill (`packages/skills/SKILL.md` with Claude Code, Codex, and Cursor MCP configs); any platform-agnostic claims beyond those are target |
 | `05_eight_day_roadmap.png` | Implementation roadmap | Roadmap — explicitly an 8-day implementation plan, not a claim of completion |
 
-Two further files, `Pasted 2026-10-25 at 10.06.07 PM.png` and `Pasted 2026-10-25 at 10.06.41 PM.png`, appear to be reference screenshots pasted into the directory; they are not part of the numbered diagram set.
+Two further files, `reference-screenshot-1.png` and `reference-screenshot-2.png`,
+are reference screenshots pasted into the directory; they are not part of the
+numbered diagram set (renamed from their raw clipboard names on 2026-10-28).
 
 ## Palette
 

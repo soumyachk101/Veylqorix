@@ -6,6 +6,10 @@ bounded JSON-over-stdio protocol. It is a standalone crate with its own test
 suite. This page documents the crate, the protocol, and the security
 properties, based on the committed source.
 
+See also: the cross-cutting architecture and lifecycle diagrams live in
+`Veylqorix_Diagrams/README.md` (the PNGs are the current record; the diagram
+sources are not in the repo).
+
 ## Status (read this first)
 
 - The engine crate, its protocol, and its CI steps **exist and are verified**
@@ -81,6 +85,18 @@ The engine is invoked **per scan** by the TypeScript adapter in
 (dependency findings, license results, quality checks), the engine merges in
 its own scanner results, evaluates the gate over the union, and returns the
 decision. That keeps one gate authority per run.
+
+## Policy resolution
+
+Deterministic resolution is byte-compatible with `resolvePolicy` in
+`packages/core/src/policy.ts`: defaults, field-level overrides,
+expiring/document-required exceptions, and the `maxExceptions` cap. The
+shipped sample default — `veylqorix-policy.json` at the repo root — blocks on
+`CRITICAL`/`HIGH` severity, secrets, test failure, scanner error, and skipped
+checks, and reports on `MEDIUM`/`LOW`, with `maxExceptions` 5. In a developer
+checkout that file also doubles as Veylqorix's own repo policy: it is first in
+the `POLICY_FILE_NAMES` auto-discovery order, so scanning the repo root applies
+it.
 
 ## JSON-over-stdio protocol
 
