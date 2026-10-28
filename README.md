@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml"><img src="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-44CDBB.svg" alt="License: MIT"></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20.18-44CDBB.svg" alt="Node: >= 20.18"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D22.13-44CDBB.svg" alt="Node: >= 22.13"></a>
   <a href="crates/"><img src="https://img.shields.io/badge/rust-engine-0.1.0-EF8B9B.svg" alt="Rust engine: 0.1.0"></a>
   <a href="packages/mcp-server/"><img src="https://img.shields.io/badge/mcp-6%20tools-9B84F3.svg" alt="MCP: 6 tools"></a>
 </p>
@@ -136,8 +136,11 @@ Every scan follows the same evidence-based loop:
 
 ## Quick start
 
-Prerequisites: **Node 20.18+**, **pnpm 9+**, and a stable Rust toolchain
-(to build the engine).
+Prerequisites: **Node 22.13+** (CI runs 24), **pnpm** (`corepack enable`;
+the pinned version in `package.json` is 11.9.0), and a stable Rust
+toolchain (to build the engine). The Node floor comes from pnpm 11.9.0,
+which uses `node:sqlite` and crashes on Node 20 — see the comment in
+[.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ```sh
 pnpm install
@@ -214,7 +217,7 @@ dry-run-validated but not published to npm yet. See
 
 ## CLI
 
-`@veylqorix/cli` (v0.1.0, MIT, ESM) exposes the `veylqorix` binary — a thin
+`@veylqorix/cli` (v0.1.1, MIT, ESM) exposes the `veylqorix` binary — a thin
 adapter over the core engine. Every result comes from a real scanner run.
 
 | Command                        | What it does                                   |
@@ -381,6 +384,11 @@ Configuration (environment):
 | `VEYLQORIX_OFFLINE`       | off        | skip network-dependent scanners (`=1`)             |
 | `VEYLQORIX_INCLUDE_TESTS` | off        | include test/build checks (`=1`)                   |
 | `VEYLQORIX_TIMEOUT_MS`    | `120000`   | per-scanner timeout in ms (applied to each scan)    |
+| `VEYLQORIX_MAX_CONCURRENT_SCANS` | `2`        | maximum concurrent scans; excess requests get `429` with a retry hint |
+| `VEYLQORIX_BODY_LIMIT_BYTES` | `1048576`  | maximum JSON request body (1 MiB); larger requests get `413` |
+| `VEYLQORIX_MAX_FIELD_LENGTH` | `4096`     | maximum accepted length of `path`/`name`/`repoId` fields; longer values get `400` |
+
+`.env.example` documents every variable above with its safe default.
 
 Storage persists to a JSON file: repositories and scans are written to
 `VEYLQORIX_STORE_PATH` (default `./.veylqorix-store.json`) with atomic
@@ -588,6 +596,12 @@ with a release profile of `opt-level 3` + thin LTO so the per-scan-spawned
 binary stays small and fast. Dependencies are pure Rust (`serde`,
 `serde_json`, `regex`, `sha1`/`digest`); the version trio is engine
 **0.1.0**, protocol **1**, schema **1**.
+
+> **Versions.** The Rust engine is **0.1.0** (protocol 1, schema 1);
+> the workspace packages `@veylqorix/core` and `@veylqorix/cli` are
+> **0.1.1** (other packages are still at 0.1.0 — see
+> [Roadmap](#roadmap)). The release table:
+> [CHANGELOG.md](CHANGELOG.md).
 
 > **Integration status (honest).** The engine is wired into the application
 > through the TypeScript adapter `packages/core/src/engine/index.ts`, which
@@ -837,11 +851,12 @@ explanations: [docs/troubleshooting.md](docs/troubleshooting.md).
 ## Roadmap
 
 Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
-2026-10-25; the root and package `package.json` files still read
-0.1.0 — version sync is pending). Open items:
+2026-10-25). Open items:
 
-- [ ] Sync the version numbers: root and package `package.json` files
-      still read 0.1.0 while the changelog is at 0.1.1.
+- [ ] Sync the remaining version numbers: `packages/api`,
+      `packages/mcp-server`, `packages/plugin`, `packages/skills`, and
+      `apps/web` still read 0.1.0, while the root, `packages/core`, and
+      `apps/cli` are at 0.1.1.
 - [ ] Publish `@veylqorix/cli` to the npm registry (packaging is
       validated by dry-run; trusted-publisher setup is the remaining
       owner step)
@@ -898,6 +913,23 @@ requires `pnpm build && pnpm typecheck && pnpm lint && pnpm test`.
 still duplicates the shared `apps/cli/src/cli-args.ts` parser (the
 runtime behavior documented in [CLI](#cli) follows `index.ts`).
 
+## Testing
+
+Two suites, both run in CI:
+
+- **TypeScript** — `pnpm test` (vitest): the unit and integration
+  suites in `tests/` plus the package-local tests under
+  `packages/*/src` and `apps/*/src`, against the fixture repositories
+  in `tests/fixtures/` (fake data only).
+- **Rust engine** — `cargo test --manifest-path crates/Cargo.toml
+  --workspace --all-features`: 60 tests covering the gate, policy,
+  redaction, safe exec, and the stdio protocol. See
+  [Rust security engine — Tests and CI](#tests-and-ci).
+
+A full PR check is `pnpm build && pnpm typecheck && pnpm lint &&
+pnpm test` (required by the pull request template), plus the three
+engine quality gates in [Development](#development).
+
 ## Repository layout
 
 ```
@@ -940,12 +972,18 @@ when it is not.
 ## Community
 
 - **[Contributing](CONTRIBUTING.md)** — setup, layout, ground rules,
-  release checklist
+  release checklist. Where to start with a first change: run one test
+  with `pnpm test tests/unit/gate.test.ts`, add a scanner or check in
+  `packages/core/src/scanners/`, and use the Plugin SDK
+  ([docs/plugin.md](docs/plugin.md)) instead of reimplementing the gate.
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** — Contributor Covenant v2.0
 - **[Accessibility](ACCESSIBILITY.md)** — accessibility commitment and
   known limitations
 - **[Security](SECURITY.md)** — threat model and responsible disclosure
 - **[Changelog](CHANGELOG.md)** — all notable changes
+- **Questions** — search [docs/faq.md](docs/faq.md) first; if your
+  question is new, open an issue (there is no chat channel yet).
+- **Good first issues** — [issues labeled `good first issue`](https://github.com/soumyachk101/Veylqorix/issues?q=is%3Aissue+label%3A%22good+first+issue%22)
 - **Issues** — [report a bug](https://github.com/soumyachk101/Veylqorix/issues/new?template=bug_report.md) ·
   [request a feature](https://github.com/soumyachk101/Veylqorix/issues/new?template=feature_request.md) ·
   [report a docs issue](https://github.com/soumyachk101/Veylqorix/issues/new?template=docs_issue.md)

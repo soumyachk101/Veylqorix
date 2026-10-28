@@ -3,5 +3,5 @@
   "version": "0.1.0",
   "description": "Portable Veylqorix AI-agent skill: evidence-based security scanning, dependency verification, and secret-handling procedures for Claude Code, Codex, and Cursor.",
   "license": "MIT",
-  "files": ["SKILL.md", "README.md", "mcp"]
+  "files": ["SKILL.md", "README.md", "mcp", "LICENSE"]
 }

@@ -21,9 +21,14 @@ audience, including people with disabilities.
   labeled with text).
 - **Keyboard navigation.** All interactive dashboard elements are reachable
   and operable without a mouse.
-- **Plain-text-first design.** No emoji, no text-in-image that matters, and
-  every diagram in `Veylqorix_Diagrams/` ships an editable `.dot` source next
-  to its PNG so labels can be regenerated or replaced with text.
+- **Plain-text-first design.** No emoji, no text-in-image that matters. The
+  diagrams in `Veylqorix_Diagrams/` currently ship as PNGs without editable
+  sources (the `.dot` sources are on the roadmap, per
+  `Veylqorix_Diagrams/README.md`); the documented prose equivalent of their
+  substance is the relevant `docs/` page (`docs/engine.md`,
+  `docs/github-actions.md`, `docs/mcp.md`, `docs/plugin.md`,
+  `docs/dashboard.md`) and, for the archived eight-day build plan, the
+  Roadmap section of `README.md`.
 - **Honest labeling.** Demo data is always labeled **DEMO MODE**; a demo is
   never presented as a live scan result.
 
@@ -44,4 +49,6 @@ If you encounter an accessibility issue, please open an issue with the
 3. What happened, and what you expected.
 
 You can also reach the maintainer directly via a GitHub issue. Accessibility
-reports are treated with the same priority as functional bugs.
+reports are triaged by the maintainer (`soumyachk101`) alongside functional
+bugs; there is no separate SLA, and they are treated with the same priority
+as functional bugs.
