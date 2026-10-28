@@ -1,0 +1,23 @@
+# Normalize line endings on checkout; keep the working tree predictable on
+# Windows clones. Text files are auto-detected, source and docs pin LF.
+* text=auto
+
+*.ts text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.lock text eol=lf
+
+# Binary files: never line-ending-rewritten, never diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+*.wasm binary
+*.bin binary
+logo.png binary

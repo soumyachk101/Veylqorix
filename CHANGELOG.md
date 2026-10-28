@@ -4,81 +4,18 @@ All notable changes to Veylqorix are documented here.
 
 ## Unreleased
 
-### Plugin SDK (`@veylqorix/plugin`)
-- New `packages/plugin`: the **scanner extension SDK**. `definePlugin`
-  validates/freezes a plugin (custom scanners + quality checks);
-  `toAuditOptions` / `withPlugin` / `runPluginAudit` hand its evidence to
-  `runAudit`. Plugins are purely additive: their findings pass through the
-  core's `normalizeFindings` (deterministic ids, severity/confidence
-  clamping, malformed entries dropped), their exec is the core's shell-free
-  `execFileAsync`, and the gate stays single-sourced (Rust engine when the
-  binary is available, byte-compatible TypeScript engine otherwise).
-- `@veylqorix/core`: `runAudit` accepts optional `externalScanners`
-  (`ScannerDefinition[]`, executed under the same safe wrapper — a thrown
-  error or overrun becomes an `ERROR` result, never a pass) and
-  `externalChecks` (`ExternalCheck[]`, run after the built-in checks, honoring
-  `skipQualityChecks`; a failing runner is recorded as an `ERROR` check).
-  Defaults are empty, so existing `runAudit` callers are unaffected.
-  `ExternalCheck` / `ExternalCheckContext` are exported from the package
-  entry; `ExecResult` / `ExecOptions` are now re-exported too.
-- Tests: `packages/plugin/src/plugin.test.ts` (20 tests: validation,
-  bridge mapping, finding normalization, end-to-end `runPluginAudit` on
-  both gate authorities) and
-  `packages/core/src/audit-external.test.ts` (7 regression tests pinning
-  the no-silent-pass invariant for the extension slots).
-- Docs: [docs/plugin.md](docs/plugin.md) (authoring guide + API reference);
-  README gains a Plugin SDK section, a "Surfaces at a glance" row, and the
-  layout/docs entries. Not yet published to npm — consume from source
-  (`workspace:*`) until publish, same as the CLI.
+### Release docs
+- New owner runbook for the `v0.1.1` trusted-publishing step
+  ([docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md](docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md) §6):
+  create the two trusted-publisher records, approve/reject the two staged
+  `0.0.1` bootstrap versions, then re-run the failed `v0.1.1` release
+  (`gh run rerun 40558927305`). The pipeline itself and the release work it
+  covers are all in the `v0.1.1` tree — only this docs step is unreleased.
 
-### Release readiness (`@veylqorix/cli` + `@veylqorix/core`)
-- Packaging hardened for external publication: `files` set to `["dist"]` on
-  both packages (no `src/`, `tsconfig.json`, lockfiles, or test output in the
-  tarball), `engines` (`node >=20.18`) and `publishConfig.access` added. The
-  `workspace:*` dependency is resolved by publishing `@veylqorix/core`
-  alongside the CLI at matching semver (core first, so the range resolves) —
-  `workspace:` is never shipped to a consumer.
-- `.github/workflows/release.yml` (new, opt-in, no token secret): on `v*`
-  tag only, builds, packs, and `npm publish --provenance` via GitHub OIDC
-  trusted publishing (no commit/tag push, no write permissions). **Inert
-  until the owner registers the trusted publisher for each package** —
-  publish fails closed otherwise. No bot user or GitHub App is involved.
-- `docs/engineering/RELEASE_READINESS.md`: dry-run pack contents, engine
-  binary resolution (`VEYLQORIX_ENGINE` env var + developer-checkout walk,
-  no bundled/downloaded binary), the labeled degraded-coverage behavior when
-  the engine is absent, owner setup steps, and clean-consumer validation
-  commands + expected outputs.
-- `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
-  and exit-code examples matching the implementation.
-- Status: packaging validated locally (dry-run only). **Owner actions
-  remaining:** trusted-publisher setup for each package, first `v*` tag, and an
-  engine-binary distribution story (a verified platform artifact or
-  documented build step). No publish/release/tag has been performed yet.
+## 0.1.1 (2026-10-27)
 
-### Release fixes (`0.1.1`)
-- `@veylqorix/core` and `@veylqorix/cli` are now `0.1.1`. Nothing was
-  published at `0.1.0` — the `v0.1.0` release run failed **before** npm was
-  ever called, so `0.1.0` remains free on the registry.
-- `.github/workflows/release.yml`: the publish job's artifact download now
-  extracts into `packaged-tarballs/`, matching the path the publish steps
-  glob. This path mismatch is the actual cause of the `v0.1.0` run failure
-  (`ls: cannot access 'packaged-tarballs/veylqorix-core-*.tgz'`); npm was
-  never invoked and nothing was published. A new step waits until the
-  published `@veylqorix/core` version is visible on the registry before the
-  CLI is published, so the CLI's concrete core dependency always resolves.
-- `.github/workflows/veylqorix-gate.yml`: `root` and `block-on` inputs are
-  passed through the environment and validated, instead of being
-  interpolated into the shell source. A calling repository could previously
-  break out of the quotes and run arbitrary commands in the gate job.
-- `@veylqorix/core` no longer declares `semver` and `zod`: neither is
-  imported by the package's source or its build output. The published core
-  tarball now has zero runtime dependencies.
-- Root `engines.node` raised to `>=22.13` (the floor pnpm 11.9.0 requires);
-  the published packages keep `>=20.18`, which is the consumer runtime floor.
-- Docs: `NPM_PUBLICATION_AUDIT.md`, `NPM_PUBLICATION_REPORT.md`,
-  `NPM_TRUSTED_PUBLISHING_SETUP.md` and `RELEASE_READINESS.md` reconciled
-  with the verified state of the registry, the Actions history and the
-  release procedure.
+Rust security engine, scanner extension SDK, release pipeline, Next.js
+dashboard, MCP tooling, CLI/hooks hardening, and CI pinning.
 
 ### Rust security engine (`crates/veylqorix-engine`)
 - New pure-Rust engine crate (`crates/`, workspace manifest at
@@ -120,9 +57,89 @@ All notable changes to Veylqorix are documented here.
   **labeled** compatibility-mode note on the secret scanner result, never a
   silent pass. Details: `docs/engine.md`.
 
-## 0.1.1 (2026-10-25)
+### Plugin SDK (`@veylqorix/plugin`)
+- New `packages/plugin`: the **scanner extension SDK**. `definePlugin`
+  validates/freezes a plugin (custom scanners + quality checks);
+  `toAuditOptions` / `withPlugin` / `runPluginAudit` hand its evidence to
+  `runAudit`. Plugins are purely additive: their findings pass through the
+  core's `normalizeFindings` (deterministic ids, severity/confidence
+  clamping, malformed entries dropped), their exec is the core's shell-free
+  `execFileAsync`, and the gate stays single-sourced (Rust engine when the
+  binary is available, byte-compatible TypeScript engine otherwise).
+- `@veylqorix/core`: `runAudit` accepts optional `externalScanners`
+  (`ScannerDefinition[]`, executed under the same safe wrapper — a thrown
+  error or overrun becomes an `ERROR` result, never a pass) and
+  `externalChecks` (`ExternalCheck[]`, run after the built-in checks, honoring
+  `skipQualityChecks`; a failing runner is recorded as an `ERROR` check).
+  Defaults are empty, so existing `runAudit` callers are unaffected.
+  `ExternalCheck` / `ExternalCheckContext` are exported from the package
+  entry; `ExecResult` / `ExecOptions` are now re-exported too.
+- Tests: `packages/plugin/src/plugin.test.ts` (20 tests: validation,
+  bridge mapping, finding normalization, end-to-end `runPluginAudit` on
+  both gate authorities) and
+  `packages/core/src/audit-external.test.ts` (7 regression tests pinning
+  the no-silent-pass invariant for the extension slots).
+- Docs: [docs/plugin.md](docs/plugin.md) (authoring guide + API reference);
+  README gains a Plugin SDK section, a "Surfaces at a glance" row, and the
+  layout/docs entries. The `packages/plugin` package is in the v0.1.1 tree
+  (merged with `23d5b31`, before the `v0.1.1` tag); the
+  `@veylqorix/plugin` npm publication is the remaining step — consume from
+  source (`workspace:*`) until publish, same as the CLI.
 
-Next.js dashboard, MCP tooling, CLI/hooks hardening, CI pinning.
+### Release readiness (`@veylqorix/cli` + `@veylqorix/core`)
+- Packaging hardened for external publication: `files` set to `["dist"]` on
+  both packages (no `src/`, `tsconfig.json`, lockfiles, or test output in the
+  tarball), `engines` (`node >=20.18`) and `publishConfig.access` added. The
+  `workspace:*` dependency is resolved by publishing `@veylqorix/core`
+  alongside the CLI at matching semver (core first, so the range resolves) —
+  `workspace:` is never shipped to a consumer.
+- `.github/workflows/release.yml` (new, opt-in, no token secret): on `v*`
+  tag only, builds, packs, and `npm publish --provenance` via GitHub OIDC
+  trusted publishing (no commit/tag push, no write permissions). **Inert
+  until the owner registers the trusted publisher for each package** —
+  publish fails closed otherwise. No bot user or GitHub App is involved.
+- `docs/engineering/RELEASE_READINESS.md`: dry-run pack contents, engine
+  binary resolution (`VEYLQORIX_ENGINE` env var + developer-checkout walk,
+  no bundled/downloaded binary), the labeled degraded-coverage behavior when
+  the engine is absent, owner setup steps, and clean-consumer validation
+  commands + expected outputs.
+- `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
+  and exit-code examples matching the implementation.
+- Status: packaging validated locally (dry-run only). The `v0.1.0` release run
+  (`40500854557`) and the `v0.1.1` release run (`40558927305`, failed at the
+  trusted-publisher gate with `ENEEDAUTH`) are recorded in
+  `docs/engineering/NPM_PUBLICATION_REPORT.md`; `0.1.1` is verified
+  unpublished on the registry (`E404`). The `0.0.1` bootstrap is staged on
+  the registry. **Owner actions remaining
+  (per `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §6):** create the
+  two trusted-publisher records (web UI, 2FA session), optionally
+  approve/reject the two staged `0.0.1` versions, then re-run the failed
+  `v0.1.1` release (`gh run rerun 40558927305`).
+
+### Release fixes
+- `@veylqorix/core` and `@veylqorix/cli` are now `0.1.1`. Nothing was
+  published at `0.1.0` — the `v0.1.0` release run failed **before** npm was
+  ever called, so `0.1.0` remains free on the registry.
+- `.github/workflows/release.yml`: the publish job's artifact download now
+  extracts into `packaged-tarballs/`, matching the path the publish steps
+  glob. This path mismatch is the actual cause of the `v0.1.0` run failure
+  (`ls: cannot access 'packaged-tarballs/veylqorix-core-*.tgz'`); npm was
+  never invoked and nothing was published. A new step waits until the
+  published `@veylqorix/core` version is visible on the registry before the
+  CLI is published, so the CLI's concrete core dependency always resolves.
+- `.github/workflows/veylqorix-gate.yml`: `root` and `block-on` inputs are
+  passed through the environment and validated, instead of being
+  interpolated into the shell source. A calling repository could previously
+  break out of the quotes and run arbitrary commands in the gate job.
+- `@veylqorix/core` no longer declares `semver` and `zod`: neither is
+  imported by the package's source or its build output. The published core
+  tarball now has zero runtime dependencies.
+- Root `engines.node` raised to `>=22.13` (the floor pnpm 11.9.0 requires);
+  the published packages keep `>=20.18`, which is the consumer runtime floor.
+- Docs: `NPM_PUBLICATION_AUDIT.md`, `NPM_PUBLICATION_REPORT.md`,
+  `NPM_TRUSTED_PUBLISHING_SETUP.md` and `RELEASE_READINESS.md` reconciled
+  with the verified state of the registry, the Actions history and the
+  release procedure.
 
 ### API (`packages/api`)
 - New read routes for the dashboard: `GET /api/scans` (list, optional
@@ -156,7 +173,7 @@ Next.js dashboard, MCP tooling, CLI/hooks hardening, CI pinning.
 - `.env.example` covers the API, web, and MCP environment variables
   (including `NEXT_PUBLIC_API_BASE`), with no real credentials.
 
-## 0.1.0 (2026-10-25)
+## 0.1.0 (2026-10-27)
 
 First public build of the Veylqorix security platform.
 
@@ -210,11 +227,10 @@ First public build of the Veylqorix security platform.
 
 ## Release checklist
 
-- [x] `pnpm build` — all packages compile
-- [x] `pnpm typecheck` — strict TypeScript, zero errors
-- [x] `pnpm lint` — zero warnings
-- [x] `pnpm test` — 69 tests across 9 files
-- [x] Dashboard demo flow verified end-to-end
-- [ ] `@veylqorix/cli` published to the registry (non-monorepo callers need it)
-- [ ] Gitleaks integration for higher-fidelity secret detection
-- [ ] GitHub Actions `branch protection` docs with screenshots
+Process documentation lives outside the changelog: the current release
+checklist, owner actions, and registry state are recorded in
+`docs/engineering/RELEASE_READINESS.md` §7. One item stays here because it
+is the one outstanding release fact: `@veylqorix/cli` (and
+`@veylqorix/core`) have not been published to the npm registry at `0.1.1`
+— the registry is still at the `0.0.1` bootstrap stage (verified
+unpublished, `E404`).

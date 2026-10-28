@@ -73,6 +73,12 @@ re-stamped `INTERRUPTED` on the next start — never completed.
 
 ## Responsible disclosure
 
-Report security vulnerabilities in Veylqorix privately via the project's
-security email or an unlisted GitHub private vulnerability report. Do not open
-a public issue describing an active exploit.
+Report security vulnerabilities privately via GitHub's private
+vulnerability reporting for this repository:
+<https://github.com/soumyachk101/Veylqorix/security/advisories/new>.
+That page is the advisories endpoint behind the repository's SECURITY.md;
+if private vulnerability reporting is not already enabled, turn it on in the
+repository's Settings > Security. Do not open a public issue describing an
+active exploit.
+
+Reports are triaged promptly and kept private until a fix ships.

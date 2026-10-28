@@ -32,7 +32,22 @@ node apps/cli/dist/index.js scan --root /path/to/repo --json
 - [ ] API / dashboard
 - [ ] GitHub Actions gate
 - [ ] Git hooks
+- [ ] Rust engine (`crates/veylqorix-engine`)
+- [ ] Plugin SDK (`packages/plugin`)
 - [ ] Other:
+
+## Engine status
+
+The Rust engine is the leading cause of `INCOMPLETE` or degraded secret
+scans. Note which applies:
+
+- Is `veylqorix-engine` built and present (`VEYLQORIX_ENGINE` set, or
+  `crates/target/release/veylqorix-engine` / `crates/target/debug/`)?
+- Does the secret-scanner result carry the labeled **degraded
+  compatibility mode** note (engine binary unavailable → in-process
+  TypeScript fallback), or a `SKIPPED`/`ERROR` engine result?
+- Which gate authority ran — the Rust engine, or the byte-compatible
+  TypeScript fallback?
 
 ## Additional context
 

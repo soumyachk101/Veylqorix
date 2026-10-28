@@ -8,7 +8,8 @@
     "node": ">=20.18"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"

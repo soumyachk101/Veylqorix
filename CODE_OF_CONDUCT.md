@@ -60,9 +60,10 @@ appointed representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement by opening a
-private issue on this repository (or via the repository owner,
-@soumyachk101).
+reported to the community leaders responsible for enforcement (the repository
+owner, @soumyachk101) by opening a private issue on this repository
+(Issues > New > open a private issue), or by contacting the maintainer
+directly.
 
 All complaints will be reviewed and investigated promptly and fairly.
 
