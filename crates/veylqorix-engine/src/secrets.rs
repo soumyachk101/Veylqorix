@@ -395,7 +395,17 @@ pub fn collect_files(
                     continue;
                 }
             }
-            if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+            let ft = entry.file_type().ok();
+            // Symlinks are never followed, whether they target a file or a
+            // directory: on filesystems without `d_type` the entry's
+            // stat follows the link, so without this a `sub -> /` or a link
+            // loop would let the scanner read outside the audited root. The
+            // TypeScript `walk` collects `isDirectory()`/`isFile()` entries
+            // only, which excludes symlink entries.
+            if ft.is_some_and(|t| t.is_symlink()) {
+                continue;
+            }
+            if ft.is_some_and(|t| t.is_dir()) {
                 if depth < MAX_DEPTH {
                     queue.push_back((abs, depth + 1));
                 }
@@ -413,6 +423,8 @@ pub fn collect_files(
                 Ok(c) => c,
                 Err(_) => continue,
             };
+            // Character (not byte) bound, matching the TypeScript `content.length`
+            // check, so multibyte files stay in scope exactly as on the TS side.
             if content.chars().count() > 2_000_000 || content.contains('\0') {
                 continue;
             }

@@ -18,8 +18,11 @@ access, or add a lockfile), then re-run without `--offline`.
 ## No dependency findings even though a CVE is published
 
 - Offline mode: advisory DB not reached. Remove `--offline`.
-- The advisory may be in a transitive dependency not covered by `npm
-  audit --package-lock-only`. Run a full `npm install` first, then scan.
+- The dependency scanner audits the tree recorded in the lockfile (Node
+  projects use `npm audit --package-lock-only` when a lockfile is
+  present). Transitive advisories are only visible when the lockfile
+  reflects them — if it is missing or out of date, update it
+  (`npm install` / `pnpm install`) before scanning.
 - The CVE may be newer than the last advisory-DB pull.
 
 ## Secret not detected

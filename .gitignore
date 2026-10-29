@@ -9,9 +9,16 @@ dist/
 crates/target/
 # local npm pack output from release validation
 artifacts/
+# web app TS incremental build info (also matched by the global *.tsbuildinfo)
+apps/web/tsconfig.tsbuildinfo
+# generated test coverage + TS incremental build info
+coverage/
+*.tsbuildinfo
 veylqorix-website/
 # stray parallel website working copy (its own .git + .next build tree) — do not commit
 veylqorix-website_try/
 # HyperFrames launch-film generated cache + rendered video build outputs
 video/**/.hyperframes/
 video/**/*.mp4
+# decoy root-level SHA256SUMS (bare filenames, no digests) — the real manifest is Veylqorix_Diagrams/SHA256SUMS
+/SHA256SUMS

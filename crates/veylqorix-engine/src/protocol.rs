@@ -333,8 +333,10 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
         // Optional gitleaks delegation: the offline rule-set is authoritative
         // for reproducibility; gitleaks, when requested and available, adds
         // its own findings on top. An unavailable gitleaks is recorded, not
-        // silenced.
-        if args.prefer_gitleaks && which("gitleaks") {
+        // silenced. Resolve availability once so the delegation gate and the
+        // result's `source` label agree.
+        let gitleaks_available = args.prefer_gitleaks && which("gitleaks");
+        if gitleaks_available {
             let res = gitleaks_scan(&root_path, timeout_ms);
             notes.push(gitleaks_note(&res));
             if res.status == ScannerStatus::Pass || res.status == ScannerStatus::Fail {
@@ -349,7 +351,7 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
                     format!("secret scan could not read the audit root: {e}"),
                 )
             })?;
-        let source = if args.prefer_gitleaks && which("gitleaks") {
+        let source = if gitleaks_available {
             "offline-rules+gitleaks"
         } else {
             "offline-rules"
@@ -473,6 +475,9 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
         }
         Ok(r) => r,
         Err(e) => {
+            // Only a genuinely missing binary is an installable gap; an I/O
+            // failure must not be mislabeled as "tool missing".
+            let missing = matches!(e, crate::EngineError::MissingTool { .. });
             return ScannerResult {
                 scanner: "secrets/gitleaks".into(),
                 status: ScannerStatus::Skipped,
@@ -480,8 +485,8 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
                 duration_ms: started.elapsed().as_millis() as u64,
                 error: Some(crate::model::ScannerError {
                     message: e.to_string(),
-                    code: Some("ENOENT".into()),
-                    missing_dependency: Some(true),
+                    code: missing.then(|| "ENOENT".into()),
+                    missing_dependency: missing.then_some(true),
                 }),
                 notes: vec![
                     "gitleaks is unavailable; falling back to the built-in offline rule-set."
@@ -491,11 +496,22 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
             };
         }
     };
-    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error. Truncated or
-    // otherwise unparseable stdout degrades to "no leaks" (never a panic and
-    // never a fabricated finding); the non-zero exit still records the error
-    // below.
-    let leaks = parse_gitleaks_stdout(&result.stdout);
+    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error. The report
+    // is decoded best-effort: a non-empty stdout that is not the expected
+    // leak-array shape (truncation, schema change) can never be read as a
+    // clean pass, and a "leaks found" exit must be corroborated by decoded
+    // records.
+    let (leaks, decoded) = match serde_json::from_str::<serde_json::Value>(&result.stdout) {
+        Ok(doc) => match doc.as_array() {
+            Some(arr) => (arr.clone(), true),
+            // A JSON document that is not an array of leak records is a shape
+            // we do not recognize: degrade, do not guess.
+            None => (Vec::new(), false),
+        },
+        // Empty stdout is nothing to decode: the exit code carries the
+        // verdict. Non-empty unparseable stdout is a degraded run.
+        Err(_) => (Vec::new(), result.stdout.trim().is_empty()),
+    };
     let mut findings: Vec<Finding> = Vec::new();
     for leak in &leaks {
         let root_str = root.to_string_lossy();
@@ -542,10 +558,18 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
             secret_override: None,
         }));
     }
-    let status = if result.code == Some(2) {
+    let status = if result.code == Some(2) || !decoded {
+        // Tool error exit, or a report that did not decode to the expected
+        // shape: degraded coverage, never a pass.
         ScannerStatus::Error
     } else if !findings.is_empty() {
         ScannerStatus::Fail
+    } else if result.code != Some(0) {
+        // The tool claims leaks (exit 1) or was killed (no exit code) but
+        // carried no decodable records: the verdict is unverifiable, so it
+        // degrades like an error, mirroring the cargo-audit found/detail
+        // mismatch handling.
+        ScannerStatus::Error
     } else {
         ScannerStatus::Pass
     };
@@ -592,9 +616,10 @@ fn gitleaks_note(res: &ScannerResult) -> String {
 }
 
 /// Parse gitleaks' JSON stdout into its leak records. Truncated, non-JSON, or
-/// malformed output degrades to an empty list: the caller classifies the
-/// tool's *exit code* (an error exit is an ERROR result, never a pass), and
-/// a parse failure must never panic or fabricate findings.
+/// malformed output degrades to an empty list: a parse failure must never
+/// panic or fabricate findings. (The `gitleaks` path in this module tracks the
+/// parse outcome itself so an undecodable report degrades to ERROR rather
+/// than a pass; this helper exists for callers that only need the records.)
 pub fn parse_gitleaks_stdout(stdout: &str) -> Vec<serde_json::Value> {
     if stdout.trim().is_empty() {
         return Vec::new();

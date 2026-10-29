@@ -101,18 +101,18 @@ covered in depth in [Rust security engine](#rust-security-engine).
 
 ![Veylqorix system architecture](Veylqorix_Diagrams/01_system_architecture.png)
 
-*System architecture — diagram palette and re-render notes in
-[Veylqorix_Diagrams/README.md](Veylqorix_Diagrams/README.md). The editable
-`.dot` source for this diagram is not yet committed (rendered PNGs only).*
+*System architecture — the editable SVG sources for the rendered PNGs and
+re-render notes are in
+[Veylqorix_Diagrams/README.md](Veylqorix_Diagrams/README.md).*
 
 Scanner adapters **reuse existing tools rather than reimplementing them**:
 
 | Scanner      | Backed by                                                         | Offline? |
 |--------------|-------------------------------------------------------------------|----------|
-| dependencies | `npm audit` (Node) / `pip-audit` (Python); `cargo audit` in the Rust engine | optional |
-| secrets      | built-in rule set (9 named rules, values redacted); Gitleaks delegation in the Rust engine (opt-in via `preferGitleaks`, when the binary is on PATH) | yes |
-| licenses     | manifest license checks                                           | yes      |
-| quality      | `tsc`, `eslint`, `ruff`, project test scripts                    | no       |
+| dependencies | `npm audit` (Node; lockfile-only when a lockfile is present) / `pip-audit` (Python, against `requirements.txt`); `cargo audit` in the Rust engine for Rust projects (enabled by the adapter via `runCargoAudit`) | optional |
+| secrets      | built-in offline rule set (9 named rules, values redacted); optional Gitleaks delegation in the Rust engine — opt-in via the `preferGitleaks` protocol option **and** the gitleaks binary on PATH; no CLI flag or MCP parameter turns it on yet | yes |
+| licenses     | manifest-level license checks (`package.json`, `pyproject.toml`) | yes      |
+| quality      | `tsc`, `eslint`, `ruff`, project test scripts — each enabled only when its config exists | no       |
 
 > `--scanners` accepts the three registry IDs `dependencies`, `secrets`,
 > and `licenses`. The `quality` row above is the check suite (typecheck,
@@ -139,8 +139,9 @@ Every scan follows the same evidence-based loop:
 Prerequisites: **Node 22.13+** (CI runs 24), **pnpm** (`corepack enable`;
 the pinned version in `package.json` is 11.9.0), and a stable Rust
 toolchain (to build the engine). The Node floor comes from pnpm 11.9.0,
-which uses `node:sqlite` and crashes on Node 20 — see the comment in
-[.github/workflows/ci.yml](.github/workflows/ci.yml).
+which uses `node:sqlite` and crashes on Node 20 (see the comment in
+[.github/workflows/ci.yml](.github/workflows/ci.yml) and in
+[.github/workflows/veylqorix-gate.yml](.github/workflows/veylqorix-gate.yml)).
 
 ```sh
 pnpm install
@@ -423,7 +424,7 @@ only for live `DONE` scans, never in sample mode.
 | Scanner status grid     | which checks actually ran (PASS / FAIL / ERROR per scanner) |
 | Scan history            | scan id, status, started date                              |
 | Severity + policy rail  | severity breakdown and active policy                       |
-| Report downloads        | JSON / SARIF / Markdown when a scan is `DONE` (disabled in sample mode) |
+| Report downloads        | JSON / SARIF / Markdown, enabled only for `DONE` scans (never in sample mode) |
 
 ![Veylqorix GitHub pull-request security gate](Veylqorix_Diagrams/03_github_security_gate.png)
 
@@ -664,9 +665,9 @@ The response envelope carries `protocolVersion`, `engineVersion`,
 | `0`  | gate        | PASS — no blocking reasons, full coverage                                                   |
 | `1`  | gate        | FAIL — one or more blocking reasons                                                         |
 | `2`  | gate        | INCOMPLETE — no blocking reasons but coverage degraded; **never a pass**                    |
-| `64` | out-of-band | MALFORMED — bad JSON, unknown fields, unsupported protocol version, unrecognized argument   |
-| `65` | out-of-band | ROOT_NOT_FOUND — the audit root does not exist or is not a directory                       |
-| `70` | out-of-band | INTERNAL — engine internal error                                                           |
+| `64` | protocol    | MALFORMED — bad JSON, unknown fields, unsupported protocol version, or an unrecognized argument |
+| `65` | protocol    | ROOT_NOT_FOUND — the audit root does not exist or is not a directory                       |
+| `70` | protocol    | INTERNAL — engine internal error                                                           |
 
 With `strict: true`, a strict mapping is also returned: any blocking
 reason forces `1`, any completeness gap forces `2`. A scanner being
@@ -716,9 +717,8 @@ never become a silent pass.
 
 ### Tests and CI
 
-75 tests: **41 unit** (gate mapping, policy evaluation, safe exec,
-redaction, cargo-audit handling, process-group timeout cleanup) and
-**34 integration**:
+The suite currently holds 75 tests (41 unit + 34 integration; the count is
+`cargo test`-derived and changes with the code — re-verify when it does):
 
 | Suite              | File                        | What it pins                                                        |
 |--------------------|-----------------------------|----------------------------------------------------------------------|
@@ -734,8 +734,9 @@ CI (`.github/workflows/ci.yml`) runs against the workspace manifest:
 --all-features`, and `cargo build --release` (stable toolchain with
 clippy + rustfmt, all third-party actions pinned to commit SHAs) —
 before the TypeScript test suite. CI also installs `cargo-audit` and
-pinned `gitleaks` (non-fatally, `continue-on-error`) so the external-tools
-tests exercise the real delegation paths when the install succeeds; when a
+pinned `gitleaks` v8.30.1 (non-fatally, `continue-on-error`, the asset's
+SHA-256 is verified) so the external-tools tests exercise the real
+delegation paths when the install succeeds; when a
 tool is unavailable the tests log an honest SKIP rather than skipping the
 scan silently.
 
@@ -863,7 +864,7 @@ explanations: [docs/troubleshooting.md](docs/troubleshooting.md).
 ## Roadmap
 
 Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
-2026-10-25). Open items:
+2026-10-27). Open items:
 
 - [ ] Sync the remaining version numbers: `packages/api`,
       `packages/mcp-server`, `packages/plugin`, `packages/skills`, and
@@ -875,9 +876,10 @@ Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
 - [ ] Gitleaks as a first-class secret scanner (delegation already
       exists in the engine)
 - [ ] GitHub Actions branch-protection guide with screenshots
-- [ ] Commit the editable `.dot` sources for the `Veylqorix_Diagrams/`
-      PNGs (the diagrams' own README references them, but only the
-      rendered PNGs are in the tree today)
+- [ ] Commit the editable diagram sources for the `Veylqorix_Diagrams/`
+      PNGs (the historical Graphviz `.dot` sources were removed from the
+      tree; the SVGs now in `Veylqorix_Diagrams/` are the canonical
+      editable record, per the diagrams' own README)
 
 The build plan that shipped 0.1.x is archived here:
 

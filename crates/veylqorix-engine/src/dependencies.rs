@@ -367,6 +367,34 @@ pub fn cargo_audit(root: &std::path::Path, timeout_ms: u64) -> ScannerResult {
         }
     }
 
+    // A non-zero `cargo audit` exit that nonetheless carries no reportable
+    // findings is contradictory: the tool signalled a problem it did not (or
+    // could not) detail. Degrade it to ERROR so a disagreeing tool is never
+    // read as a clean pass. The exit-0 clean path is unaffected (its code is
+    // Some(0), so this guard cannot fire).
+    if result.code != Some(0) && findings.is_empty() {
+        return ScannerResult {
+            scanner: "dependencies/rust".into(),
+            status: ScannerStatus::Error,
+            findings: Vec::new(),
+            duration_ms: started.elapsed().as_millis() as u64,
+            error: Some(crate::model::ScannerError {
+                message: "cargo audit exited non-zero but reported no findings; \
+                          the audit could not be interpreted. Treat it as degraded, \
+                          not a pass."
+                    .into(),
+                code: result.code.map(|c| c.to_string()),
+                missing_dependency: None,
+            }),
+            notes: vec![
+                "cargo audit's exit code contradicted its (empty) findings; the scan \
+                 is degraded, not a pass."
+                    .into(),
+            ],
+            summary: None,
+        };
+    }
+
     let status = if findings.is_empty() {
         ScannerStatus::Pass
     } else {

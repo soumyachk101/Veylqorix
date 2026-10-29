@@ -58,7 +58,7 @@ reported as SKIPPED or ERROR, never as a pass.
 
    | Variable | Default | Effect |
    |----------|---------|--------|
-   | `VEYLQORIX_ROOTS` | none — required | Space/comma-separated absolute roots every tool is confined to. The server refuses to start without it: it never runs unconfined. |
+   | `VEYLQORIX_ROOTS` | none — required | Comma/whitespace/semicolon-separated absolute roots every tool is confined to. The server refuses to start without it: it never runs unconfined. |
    | `VEYLQORIX_OFFLINE` | unset (online) | `1` skips network-dependent scanners (no advisory DB). |
    | `VEYLQORIX_TIMEOUT_MS` | `120000` | Per-scanner timeout in milliseconds. |
 

@@ -7,8 +7,9 @@ suite. This page documents the crate, the protocol, and the security
 properties, based on the committed source.
 
 See also: the cross-cutting architecture and lifecycle diagrams live in
-`Veylqorix_Diagrams/README.md` (the PNGs are the current record; the diagram
-sources are not in the repo).
+`Veylqorix_Diagrams/` — the rendered PNGs are the current record and the
+editable SVG sources are the canonical diagram files (regeneration notes in
+`Veylqorix_Diagrams/README.md`).
 
 ## Status (read this first)
 
@@ -213,9 +214,10 @@ runs.
   as a trailing 256 KB window with a truncation marker; secret scans skip
   binary files and files over 2 million characters, and the tree walk is
   depth-capped at 8 with an ignore set.
-- **Timeouts with SIGKILL.** Every external-tool run carries a timeout
-  (default 120000 ms); on deadline the child is killed, the result carries
-  `timed_out`, and the scanner is classified as an error state, never a pass.
+- **Timeouts with process-group kill.** Every external-tool run carries a
+  timeout (default 120000 ms); on deadline the child's process group is
+  killed (two-stage SIGTERM → SIGKILL on Unix; `timed_out: true` on the
+  result), and the scanner is classified as an error state, never a pass.
 - **Unavailable scanner is never a pass.** A missing tool, missing lockfile,
   or timed-out run becomes a `SKIPPED`/`ERROR` scanner result; the gate then
   degrades coverage to `INCOMPLETE` (exit 2) rather than reporting a clean
@@ -254,7 +256,9 @@ cargo test --manifest-path crates/Cargo.toml --workspace --all-features
 cargo build --manifest-path crates/Cargo.toml --workspace --release
 ```
 
-The suite currently has 75 tests: 41 unit tests in the source modules
+The suite currently has 75 tests (41 unit + 34 integration; the count is
+`cargo test`-derived and changes with the code — re-verify whenever the suite
+changes): 41 unit tests in the source modules
 (gate, policy, exec, redaction, dependencies, protocol) and 34 integration
 tests across six files — TypeScript golden vectors
 (`tests/golden.rs`), differential gate tests

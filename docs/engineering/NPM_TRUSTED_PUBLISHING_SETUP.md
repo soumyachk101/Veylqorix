@@ -191,6 +191,12 @@ records are per-package. Repeat the step below for **both**
 `@veylqorix/core` and `@veylqorix/cli`; configuring one does not authorize
 the other.
 
+**Status as of 2026-10-29:** the `@veylqorix/core` record is **done and
+validated** — `@veylqorix/core@0.1.1` published with a signed provenance
+attestation in run 40558927305. The only record still to create (or fix) is
+the one for `@veylqorix/cli`, with exactly the fields below — the same set
+that just published core. Do not re-create the core record.
+
 For each of `@veylqorix/core` and `@veylqorix/cli`, on the package's npm
 **Publishing → Trusted publishers** settings page, add a trusted publisher
 with exactly these fields:
@@ -504,3 +510,68 @@ registry, so a re-run skips that step and publishes only the CLI; a
 second re-run skips both. Do **not** run the *old* (pre-fix) workflow
 again after core is published — its non-idempotent core step dies with
 `EPUBLISHCONFLICT` before reaching the CLI.
+
+## 7. Recovery runbook (what to re-run, what to never republish)
+
+The exact field set the **CLI** trusted-publisher record must carry
+(matches the working core record, run 40558927305):
+
+| Field | Value |
+|---|---|
+| Provider | GitHub Actions |
+| GitHub owner/user | `soumyachk101` |
+| Repository | `Veylqorix` |
+| Workflow filename | `release.yml` |
+| Job id | `publish` — only the job that requests `id-token: write` (`pack` and `test` are read-only) |
+| Environment | unset (the workflow declares no `environment:`) |
+| Runner / toolchain | `ubuntu-latest`, Node 24 (the runner's bundled npm 11.19.0), pnpm 11.9.0 (pack job only) |
+| Allowed actions | direct `npm publish` enabled (post-2026-09-03 configs default to stage-only — that is the shape of the failure in run 40558927305) |
+
+Recovery, in order:
+
+1. **npm side (web UI, 2FA session):** create (or delete-and-recreate)
+   the CLI record with the fields above — section 6 STEP 1. Complete it
+   before the re-trigger **the same day**: a fresh record must see its
+   first successful publish within 2 days or it expires.
+2. **GitHub side:** make the `v0.1.1` tag point at a commit that carries
+   the **fixed** `release.yml` — the one with the `test` validation job
+   and the idempotent registry-skip guards (`6480b4a`, "chore:
+   repository audit, hardening fixes, and release readiness"). If
+   remote `main` has since moved, point the tag at the current `main`
+   head instead; the pack job's tag/version guard accepts it (the
+   manifests still declare `0.1.1`):
+
+   ```bash
+   # confirm the tag/version guard will pass (read-only):
+   git show v0.1.1:packages/core/package.json | grep '"version"'
+   # 6480b4a, or the current remote main head, in its place:
+   git tag -f v0.1.1 <sha>
+   git push -f origin v0.1.1   # triggers a fresh release run on the fixed workflow
+   ```
+
+   **Never** re-run run `40558927305` as-is (`gh run rerun`): it re-executes
+   the pre-fix workflow at `dd2054f`, whose core step would now hard-fail
+   with `EPUBLISHCONFLICT` and never reach the CLI step.
+3. **Watch the fresh run:** `Publish @veylqorix/core` must print the
+   already-published skip notice (core is never republished — npm
+   versions are immutable, and this runbook has no republish path),
+   the registry-visibility wait passes, and `Publish @veylqorix/cli`
+   succeeds with a signed provenance attestation.
+4. **Verify on the registry (read-only, no credentials):**
+
+   ```bash
+   npm view @veylqorix/cli versions --json      # must include 0.1.1
+   npm view @veylqorix/cli@0.1.1 dependencies --json  # @veylqorix/core at 0.1.1
+   npm view @veylqorix/cli@0.1.1 dist 2>/dev/null    # tarball present
+   ```
+
+   Both package pages show a **Provenance** attestation for `0.1.1`.
+   The CLI's `npm trust` listing should now show one record for the
+   `publish` job (read-only: `npm trust list @veylqorix/cli --json`).
+
+Never: republish `0.1.1` or any version already on the registry; bump the
+version "to test" authentication (a new version is the *result* of a
+working publish, not a probe); create a second CLI record (one record is
+enough, and records cannot be edited — delete + recreate only). If the
+same-day re-trigger slips past the 2-day window, delete the expired CLI
+record, recreate it (same fields), and re-trigger again.

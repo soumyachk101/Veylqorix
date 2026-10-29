@@ -2,7 +2,9 @@
 
 Release-readiness checklist for publishing `@veylqorix/cli` +
 `@veylqorix/core` `0.1.1` to npm. Regenerated 2026-10-28 by the security sweep
-from the session narrative that preceded it; the detailed evidence lives in
+from the session narrative that preceded it; final-sweep update 2026-10-28
+(post-`6480b4a`) reconciled with `NPM_PUBLICATION_REPORT.md` §4f and
+`NPM_TRUSTED_PUBLISHING_SETUP.md` §6. The detailed evidence lives in
 `docs/engineering/NPM_PUBLICATION_REPORT.md` and
 `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
@@ -33,17 +35,17 @@ only).
   `packages/core/src/engine/index.ts`, `packages/core/src/audit.ts`,
   `docs/engine.md`, `docs/cli.md`.
 - [x] **Release workflow structure** — `release.yml` is tag-only
-  (`on: push: tags: [v*]`), two jobs `pack` → `publish` with a
-  tag/manifest-version guard (fail-loud on mismatch; npm versions are
-  immutable once published), SHA-pinned Actions, `id-token: write` on
-  `publish` only, no `NPM_TOKEN`/`npm login` anywhere. Evidence:
-  `.github/workflows/release.yml:47-145`.
-- [x] **CI gating of releases (new, in-worktree)** — `release.yml` now has a
-  third `test` job mirroring `ci.yml` (install → build → Rust
+  (`on: push: tags: [v*]`), three jobs `pack` + `test` (parallel) →
+  `publish`, with a tag/manifest-version guard (fail-loud on mismatch; npm
+  versions are immutable once published), SHA-pinned Actions,
+  `id-token: write` on `publish` only, no `NPM_TOKEN`/`npm login`
+  anywhere. Evidence: `.github/workflows/release.yml:53-279`.
+- [x] **CI gating of releases (committed at `6480b4a`)** — `release.yml`
+  has a `test` job mirroring `ci.yml` (install → build → Rust
   fmt/clippy/test/release-build → `pnpm test` → typecheck → lint) and
   `publish` needs `[pack, test]`, so a tag can no longer publish a commit
-  whose validation failed. Evidence: `release.yml` `test` job (in-worktree,
-  +2026-10-28 sweep).
+  whose validation failed. Evidence: `release.yml` `test` job, committed
+  in `6480b4a` (2026-10-28 release-audit commit).
 - [x] **pnpm / Node consistency** — `packageManager: "pnpm@11.9.0"` at root,
   pnpm `11.9.0` in all three workflows, Node 24 in all three workflows
   (pnpm 11.9.0 uses `node:sqlite` → needs Node ≥ 22.13). Evidence:
@@ -69,41 +71,42 @@ only).
 
 ## B. Blocked items
 
-- [ ] **B1 — npm trusted-publisher records not registered** (both packages).
-  The `v0.1.1` release run (`40558927305`) failed at publish because no
-  trusted-publisher record exists yet; nothing is published until C1. Owner
-  action, ~2 min; cross-referenced to
-  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §2 (the `npm trust`
-  CLI commands with `--allow-publish` for both packages). **Blocker for the
-  whole release.** Owned by workflows/npm workstream (the runbook step) /
-  maintainer (the action).
-- [ ] **B2 — `@veylqorix` scope ownership + 2FA unconfirmed.** `npm whoami`
-  returned 401 (a rejected 40-char granular token under both npm 10.9.8 and
-  12.2.1). The owner must confirm scope ownership and 2FA on the owning
-  account in the npm UI before the bootstrap/trust steps can succeed. Cross-
-  reference: `NPM_TRUSTED_PUBLISHING_SETUP.md` §1. Maintainer action.
-- [ ] **B3 — `docs/engineering/VALIDATION_REPORT.md` is PENDING.** All Rust
-  and TS validation (fmt/clippy/test/release-build, build/lint/typecheck/tests,
-  pack dry-runs, clean-consumer smoke) is scaffolded but not yet executed
-  against the current tree; the lead fills it in before the tag re-trigger.
-  See that doc's PENDING markers.
-- [ ] **B4 — Launch-film generated cache still tracked** (`video/veylqorix-
-  launch-film/.hyperframes/**`, 97 files incl. `video-state.json` with
-  machine-local paths; `video/**/*.mp4` render outputs). `.gitignore` now
-  covers them (security sweep, 2026-10-28) but the already-tracked files
-  need `git rm --cached` by the owning workstream. Tracked, not security-
-  sensitive; purely hygiene.
+- [ ] **B1 — CLI trusted-publisher record not registered** (core record is
+  done: `@veylqorix/core@0.1.1` published with a signed provenance
+  attestation in run `40558927305`). The run then failed only at
+  `Publish @veylqorix/cli` with `ENEEDAUTH` — the one remaining gap.
+  Owner action, ~2 min; exact fields and CLI commands in
+  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §6 (STEP 1).
+  **The single remaining blocker for the release.**
+- [x] **B2 — `@veylqorix` scope ownership + 2FA** — owner ran
+  `npm login` on the owning account and confirmed scope ownership via
+  `npm org ls veylqorix` (2026-10-27, `NPM_PUBLICATION_REPORT.md` §4c).
+  Residual nuance: the configured granular token bypasses 2FA, so
+  2FA-gated steps (`npm trust`, `npm stage approve`) require the web UI.
+- [ ] **B3 — `docs/engineering/VALIDATION_REPORT.md` is PENDING for the
+  Rust/TS/package sections.** Docs + diagram verification (§C, D1–D5) ran
+  2026-10-29 and is recorded **PASS** in that report; the Rust (A), TS (B),
+  and package-inspection (D, P1–P4) results remain PENDING against the
+  current tree and are owned by the parallel workstreams — the lead or those
+  agents must fill them in before the tag re-trigger. See that doc's
+  PENDING markers.
+- [x] **B4 — Launch-film generated cache removed from tracking** (`video/
+  veylqorix-launch-film/.hyperframes/**`, 97 files incl. `video-state.json`
+  with machine-local paths; `video/**/*.mp4` render outputs). Staged for
+  deletion in the 2026-10-28 audit commit (`6480b4a`); `.gitignore` covers
+  the paths so they stay out.
 - [ ] **B5 — Stray website working copy** `veylqorix-website_try/` (own
   `.git`, `.next/`, `node_modules`) is untracked; `.gitignore` now covers it
   but the directory itself should be removed or intentionally kept by the
   owning workstream. Purely hygiene.
-- [ ] **B6 — `packages/mcp-server/package.json.bak`** is a byte-identical
-  dead copy of `package.json` and is tracked. Remove. Purely hygiene.
+- [x] **B6 — `packages/mcp-server/package.json.bak`** removed from tracking
+  in `6480b4a` (was a byte-identical dead copy of `package.json`).
 - [ ] **B7 — `cargo audit` last recorded 0 vulns (2026-10-26)** — re-run at
   release time; `cargo audit` is optional in CI (tool-probe + honest SKIP).
 - [ ] **B8 — CI gitleaks SHA-256 digest** is pinned to v8.30.1 (digest
   computed at commit time, 2026-10); re-verify **only** if the pinned
   version ever changes. No action today.
+- [ ] **B9 — Root `SHA256SUMS` decoy + `apps/web/tsconfig.tsbuildinfo` hygiene** (2026-10-29 re-sweep, `REPOSITORY_AUDIT.md` A23/A24). The root-level `SHA256SUMS` is a bare 7-line filename list with **no digests** (a decoy distinct from the real `Veylqorix_Diagrams/SHA256SUMS`); both it and `apps/web/tsconfig.tsbuildinfo` are now gitignored by this sweep. The on-disk deletion of the decoy is a repo-owner choice (see `REPOSITORY_AUDIT.md` A24). Purely hygiene; not blocking the release.
 
 ## C. Required maintainer actions (npm side, owner only)
 
@@ -112,11 +115,18 @@ sole blockers to a successful `0.1.1` publish. Single source of truth:
 `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
 - [ ] **C1 — Register the npm trusted-publisher record for `@veylqorix/cli`
-  (and `@veylqorix/core`)** — run the `npm trust github …` commands in
-  `NPM_TRUSTED_PUBLISHING_SETUP.md` §2 with `--allow-publish` on **both**
-  packages (new configurations default to stage-only; the direct-publish
-  action must be explicitly enabled or the workflow's `npm publish` is
-  rejected 403). Command:
+  (core is already done)** — as of the confirmed `v0.1.1` run
+  (`40558927305`), `@veylqorix/core@0.1.1` published successfully with a
+  signed provenance attestation, so the **core** record is validated and
+  must **not** be re-created; the run then failed only at `Publish
+  @veylqorix/cli` with `ENEEDAUTH`. The one remaining gap is the **CLI**
+  record: run the CLI `npm trust github …` command in
+  `NPM_TRUSTED_PUBLISHING_SETUP.md` §2/§6 with `--allow-publish` (new
+  configurations default to stage-only; the direct-publish action must be
+  explicitly enabled or the workflow's `npm publish` is rejected 403 — that
+  rejection is exactly the `ENEEDAUTH` seen). The step-by-step, owner-only
+  (2FA web session) account is `NPM_TRUSTED_PUBLISHING_SETUP.md` §6.
+  Commands (for reference; only the CLI line is still needed):
 
   ```bash
   npm trust github @veylqorix/core \
@@ -135,23 +145,39 @@ sole blockers to a successful `0.1.1` publish. Single source of truth:
   (`npm stage approve`/`npm stage reject`) — 2FA-protected owner action,
   optional (the `0.1.1` release does not depend on the staged `0.0.1`),
   but the record must exist before C1.
-- [ ] **C4 — Re-trigger the failed `v0.1.1` release run** — `gh run rerun
-  40558927305` **within 2 days** of creating **both** trusted-publisher
-  records (C1). The tag `v0.1.1` already exists on `dd2054f` and matches
-  both manifests; do not move or recreate the `v0.1.0` tag.
+- [ ] **C4 — Re-trigger the `v0.1.1` release with the fixed workflow** —
+  create the **CLI** record (C1), then re-point the tag at the commit that
+  carries the fixed `release.yml` (currently `6480b4a`, the release-audit
+  commit on `main`) and push it:
+  `git tag -f v0.1.1 && git push -f origin v0.1.1`. Do this **the same day**
+  as C1, so the CLI record's 2-day first-publish window isn't missed.
+  **Why not `gh run rerun 40558927305`:** `gh run rerun` re-executes the
+  workflow *from the run's commit* (`dd2054f`), which has no `test` job and
+  a non-idempotent core step — since `@veylqorix/core@0.1.1` is now
+  published, re-running *that* commit would hard-fail on the core step with
+  `EPUBLISHCONFLICT` and never reach the CLI step. (The tag/version guard
+  still passes: the manifests at the new commit declare `0.1.1`.) Do not
+  move or recreate the `v0.1.0` tag.
 - [ ] **C5 — Monitor the new `release.yml` run** to green: the new `test`
-  job must pass, `pack` must succeed, `publish` must succeed for core, the
+  job must pass, `pack` must succeed, the core publish step **skips with a
+  notice** (already on the registry — the registry-presence pre-check), the
   registry-visibility poll must succeed, and `publish` for CLI must
   succeed. Both packages must show a provenance attestation on npm
-  (`NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
+  (core's exists from run `40558927305`; CLI's comes with the new publish —
+  `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
 
 ## Order of operations
 
-1. B1 (trust record) + B2 (scope/2FA) + C3 (staged bootstrap approve,
-   optional) → **C1 → C4** (re-trigger within 2 days) → C5 (verify).
-2. In parallel: B3 (fill `VALIDATION_REPORT.md`), B4/B5/B6 (hygiene), B7
+1. C3 (approve/reject staged `0.0.1`, optional) → **C1 (create the CLI
+   trusted-publisher record)** → **C4 (re-point `v0.1.1` at the fixed commit
+   and push, same day)** → C5 (verify).
+2. In parallel: B3 (fill `VALIDATION_REPORT.md`), B5 (hygiene), B7
    (re-run `cargo audit`), B8 (no action).
 
-The repo-side work is complete and committed (`main` at the `v0.1.1` tag
-commit `dd2054f` plus the in-worktree `test` job). Only C1/C2/C3/C4/C5 —
-all owner-only — can move the release forward from here.
+The repo-side work is complete and committed: the fixed `release.yml`
+(three jobs `pack`+`test`→`publish`, idempotent re-run guards, registry-
+visibility wait) is on `main` at `6480b4a`. The `v0.1.1` tag still points
+at `dd2054f` (pre-fix), so C4's re-point is the one remaining git step.
+`@veylqorix/core@0.1.1` is already published; only `@veylqorix/cli@0.1.1`
+remains, and only C1/C4/C5 — all owner-only — can complete the release from
+here.

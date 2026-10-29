@@ -9,14 +9,15 @@ reported as SKIPPED or ERROR, never as a clean pass.
 
 Requires Node.js ≥ 20.18.
 
-**Primary install path today: the monorepo build.** Neither `@veylqorix/cli`
-nor `@veylqorix/core` is published to the npm registry in a working version.
-Both exist on the registry only as staged placeholders (`0.0.0-stage` and the
-staged `0.0.1` bootstrap, whose approval is a 2FA-protected owner step);
-installing one gives you the placeholder, not a working CLI. The real
-`0.1.1` publication of both is gated on an owner step (register the npm
-trusted-publisher record, then re-trigger the `v0.1.1` release). Until that
-completes, the working install is a monorepo build:
+**Primary install path today: the monorepo build.** `@veylqorix/core@0.1.1`
+is published to the npm registry, but `@veylqorix/cli@0.1.1` is **not**
+published yet — its publication is gated on an owner step (register the npm
+trusted-publisher record for the CLI package, then re-trigger the `v0.1.1`
+release). The registry also holds a staged `0.0.1` bootstrap of both
+packages (staged via `npm stage publish`; its approval is a 2FA-protected
+owner step and is optional — the `0.1.1` release does not depend on it).
+Because the CLI is the surface you run, the working install until it is
+published is a monorepo build:
 
 ```
 git clone https://github.com/soumyachk101/Veylqorix
@@ -26,14 +27,12 @@ pnpm build
 node apps/cli/dist/index.js --help      # or link it: pnpm link
 ```
 
-**From the npm registry (once the packages are published).** As of the last
-registry check, neither package has a working published version — only the
-`0.0.0-stage` placeholder (a "temporary package stub for staged publishing")
-and the pending staged `0.0.1` bootstrap, which requires the owner's
-2FA-protected approval. The publication status lives in
-`docs/engineering/RELEASE_READINESS.md` and the owner's trusted-publishing
-runbook in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` (§6 "Execute
-the v0.1.1 release"). Once a real version is published:
+**From the npm registry (once the CLI is published).** As of the last
+registry check, `@veylqorix/cli` has no working published version yet —
+only the staged `0.0.1` bootstrap (whose approval is a 2FA-protected owner
+action; see `docs/engineering/RELEASE_READINESS.md`). `@veylqorix/core`
+is already published. Once the CLI's trusted-publisher record is registered
+and the release completes:
 
 ```
 npm install -g @veylqorix/cli   # then: veylqorix --help
@@ -97,11 +96,13 @@ is missing). Details: `docs/engine.md` and
 
 ## Cross-platform notes
 
-- **OS:** the CLI itself is plain Node.js ≥ 20.18 and runs on any platform
-  Node supports (Linux, macOS, Windows). The authoritative engine is a
-  native binary built per OS/CPU architecture — there is no download or
-  install mechanism in the package, so on a platform you haven't built it
-  for, you run in the labeled degraded compatibility mode described above.
+- **OS:** the CLI itself is plain Node.js (the package manifest declares
+  `engines.node >= 20.18`; the monorepo toolchain needs Node 22.13+ for
+  pnpm 11.9.0) and runs on any platform Node supports (Linux, macOS,
+  Windows). The authoritative engine is a native binary built per OS/CPU
+  architecture — there is no download or install mechanism in the package,
+  so on a platform you haven't built it for, you run in the labeled
+  degraded compatibility mode described above.
 - **External scanners:** `npm audit` (Node projects), `pip-audit` (Python),
   and optionally `gitleaks` and `cargo audit` are invoked when available and
   online; each is reported SKIPPED (with a note) when absent or when
@@ -149,7 +150,7 @@ Legacy aliases still work: `audit`, `deps`, `secrets`, and `gate` map to
 | `--no-tests` | scan/check | Skip test/build quality checks (faster). |
 | `--scanners a,b` | scan | Run only the listed scanners. |
 | `--block-on a,b` | scan | Severities that block the gate (e.g. `HIGH,CRITICAL`). |
-| `--policy FILE` / `--config FILE` | scan/check/report | Load a custom policy JSON file (overrides discovered defaults). |
+| `--policy FILE` | scan/check/report | Load a custom policy JSON file (overrides discovered defaults). |
 | `--pre-push` | hooks | Also install a `pre-push` hook alongside `pre-commit`. |
 | `--force` | hooks | Overwrite an existing non-Veylqorix hook (it is backed up first). |
 | `-y` / `--yes` | hooks | Actually write hooks. Without it, `hooks install` is a dry run that only prints the scripts. |
@@ -201,8 +202,7 @@ The authoritative enforcement point is the GitHub Actions gate plus branch
 protection (see `docs/github-actions.md`).
 
 ```
-node apps/cli/dist/index.js hooks install --help   # dry run: prints the scripts
-node apps/cli/dist/index.js hooks install          # dry run (default, nothing written)
+node apps/cli/dist/index.js hooks install          # dry run: prints the scripts, writes nothing
 node apps/cli/dist/index.js hooks install --yes    # writes .git/hooks/pre-commit
 node apps/cli/dist/index.js hooks install --yes --pre-push
 node apps/cli/dist/index.js hooks uninstall        # remove Veylqorix hooks

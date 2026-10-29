@@ -68,7 +68,7 @@ restarts. Scans still running when the process exits are re-stamped
 | Variable | Default | Effect |
 |----------|---------|--------|
 | `VEYLQORIX_API_PORT` | `4173` | Port the API listens on. |
-| `VEYLQORIX_API_HOST` | `127.0.0.1` | Bind address; non-loopback requires `VEYLQORIX_API_TOKEN` or the API refuses to start. |
+| `VEYLQORIX_API_HOST` | unset (binds `127.0.0.1`) | Bind address; a non-loopback value without `VEYLQORIX_API_TOKEN` makes the API refuse to start. |
 | `VEYLQORIX_API_TOKEN` | none | Bearer token; every `/api` route except `GET /api/health` requires it when set. |
 | `VEYLQORIX_CORS_ORIGINS` | none | Comma-separated exact-origin CORS allowlist (no wildcard, no credentials). |
 | `VEYLQORIX_ALLOWED_ROOTS` | none | Restrict which paths the API may scan. |
