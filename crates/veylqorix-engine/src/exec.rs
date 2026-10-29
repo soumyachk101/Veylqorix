@@ -95,17 +95,22 @@ fn start_in_new_process_group(cmd: &mut Command) {
 #[cfg(not(unix))]
 fn start_in_new_process_group(_cmd: &mut Command) {}
 
-/// Signal the child's whole process group (Unix). On non-Unix platforms this
-/// signals only the direct child; a lingering grandchild holding the output
-/// pipes is then handled by the drain deadline in [`exec`].
+/// Signal the child's whole process group (Unix). On non-Unix platforms the
+/// group is not signalled; a lingering grandchild holding the output pipes is
+/// instead handled by the deadline-bounded drain join in [`exec`], so this is a
+/// no-op there.
 fn signal_group(pid: i32, sig: i32) {
     #[cfg(unix)]
     unsafe {
-        libc::kill(-pid, sig);
+        // `kill` with a negative pid targets the process group; a failure (the
+        // group may already be gone) is benign for the bounded-wait guarantee.
+        let _ = libc::kill(-pid, sig);
     }
     #[cfg(not(unix))]
-    unsafe {
-        let _ = sig; // unused; handled by the caller's direct-kill path
+    {
+        // Both arguments are only meaningful on Unix; name them so the
+        // cross-platform signature stays stable without unused-argument noise.
+        let _ = (pid, sig);
     }
 }
 
@@ -209,6 +214,12 @@ pub fn exec(
                     signal_group(pid, TERM_SIG);
                     std::thread::sleep(Duration::from_millis(150));
                     signal_group(pid, KILL_SIG);
+                    // Direct-kill fallback: on platforms without process
+                    // groups `signal_group` is a no-op, so the child itself
+                    // must be killed here or the poll loop below would spin
+                    // forever and the "timeout" would not bound wall-clock
+                    // time.
+                    let _ = child.kill();
                 }
                 std::thread::sleep(Duration::from_millis(25));
             }
@@ -293,43 +304,33 @@ fn drain(mut pipe: impl Read, buf: Arc<Mutex<Vec<u8>>>) {
     }
 }
 
-/// Join the drain threads, bounding the wait so a grandchild that survived a
-/// direct-kill (non-Unix only) cannot hold `exec` open past the deadline.
+/// Join the drain threads, bounding the wait on **every** platform so a
+/// grandchild that still holds the pipes (a `setpgid` failure on Unix, or a
+/// direct-kill escape elsewhere) cannot hold `exec` open past the deadline.
 ///
-/// On Unix the group kill guarantees EOF, so both joins complete promptly and
-/// we join them normally. On other platforms we use a captured-data-or-timeout
-/// policy: wait at most `grace_ms` for the drains to finish; whatever has been
-/// captured is what the caller sees, and a still-blocked drain thread is
-/// abandoned (it ends when its writer eventually releases the pipe, and its
-/// captured data already lives in the shared buffer).
+/// A still-blocked drain thread is abandoned: it finishes when its writer
+/// eventually releases the pipe (or at process exit), and the data captured
+/// so far already lives in the shared buffers — so the returned result is the
+/// captured-data-so-far, never a deadlock.
 fn join_drain(
     stdout_thread: std::thread::JoinHandle<()>,
     stderr_thread: std::thread::JoinHandle<()>,
     grace_ms: u64,
 ) {
-    #[cfg(unix)]
-    {
-        let _ = stdout_thread.join();
-        let _ = stderr_thread.join();
-        let _ = grace_ms;
+    let deadline = Instant::now() + Duration::from_millis(grace_ms.saturating_add(5_000));
+    while Instant::now() < deadline {
+        if stdout_thread.is_finished() && stderr_thread.is_finished() {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(25));
     }
-    #[cfg(not(unix))]
-    {
-        let deadline = Instant::now() + Duration::from_millis(grace_ms.saturating_add(5_000));
-        while Instant::now() < deadline {
-            if stdout_thread.is_finished() && stderr_thread.is_finished() {
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(25));
-        }
-        // Best-effort join of whatever has settled; the shared buffers hold the
-        // captured data regardless.
-        if stdout_thread.is_finished() {
-            let _ = stdout_thread.join();
-        }
-        if stderr_thread.is_finished() {
-            let _ = stderr_thread.join();
-        }
+    // Best-effort join of whatever has settled; the shared buffers hold the
+    // captured data regardless.
+    if stdout_thread.is_finished() {
+        let _ = stdout_thread.join();
+    }
+    if stderr_thread.is_finished() {
+        let _ = stderr_thread.join();
     }
 }
 

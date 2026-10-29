@@ -1,354 +1,157 @@
-# CLI Release Readiness
+# Veylqorix — Release Readiness Checklist
 
-Status of publishing `@veylqorix/cli` (with its workspace dependency
-`@veylqorix/core`) to the npm registry. Last validated: 2026-10-27.
+Release-readiness checklist for publishing `@veylqorix/cli` +
+`@veylqorix/core` `0.1.1` to npm. Regenerated 2026-10-28 by the security sweep
+from the session narrative that preceded it; the detailed evidence lives in
+`docs/engineering/NPM_PUBLICATION_REPORT.md` and
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
-**Nothing has been published and no release has been created.** The release
-changes have been committed and pushed to `main`, and the tag `v0.1.0` was
-created and pushed at the owner's instruction — the workflow it triggered
-built and packed both packages successfully and then failed closed at the
-npm publish step, because no trusted publisher is configured on npm yet and
-neither package exists on the registry. The remaining work is the npm-side
-setup, not repository work. This document records what is validated and what
-remains as owner actions.
+Three buckets: **verified** (done, evidence on record), **blocked**
+(open workstream items), and **required maintainer actions** (npm-side, owner
+only).
 
-## 1. Packaging correctness
+## A. Verified items
 
-Per-package status:
+- [x] **Packaging correctness** — `@veylqorix/cli` / `@veylqorix/core` at
+  `0.1.1` (MIT, `"type": "module"`, `files: ["dist"]`,
+  `engines: node >=20.18`, `publishConfig {access: public, provenance: true}`,
+  CLI `bin` → `dist/index.js` with shebang). `pnpm pack --dry-run` records
+  both tarballs shipping **only** `dist/**` + `LICENSE` + `package.json`
+  (no `src/`, `tsconfig`, lockfiles, `.env*`, or fixtures). Evidence:
+  `NPM_PUBLICATION_REPORT.md` §1–2 (2026-10-27).
+- [x] **`workspace:*` rewrite strategy** — `pnpm pack` rewrites the CLI's
+  `workspace:*` dependency to the concrete version; `release.yml` publishes
+  core first and polls `npm view` until the core version is registry-visible
+  before publishing the CLI (eventual-consistency guard). Evidence:
+  `release.yml` `publish` job; `NPM_PUBLICATION_REPORT.md` §100.
+- [x] **Engine honesty** — `resolveEngineBinary` (env → PATH-free upward walk
+  → install-location walk, bounded 12 hops) makes **no** developer-local
+  assumption and ships **no** binary; a degraded TS-compat run appends the
+  labeled note `Rust engine unavailable: TypeScript policy engine evaluated
+  the gate (degraded compatibility mode)` to the secrets scanner result and
+  the gate degrades to INCOMPLETE (exit 2), never a silent PASS. Evidence:
+  `packages/core/src/engine/index.ts`, `packages/core/src/audit.ts`,
+  `docs/engine.md`, `docs/cli.md`.
+- [x] **Release workflow structure** — `release.yml` is tag-only
+  (`on: push: tags: [v*]`), two jobs `pack` → `publish` with a
+  tag/manifest-version guard (fail-loud on mismatch; npm versions are
+  immutable once published), SHA-pinned Actions, `id-token: write` on
+  `publish` only, no `NPM_TOKEN`/`npm login` anywhere. Evidence:
+  `.github/workflows/release.yml:47-145`.
+- [x] **CI gating of releases (new, in-worktree)** — `release.yml` now has a
+  third `test` job mirroring `ci.yml` (install → build → Rust
+  fmt/clippy/test/release-build → `pnpm test` → typecheck → lint) and
+  `publish` needs `[pack, test]`, so a tag can no longer publish a commit
+  whose validation failed. Evidence: `release.yml` `test` job (in-worktree,
+  +2026-10-28 sweep).
+- [x] **pnpm / Node consistency** — `packageManager: "pnpm@11.9.0"` at root,
+  pnpm `11.9.0` in all three workflows, Node 24 in all three workflows
+  (pnpm 11.9.0 uses `node:sqlite` → needs Node ≥ 22.13). Evidence:
+  `package.json`, `.github/workflows/*.yml`; commit `624f678`.
+- [x] **pnpm-workspace hardening** — `allowBuilds` real booleans
+  (`esbuild: true`, `sharp: true`); `overrides: { postcss: 8.5.31, sharp:
+  0.35.5 }` close all 8 `pnpm audit` vulns (3 moderate + 5 high, all
+  transitive under `next@15.5.28`). Evidence: `pnpm-workspace.yaml`,
+  `docs/engineering/SUPPLY_CHAIN.md` §1.1–1.2.
+- [x] **`v0.1.0` release run** (`40500854557`) — `pack` passed, `publish`
+  failed **before** `npm publish` was ever called (the `packaged-tarballs/`
+  glob mismatch is fixed in `dd2054f`); **nothing was published**, `0.1.0`
+  is still free on the registry. Evidence: `NPM_PUBLICATION_REPORT.md` §1.
+- [x] **Staged `0.0.1` bootstrap of both packages (staged variant)** — 2026-10-27
+  (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0 "Staged variant actually used"):
+  `npm stage publish` of core `0.0.1` and CLI `0.0.1` (whose packed manifest
+  carries the concrete `@veylqorix/core@0.0.1`), creating both packages on
+  the registry. Staged `0.0.1` approval/rejection is a 2FA-protected owner
+  action and is **optional** — the `0.1.1` release does not depend on it.
+- [x] **`v0.1.1` tag exists** — `dd2054f` on both local and
+  `origin`, manifest versions `0.1.1` in both packages, so the tag/version
+  guard will accept it. `v0.1.0` tag is immutable history; do not move it.
 
-| Check | `@veylqorix/cli` | `@veylqorix/core` |
-|---|---|---|
-| name / version / license | `@veylqorix/cli` 0.1.1 MIT — OK | `@veylqorix/core` 0.1.1 MIT — OK |
-| module format | `"type": "module"`, `main` + `bin` → `dist/index.js` (has `#!/usr/bin/env node`) — OK | `"type": "module"`, `main`/`types`/`exports` → `dist/` — OK |
-| `files` field | `["dist"]` — only `dist/` ships. No secrets, no dev-only files, no test output | `["dist"]` — same |
-| `engines` | `node >=20.18` (mirrors repo root) | `node >=20.18` |
-| `publishConfig` | `{ "access": "public", "provenance": true }` — access is required for a scoped package; provenance requests the attestation | same |
-| bin entry | `veylqorix` → `dist/index.js` (on the `files` allowlist) | n/a |
+## B. Blocked items
 
-**Workspace dependency strategy (chosen: publish alongside, real semver).**
-`@veylqorix/cli` depends on `@veylqorix/core` via `workspace:*`. The
-`workspace:` protocol **cannot appear in a published `package.json`** — it
-breaks external `npm install`. The chosen approach is to publish both packages
-to the registry at the same semver, in one release, and let the packer rewrite
-the dependency to the real version. What we did *not* do: bundle `core`
-inside the CLI tarball (it would duplicate ~90 files, create a second copy of
-the engine adapter, and hide `core`'s own dependency surface — `semver`,
-`zod`). Bundling is the fallback only if the registry strategy becomes
-unusable; it is not what ships today.
+- [ ] **B1 — npm trusted-publisher records not registered** (both packages).
+  The `v0.1.1` release run (`40558927305`) failed at publish because no
+  trusted-publisher record exists yet; nothing is published until C1. Owner
+  action, ~2 min; cross-referenced to
+  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §2 (the `npm trust`
+  CLI commands with `--allow-publish` for both packages). **Blocker for the
+  whole release.** Owned by workflows/npm workstream (the runbook step) /
+  maintainer (the action).
+- [ ] **B2 — `@veylqorix` scope ownership + 2FA unconfirmed.** `npm whoami`
+  returned 401 (a rejected 40-char granular token under both npm 10.9.8 and
+  12.2.1). The owner must confirm scope ownership and 2FA on the owning
+  account in the npm UI before the bootstrap/trust steps can succeed. Cross-
+  reference: `NPM_TRUSTED_PUBLISHING_SETUP.md` §1. Maintainer action.
+- [ ] **B3 — `docs/engineering/VALIDATION_REPORT.md` is PENDING.** All Rust
+  and TS validation (fmt/clippy/test/release-build, build/lint/typecheck/tests,
+  pack dry-runs, clean-consumer smoke) is scaffolded but not yet executed
+  against the current tree; the lead fills it in before the tag re-trigger.
+  See that doc's PENDING markers.
+- [ ] **B4 — Launch-film generated cache still tracked** (`video/veylqorix-
+  launch-film/.hyperframes/**`, 97 files incl. `video-state.json` with
+  machine-local paths; `video/**/*.mp4` render outputs). `.gitignore` now
+  covers them (security sweep, 2026-10-28) but the already-tracked files
+  need `git rm --cached` by the owning workstream. Tracked, not security-
+  sensitive; purely hygiene.
+- [ ] **B5 — Stray website working copy** `veylqorix-website_try/` (own
+  `.git`, `.next/`, `node_modules`) is untracked; `.gitignore` now covers it
+  but the directory itself should be removed or intentionally kept by the
+  owning workstream. Purely hygiene.
+- [ ] **B6 — `packages/mcp-server/package.json.bak`** is a byte-identical
+  dead copy of `package.json` and is tracked. Remove. Purely hygiene.
+- [ ] **B7 — `cargo audit` last recorded 0 vulns (2026-10-26)** — re-run at
+  release time; `cargo audit` is optional in CI (tool-probe + honest SKIP).
+- [ ] **B8 — CI gitleaks SHA-256 digest** is pinned to v8.30.1 (digest
+  computed at commit time, 2026-10); re-verify **only** if the pinned
+  version ever changes. No action today.
 
-The `workspace:*` specifier stays in the in-repo `package.json` (pnpm
-resolves it locally; npm ignores it only at install time of the *published*
-tarball, whose `package.json` is the rewritten one). `release.yml` publishes
-core first so the CLI's range resolves.
+## C. Required maintainer actions (npm side, owner only)
 
-### Dry-run pack contents (`pnpm pack --dry-run`, re-validated 2026-10-27)
+All entries are on the owning npm account (not the GitHub org) and are the
+sole blockers to a successful `0.1.1` publish. Single source of truth:
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
-`@veylqorix/cli` tarball (post-`files: ["dist"]`):
+- [ ] **C1 — Register the npm trusted-publisher record for `@veylqorix/cli`
+  (and `@veylqorix/core`)** — run the `npm trust github …` commands in
+  `NPM_TRUSTED_PUBLISHING_SETUP.md` §2 with `--allow-publish` on **both**
+  packages (new configurations default to stage-only; the direct-publish
+  action must be explicitly enabled or the workflow's `npm publish` is
+  rejected 403). Command:
 
-```
-dist/cli-args.d.ts   dist/cli-args.d.ts.map
-dist/cli-args.js     dist/cli-args.js.map
-dist/index.d.ts      dist/index.d.ts.map
-dist/index.js        dist/index.js.map
-LICENSE
-package.json
-```
+  ```bash
+  npm trust github @veylqorix/core \
+    --file release.yml --repository soumyachk101/Veylqorix --allow-publish
+  npm trust github @veylqorix/cli \
+    --file release.yml --repository soumyachk101/Veylqorix --allow-publish
+  ```
 
-(Pre-fix, the tarball also shipped `src/` and `tsconfig.json` — now excluded.)
+  **2-day window:** a trusted-publisher configuration that does not complete
+  its first successful publish within 2 days expires and must be deleted and
+  re-created.
+- [ ] **C2 — Confirm `@veylqorix` scope ownership + 2FA** on the owning
+  account (`NPM_TRUSTED_PUBLISHING_SETUP.md` §1). The `0.0.1` bootstrap
+  stages (§verified in A above) already require this.
+- [ ] **C3 — Approve or reject the staged `0.0.1` bootstrap versions**
+  (`npm stage approve`/`npm stage reject`) — 2FA-protected owner action,
+  optional (the `0.1.1` release does not depend on the staged `0.0.1`),
+  but the record must exist before C1.
+- [ ] **C4 — Re-trigger the failed `v0.1.1` release run** — `gh run rerun
+  40558927305` **within 2 days** of creating **both** trusted-publisher
+  records (C1). The tag `v0.1.1` already exists on `dd2054f` and matches
+  both manifests; do not move or recreate the `v0.1.0` tag.
+- [ ] **C5 — Monitor the new `release.yml` run** to green: the new `test`
+  job must pass, `pack` must succeed, `publish` must succeed for core, the
+  registry-visibility poll must succeed, and `publish` for CLI must
+  succeed. Both packages must show a provenance attestation on npm
+  (`NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
 
-`@veylqorix/core` tarball: `package.json` plus all of `dist/`
-(`audit`, `detect`, `engine/`, `finding`, `gate/`, `index`, `policy*`,
-`report/`, `scanners/`, `types`, `util/*` — `.js`/`.d.ts`/`.js.map`/`.d.ts.map`
-per module). Pre-fix the tarball also shipped `src/` and `tsconfig.json` — now
-excluded. Neither tarball contains lockfiles, test fixtures, `.env*`, or
-build tooling. No changes to the Rust `crates/` tree are part of the
-publication: the engine binary is a *prerequisite*, not a package artifact
-(see §2).
+## Order of operations
 
-**External-consumer resolution check (documented, not executed):**
-after publishing, a clean `npm install @veylqorix/cli` fetches
-`@veylqorix/core@<same version>` from the registry — no `workspace:` string
-ever reaches a consumer's lockfile.
+1. B1 (trust record) + B2 (scope/2FA) + C3 (staged bootstrap approve,
+   optional) → **C1 → C4** (re-trigger within 2 days) → C5 (verify).
+2. In parallel: B3 (fill `VALIDATION_REPORT.md`), B4/B5/B6 (hygiene), B7
+   (re-run `cargo audit`), B8 (no action).
 
-## 2. Rust engine honesty
-
-**How the engine binary is discovered at runtime**
-(`packages/core/src/engine/index.ts`, `resolveEngineBinary`):
-
-1. `VEYLQORIX_ENGINE` environment variable, when set to an existing file
-   (highest priority; checked per audit, not cached across env changes).
-2. Upward walk from `process.cwd()` (bounded, 12 levels) looking for
-   `crates/Cargo.toml`, then `crates/target/release/veylqorix-engine`, then
-   `crates/target/debug/veylqorix-engine`.
-3. The same walk from the *package install location*
-   (`dist/engine/`'s parent directories), so a locally checked-out monorepo
-   works even when `cwd` is elsewhere.
-
-**The published package makes no developer-local assumption — but it also
-has no binary. This is honest by design:** there is no PATH lookup and no
-download-with-verification mechanism. A consumer who installs
-`@veylqorix/cli` from the registry and has not set `VEYLQORIX_ENGINE` gets
-no engine; the walk in step 2/3 finds nothing because `crates/` ships in no
-tarball. Documented prerequisite for *authoritative* engine coverage:
-
-- build or obtain the binary — `cargo build --release
-  --manifest-path crates/Cargo.toml -p veylqorix-engine` produces
-  `crates/target/release/veylqorix-engine` (target dir matches the binary's
-  name `veylqorix-engine`);
-- point the runtime at it: `VEYLQORIX_ENGINE=/abs/path/veylqorix-engine
-  veylqorix scan` (or install it on `PATH` and set `VEYLQORIX_ENGINE` to the
-  resolved absolute path, e.g. `VEYLQORIX_ENGINE="$(command -v
-  veylqorix-engine)"`).
-
-**Reduced coverage when the engine is absent, explicitly marked.** When no
-binary resolves, `runAudit` degrades to the byte-compatible TypeScript secret
-scanner + policy engine and appends this note to the secrets scanner result
-(surfaced in every report surface — JSON `scanners[].notes`, the Markdown
-scanner table, SARIF — and visible in the human summary as an
-"Incomplete coverage" line when the gate records incomplete reasons):
-
-> `Rust engine unavailable: TypeScript policy engine evaluated the gate
-> (degraded compatibility mode).`
-
-The gate's `incompleteReasons`/`coverage` fields report any resulting gap;
-exit code `2` (INCOMPLETE) is used whenever a mandatory scanner or check did
-not complete, so a degraded run is never mistaken for a clean pass. This is
-documented in `docs/cli.md` (Engine binary section) and `docs/engine.md`.
-
-What is *not* claimed: that the TS fallback is byte-identical to the engine
-in all cases. `docs/engine.md` states parity was verified by the golden /
-secret-parity test suites; the degradation note is the runtime marker.
-
-## 3. Docs
-
-`docs/cli.md` now covers install/upgrade, the `VEYLQORIX_ENGINE`
-prerequisite and the labeled degraded mode, cross-platform notes, and an
-exit-code table with examples matching `apps/cli/src/index.ts`
-(0/1/2 from `result.exitCode`; 64 usage/invalid policy/hook errors; 65
-missing root or policy file, empty `--staged`; 70 unexpected errors).
-
-## 4. Release workflow
-
-`.github/workflows/release.yml` (new) — **opt-in and inert until owner setup**:
-
-- Trigger: `on: push: tags: ["v*"]` only.
-- Trusted publishing: no `NPM_TOKEN` secret; `npm publish --provenance`
-  authenticates with the GitHub OIDC token, which npm accepts *only* for
-  packages whose trusted-publisher record points at this workflow + tag
-  subject. Until that record exists, the publish step fails — nothing is
-  published untrusted, ever.
-- No commit/branch/tag push; the publish job requests `id-token: write`
-  (the GitHub OIDC token used for provenance); actions pinned to commit SHAs
-  (matching `ci.yml`).
-- Publishes `@veylqorix/core` before `@veylqorix/cli` so the dependency
-  range resolves.
-
-### Owner setup for trusted publishing (one-time, repo owner only)
-
-One npm-side prerequisite precedes trusted-publisher registration:
-npm's trusted-publisher configuration exists only on packages that
-already exist on the registry, so each package's **first publication
-cannot be performed by this workflow**. It is a one-time, 2FA-protected
-manual bootstrap publish on the owner's own machine (`0.0.1`, or the
-staged-placeholder variant — `NPM_TRUSTED_PUBLISHING_SETUP.md` §0),
-done once before the tag push. The workflow's tag push alone does not
-publish either package until that bootstrap exists.
-
-Configured on the npm side, per package; the source of detail is
-`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`. In short: on the
-Publishing → Trusted publishers page of **each** of `@veylqorix/core` and
-`@veylqorix/cli`, add a GitHub Actions trusted publisher (owner `soumyachk101`,
-repo `Veylqorix`, workflow `release.yml`, environment left unset — the
-workflow declares no environment). No GitHub App, no bot user, no `NPM_TOKEN`;
-the publish job's `id-token: write` requests a short-lived OIDC token that npm
-accepts only for packages whose trusted-publisher record points at this
-workflow. The full procedure, registry checks, verification, and failure mode
-live in that doc.
-
-## 5. Changelog
-
-`CHANGELOG.md` — "Release readiness" entry under `Unreleased`: records what
-is validated here vs. the owner actions above.
-
-## 6. Clean-consumer validation (documented; run it after the first publish)
-
-```bash
-# 1. Produce real tarballs exactly as release.yml does (dry-run only here).
-cd packages/core && pnpm build && npm pack --pack-destination /tmp/vqx-artifacts
-cd ../../apps/cli  && pnpm build && npm pack --pack-destination /tmp/vqx-artifacts
-
-# 2. Install from the tarballs in a clean directory (no workspace, no node_modules above).
-mkdir /tmp/vqx-consumer && cd /tmp/vqx-consumer
-npm init -y >/dev/null
-# Simulate registry consumption of the CLI tarball; its dependency on
-# @veylqorix/core must be satisfied from the local core tarball:
-npm install /tmp/vqx-artifacts/veylqorix-cli-0.1.1.tgz /tmp/vqx-artifacts/veylqorix-core-0.1.1.tgz
-
-# 3. Help text — expected: usage block, exit 0.
-./node_modules/.bin/veylqorix --help
-
-# 4. Scan a trivial project with the engine INTENTIONALLY absent:
-mkdir -p sample && cd sample && echo '{"name":"sample","version":"0.0.1"}' > package.json
-VEYLQORIX_ENGINE=/nonexistent ../node_modules/.bin/veylqorix scan --root . --offline
-# Expected on stdout (summary form), exit code 2 — a degraded run is never green:
-#   ⚠️ Gate result: INCOMPLETE  (coverage LIMITED, exit code 2)
-#   Scanners:
-#     ⏭️ dependencies       SKIPPED  0 finding(s)
-#     ✅ secrets            PASS     0 finding(s)
-#   Incomplete coverage:
-#   - Scanner 'dependencies' was skipped: Running in offline mode; npm audit
-#     requires network access and was skipped.
-# Engine-absence marker (the explicit reduced-coverage statement) in machine
-# readable output:
-VEYLQORIX_ENGINE=/nonexistent ../node_modules/.bin/veylqorix scan --root . --offline --json
-# → "gate": {"result":"INCOMPLETE", "coverage":"LIMITED", ...}, exit code 2,
-#   and the "secrets" entry of "scanners" carries "notes" containing
-#   "Rust engine unavailable: TypeScript policy engine evaluated the gate
-#    (degraded compatibility mode)." — the run is labeled, never silent.
-# (Online mode, no lockfile, same expected result: the dependencies scanner
-# errors instead of skipping, the gate is INCOMPLETE, exit code 2.)
-```
-
-Notes: steps 1–3 are safe to run today (no publish involved); step 4's
-*registry-install* variant (`npm install @veylqorix/cli@0.1.1` into a clean
-dir) is only meaningful after the owner completes §4 and the `v0.1.1` tag
-is pushed. No publish/release/push has been performed by this
-work; that is owner action on top of §4.
-
-## 7. Release checklist
-
-Split into (A) automated repository changes that are committed to the release
-branch, and (B) owner actions. The two are independent: nothing in (A)
-publishes anything; nothing in (B) runs until (A) is merged.
-
-### A) Automated repository changes
-
-Done in this session (see `docs/engineering/NPM_PUBLICATION_REPORT.md`):
-
-- [x] Correct `pnpm/action-setup` to the exact pnpm version in all three
-      workflows (`release.yml`, `ci.yml`, `veylqorix-gate.yml`) — previously
-      `ci.yml` and `veylqorix-gate.yml` pinned pnpm major `9` while the lockfile
-      was v9-format produced by pnpm 11, so a pnpm 9 runner failed
-      `--frozen-lockfile` on it; now every workflow pins exactly `"11.9.0"`.
-- [x] Pin `"packageManager": "pnpm@11.9.0"` in the root `package.json` so
-      every consumer and runner resolves the same pnpm major the lockfile was
-      produced with.
-- [x] Rework `.github/workflows/release.yml` into two jobs: `pack`
-      (install, build, manifest/pack validation of core+cli, dry-run
-      validation) and `publish` (`id-token: write`, publishes both tarballs
-      with `npm publish <tgz> --provenance` via GitHub OIDC — no
-      `NPM_TOKEN`, no `npm login`). The `pack` job carries a **tag/version
-      guard**: it fails loudly if the pushed tag does not match the version
-      declared in **both** package manifests (a published npm version is
-      immutable, so a bad tag cannot be fixed by re-tagging).
-- [x] Correct the pnpm version pin to exactly `"11.9.0"` in all three
-      workflows (`release.yml`, `ci.yml`, `veylqorix-gate.yml`) to match
-      the root `packageManager` field — `pnpm/action-setup` v4 compares
-      those two strings with strict equality and fails the step on
-      mismatch. This is a pin correction, not a package version bump (the
-      packages are now `0.1.1`).
-- [x] Manifest/pack validation of both `@veylqorix/core` and
-      `@veylqorix/cli` (exports paths corrected in
-      `packages/core/package.json`; CLI packed with `pnpm pack` so
-      `workspace:*` is rewritten to the concrete version; dry-runs pass).
-- [x] `veylqorix --help` (and `-h`) now prints usage and exits 0 instead of
-      silently starting a scan (`apps/cli/src/index.ts`).
-
-### B) Owner actions (in order; each is a separate action)
-
-- [x] **(i)** Push the release changes from (A) to the release branch and
-      confirm CI is green on that branch (bump, `packageManager` pin,
-      reworked `release.yml`, manifest/pack validation, and the
-      `veylqorix --help` fix). Verify the version is `0.1.1` in both
-      `packages/core/package.json` and `apps/cli/package.json` before
-      pushing. **Done** — pushed as `e768d08`, then `624f678` (the Node-24
-      CI fix that the exact pnpm pin exposed); CI run `40501372986` on
-      `624f678` is green at every step.
-- [ ] **(ii)** **Fix the npm credential — this is currently the single
-      blocker for the whole release.** The `_authToken` in `~/.npmrc` is a
-      40-char `npm_` granular token that the registry rejects with E401
-      ("your authentication token seems to be invalid") under both npm
-      10.9.8 and npm 12.2.1. Run `npm login` on the owner's machine (or
-      install a fresh granular token with write access to the `@veylqorix`
-      scope) and confirm with `npm whoami`. Without it neither the bootstrap
-      publish nor `npm trust` can succeed.
-- [ ] **(ii-b)** Confirm `@veylqorix` scope ownership on npm and that 2FA is
-      enabled on the owning account/org (`NPM_TRUSTED_PUBLISHING_SETUP.md`
-      §1). Both packages currently 404 — nothing is published yet.
-- [x] **(iii)** One-time bootstrap of **each** package — **done via
-      staging** on 2026-10-27 (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0,
-      "Staged variant actually used"): `npm stage publish` of core
-      `0.0.1` then CLI `0.0.1` (whose packed manifest carries the
-      concrete `@veylqorix/core` `0.0.1`), creating both packages on
-      the registry (public `0.0.0-stage` placeholder + staged `0.0.1`).
-      `npm stage approve`/`reject` of the staged `0.0.1` needs a
-      2FA-enabled credential — owner action, but optional: the
-      `0.1.1` release does not depend on it either way.
-- [ ] **(iv)** Register the trusted publisher for **each** of
-      `@veylqorix/core` and `@veylqorix/cli` per
-      `NPM_TRUSTED_PUBLISHING_SETUP.md` §2 — per-package, no environment,
-      no GitHub App, no bot user, and with **direct `npm publish`
-      allowed** (new configurations default to stage-only; the direct
-      publish action must be explicitly ticked, otherwise the workflow's
-      publish step is rejected). Via the CLI (npm ≥ 11.15.0; the dry-run of
-      this exact command was verified):
-
-      ```bash
-      npm trust github @veylqorix/core \
-        --file release.yml \
-        --repository soumyachk101/Veylqorix \
-        --allow-publish
-      npm trust github @veylqorix/cli \
-        --file release.yml \
-        --repository soumyachk101/Veylqorix \
-        --allow-publish
-      ```
-- [x] **(v)** Create and push the tag — **done**: `v0.1.0` was created and
-      pushed at the owner's instruction, and the release run it triggered
-      built, packed, and then failed closed at the publish step (nothing
-      published — the npm-side setup in (iii) and (iv) had not been done
-      yet). The remaining action is to **re-trigger** it within 2 days of
-      creating both trusted-publisher configurations:
-
-      ```bash
-      # documentation only — the v0.1.0 tag already exists, points at commit
-      # e768d08, and published nothing (the run failed before npm was called).
-      # It must NOT be moved or recreated. The next release needs a NEW tag on
-      # the fixed commit, and the tag/version guard requires the tag to match
-      # the manifest version (0.1.1 in both manifests):
-      git tag v0.1.1
-      git push origin v0.1.1
-      ```
-
-      A trusted-publisher configuration that does not complete its first
-      successful publish within 2 days expires and must be deleted and
-      re-created.
-
-      The existing `v0.1.0` tag cannot be reused for the `0.1.1` release: it
-      points at `e768d08`, whose manifests declare `0.1.0`, and the pack job's
-      tag/version guard would reject a version mismatch anyway.
-
-      **Tag/version guard (in the `pack` job of `release.yml`):** the
-      workflow verifies the pushed tag matches the version declared in
-      **both** `packages/core/package.json` and `apps/cli/package.json`
-      and fails loudly if they disagree. A tag that disagrees with the
-      manifest versions is rejected by the workflow — and because a
-      published npm version is immutable, a bad tag cannot be fixed by
-      re-tagging; it must be caught before publish. The `v0.1.0` tag
-      matched `0.1.0` in both manifests and the guard was confirmed to
-      accept it in the real run; the `v0.1.1` tag must match `0.1.1`.
-- [ ] **(vi)** Monitor the actual GitHub Actions run of `release.yml` the
-      tag push triggers — both publish steps (core, then CLI) must
-      succeed.
-- [ ] **(vii)** Confirm both `@veylqorix/core` and `@veylqorix/cli` npm
-      package pages show a provenance attestation for `0.1.1` (per
-      `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
-
-## Open / owner-only
-
-- [ ] npm `@veylqorix` scope ownership, the one-time owner-machine bootstrap publication of both packages, and trusted-publisher registration for both (`NPM_TRUSTED_PUBLISHING_SETUP.md` §0/§1/§2), covered by checklist item B above.
-- [ ] First successful `v0.1.1` tag to activate the release workflow — push within 2 days of creating both trusted-publisher configurations, or each configuration expires and must be deleted and re-created.
-- [ ] Engine binary distribution (a verified `veylqorix-engine` artifact or a documented build step) — today the prerequisite is "build from source + `VEYLQORIX_ENGINE`"; a signed/platform-artifact story would be a follow-up design decision.
-- [x] `pnpm-workspace.yaml` `allowBuilds` carries `esbuild: true` and
-      `sharp: true` (approved install-time codegen for the two packages with
-      native binaries — verified, not placeholder). No change required.
+The repo-side work is complete and committed (`main` at the `v0.1.1` tag
+commit `dd2054f` plus the in-worktree `test` job). Only C1/C2/C3/C4/C5 —
+all owner-only — can move the release forward from here.

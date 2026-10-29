@@ -13,8 +13,10 @@ sources are not in the repo).
 ## Status (read this first)
 
 - The engine crate, its protocol, and its CI steps **exist and are verified**
-  (60/60 tests, `clippy -D warnings` clean, release binary at
-  `crates/target/release/veylqorix-engine`).
+  (all cargo tests passing, `clippy -D warnings` clean, release binary at
+  `crates/target/release/veylqorix-engine`; the suite count is
+  `cargo test`-derived and changes with the code — see
+  [Build and test](#build-and-test)).
 - The engine is **wired into the application** through the TypeScript adapter
   `packages/core/src/engine/index.ts`. It is invoked by `runAudit`
   (`packages/core/src/audit.ts`), which the CLI, MCP server, and API all call.
@@ -49,11 +51,11 @@ sources are not in the repo).
 | `model.rs` | Normalized schema types (`Finding`, `ScannerResult`, `GateDecision`, `Policy`, …), `SCHEMA_VERSION = 1`. Shapes mirror `packages/core/src/types.ts` so findings from either side are interchangeable. |
 | `policy.rs` | Deterministic policy resolution: defaults, field-level overrides, expiring/document-required exceptions, `maxExceptions` cap, derivation notes. Byte-compatible with `resolvePolicy` in `packages/core/src/policy.ts`. |
 | `gate.rs` | Gate evaluation (`PASS`/`FAIL`/`INCOMPLETE`), blocking/incomplete reasons, coverage level, `exit_code_for` (0/1/2) and `strict_exit_code`. Byte-compatible with `packages/core/src/gate/index.ts`. |
-| `secrets.rs` | Offline secret scanner: 9 rule families over 18 default extensions, tree walk (max depth 8, ignore set `node_modules`, `.git`, `__pycache__`, `venv`, `.venv`), binary/oversize file skip. Byte-compatible with `packages/core/src/scanners/secrets.ts`. |
+| `secrets.rs` | Offline secret scanner: 9 rule families over 18 default extensions, tree walk (max depth 8, ignore set `node_modules`, `.git`, `__pycache__`, `venv`, `.venv`, `dist`, `build` — matching the TypeScript scanner), binary/oversize file skip; an unreadable subdirectory is skipped with an honest note (never a silent pass). Byte-compatible with `packages/core/src/scanners/secrets.ts`. |
 | `redact.rs` | Single masking function `redact_secret`: values ≤ 8 chars become `****`; longer values keep first/last 4 characters plus a length annotation. Golden vectors match the TypeScript `redactSecret`. |
 | `finding.rs` | `make_finding` + deterministic ids: SHA-1 over `scanner\|ruleId\|location\|dependencyName\|version`, first 8 hex chars uppercased, prefixed by the scanner name (uppercased, non-alphanumeric collapsed to `-`, truncated to 12 chars) — e.g. `SECRETS-8C5562BA`. Byte-compatible with `packages/core/src/finding.ts`. |
 | `exec.rs` | Safe, shell-free subprocess execution: explicit argument arrays (never a shell), `which` pre-check, timeout with kill, bounded trailing output window (default 256 KB per stream, with a truncation marker). |
-| `dependencies.rs` | `cargo audit -f <root>/Cargo.lock --json` for Rust ecosystems; normalized findings with advisory/affected/patched fields. |
+| `dependencies.rs` | `cargo audit -f <root>/Cargo.lock --json` for Rust ecosystems; normalized findings with advisory/affected/patched fields. No lockfile or missing binary → `SKIPPED` (never a pass); timeout or an unrecognized output shape → `ERROR`. |
 | `protocol.rs` | The JSON-over-stdio protocol: request/response types, size caps, gitleaks delegation, command dispatch, `serve()` entry point. |
 | `lib.rs` / `main.rs` | Crate facade (`PROTOCOL_VERSION = 1`, `ENGINE_VERSION`, `EngineError`) and the binary (one request line in, one response line out, `--version`/`-V` banner, `--help`). |
 
@@ -182,9 +184,13 @@ path is ever assumed. When none exists, the adapter runs in a **labeled
 degraded compatibility mode**: the in-process TypeScript secret scanner,
 policy engine, and gate remain the fallback, and the secret scanner
 result carries an explicit "degraded compatibility mode, engine binary
-unavailable" note — never a silent pass. This keeps every outcome
-attributable and audit-stable: a scan whose coverage degrades still
-evaluates to `INCOMPLETE` (exit 2) rather than a clean pass.
+unavailable" note — never a silent pass. The label is a scanner note,
+not a completeness gap: a clean tree with the engine binary missing
+still evaluates to `PASS` (exit 0) with FULL coverage
+(`tests/engine-adapter.test.ts` asserts this). Coverage degrades to
+`INCOMPLETE` (exit 2) only when a scanner separately could not run —
+offline mode, a missing external tool, an errored check — never
+because the engine binary itself is absent.
 
 Because the engine's findings, gate decisions, and exit codes are
 byte-compatible with `packages/core` (see **Status** above), running the
@@ -233,7 +239,8 @@ reproducible on any machine without network or extra tools. Gitleaks
 delegation is **opt-in** via `preferGitleaks` and only adds findings on top of
 the offline rules when the binary is on `PATH`; `cargo audit` is requested via
 `runCargoAudit` for Rust ecosystems. Missing tools are reported `SKIPPED`
-(with an install hint) and timeouts are reported `ERROR` — in both cases the
+(with an install hint); timeouts and an unrecognized `cargo audit` output
+shape are reported `ERROR` — in all cases the
 gate degrades coverage; it never silently passes.
 
 ## Build and test
@@ -247,14 +254,21 @@ cargo test --manifest-path crates/Cargo.toml --workspace --all-features
 cargo build --manifest-path crates/Cargo.toml --workspace --release
 ```
 
-The suite is 60 tests: 31 unit tests across the source modules (gate, policy,
-exec, redaction, dependencies, glob) and 29 integration tests — TypeScript
-golden vectors, differential gate tests, secret-redaction parity tests,
-protocol end-to-end tests that spawn the real binary over stdio, and
-gated live-tool tests for the `cargo-audit` and `gitleaks` delegation
-paths (they skip honestly when the tool is not installed). The release
-build is `opt-level 3` with thin LTO, keeping the binary small enough for
-per-scan spawning.
+The suite currently has 75 tests: 41 unit tests in the source modules
+(gate, policy, exec, redaction, dependencies, protocol) and 34 integration
+tests across six files — TypeScript golden vectors
+(`tests/golden.rs`), differential gate tests
+(`tests/gate-differential.rs`), secret-redaction parity tests
+(`tests/secret-parity.rs`), parity fixtures
+(`tests/parity-fixtures.rs`), protocol end-to-end tests that spawn the
+real binary over stdio (`tests/protocol-e2e.rs`), and gated live-tool
+tests for the `cargo-audit` and `gitleaks` delegation paths
+(`tests/external-tools.rs`; they skip honestly when the tool is not
+installed). All 75 pass under
+`cargo test --manifest-path crates/Cargo.toml --workspace --all-features`
+(verified 2026-10-27); re-verify the count whenever the suite changes.
+The release build is `opt-level 3` with thin LTO, keeping the binary
+small enough for per-scan spawning.
 
 To sanity-check the binary:
 

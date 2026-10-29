@@ -10,3 +10,8 @@ crates/target/
 # local npm pack output from release validation
 artifacts/
 veylqorix-website/
+# stray parallel website working copy (its own .git + .next build tree) — do not commit
+veylqorix-website_try/
+# HyperFrames launch-film generated cache + rendered video build outputs
+video/**/.hyperframes/
+video/**/*.mp4

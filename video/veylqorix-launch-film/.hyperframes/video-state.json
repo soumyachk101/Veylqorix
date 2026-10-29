@@ -1,7 +1,7 @@
 {
   "version": 1,
   "historyId": "eacddeaf-a0b7-4627-99f2-b663650de838",
-  "currentRevision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
+  "currentRevision": "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba",
   "pendingChanges": false,
   "files": {
     ".media/manifest.jsonl": {
@@ -17,12 +17,12 @@
       "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/1b/1b36171117cb7c18f4100a0db6a3782ff2e096115995733200445cc2e80a4060"
     },
     "DESIGN.md": {
-      "hash": "13f5918870d08f13aaff4f83271cc2b902e1b1e8d8cb770e6edad46074f3c182",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/13/13f5918870d08f13aaff4f83271cc2b902e1b1e8d8cb770e6edad46074f3c182"
+      "hash": "a2342804385b514cb3b5e5f7a6f77326b36e824749b8dc0b3e3dd1145827ed70",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a2/a2342804385b514cb3b5e5f7a6f77326b36e824749b8dc0b3e3dd1145827ed70"
     },
     "SCRIPT.md": {
-      "hash": "3ea3f81b6398225f30a5bf9dcd675d5685fc52bdf5923f8169febf7a69290987",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/3e/3ea3f81b6398225f30a5bf9dcd675d5685fc52bdf5923f8169febf7a69290987"
+      "hash": "a82ed6bf86924c6c143db7eacbd693a967b430d5ca26d58c085558a62ceae923",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a8/a82ed6bf86924c6c143db7eacbd693a967b430d5ca26d58c085558a62ceae923"
     },
     "SPEC.md": {
       "hash": "ae637bb5302f05a1b2127e16524eb86ba54e53e6ace55f368bfcf0c83cfe920d",
@@ -249,28 +249,28 @@
       "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/70/7007ae483ac6ac26ad7e5ccb60d25c81ef340b1982414b22311e5c18ac656831"
     },
     "compositions/s2-complexity.html": {
-      "hash": "8b5d9bd6ae682da1ebe37ae60140c0e32a91ec73f6cb5e286da49c2be6166659",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8b/8b5d9bd6ae682da1ebe37ae60140c0e32a91ec73f6cb5e286da49c2be6166659"
+      "hash": "9bd20d8e9b7e73807c1123d661f9c48868187ac774e65f3c0493f29af5d8e634",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/9b/9bd20d8e9b7e73807c1123d661f9c48868187ac774e65f3c0493f29af5d8e634"
     },
     "compositions/s3-reveal.html": {
       "hash": "d26b51c447fcc2e9bae76d1f488e479c2cc891714c54956e9f96391cfff05f3c",
       "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/d2/d26b51c447fcc2e9bae76d1f488e479c2cc891714c54956e9f96391cfff05f3c"
     },
     "compositions/s4-pipeline.html": {
-      "hash": "8eeddfcd1654b119326333f2b3d1a58a96a9e2f4db8ee9e6dfbcedf3cdc75487",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8e/8eeddfcd1654b119326333f2b3d1a58a96a9e2f4db8ee9e6dfbcedf3cdc75487"
+      "hash": "a95e3902ec749958d464f72b6a8b8a6485d615386365d31e593ccbc11824d7ee",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a9/a95e3902ec749958d464f72b6a8b8a6485d615386365d31e593ccbc11824d7ee"
     },
     "compositions/s5-engine.html": {
-      "hash": "8a25371714fdf5505386d4aa2d34372b3ea2e98aade9f69f848032d378dbe024",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8a/8a25371714fdf5505386d4aa2d34372b3ea2e98aade9f69f848032d378dbe024"
+      "hash": "0e19f9a8b911d959153dafa35b97ddd2f75781a6aaca554e65340e50c4dbafd5",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/0e/0e19f9a8b911d959153dafa35b97ddd2f75781a6aaca554e65340e50c4dbafd5"
     },
     "compositions/s6-confidence.html": {
-      "hash": "3127cba4887dad5e59e4b6e9b092b3f5ca6ec60c0604ff5d08f3e298436bfea7",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/31/3127cba4887dad5e59e4b6e9b092b3f5ca6ec60c0604ff5d08f3e298436bfea7"
+      "hash": "9223395f8be3dac1a93d60a4fb2525a5b2327302619001d9e49e9d740aa67b77",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/92/9223395f8be3dac1a93d60a4fb2525a5b2327302619001d9e49e9d740aa67b77"
     },
     "compositions/s7-endcard.html": {
-      "hash": "8f820d1ae6d2f3ba2fbe2ccaf04655dd754fdf897da08835b7ef2e92087122e7",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8f/8f820d1ae6d2f3ba2fbe2ccaf04655dd754fdf897da08835b7ef2e92087122e7"
+      "hash": "7522f3eb1eb97209a8315100310a9a6854eeaad4f215b3d6fa69f6b52ca920be",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/75/7522f3eb1eb97209a8315100310a9a6854eeaad4f215b3d6fa69f6b52ca920be"
     },
     "hyperframes.json": {
       "hash": "53dbce1e19aa713cbb12ee0bc4d206143b45ab15e6ffbfcaa8f69572d4d24d50",
@@ -345,12 +345,12 @@
       "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/07/075e17bdac5c13662a1c9530050e0046f81d4138e00eb3bf30427a7b4404103d"
     },
     "README.md": {
-      "hash": "9defca949d5fc043f96adb43a5c7282f518ab8fbc806dfecfed6523f64901379",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/9d/9defca949d5fc043f96adb43a5c7282f518ab8fbc806dfecfed6523f64901379"
+      "hash": "4eecd9f4586c719ff913472aded460c0b8604a6cf32c4ef2c82fd743b912bb61",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/4e/4eecd9f4586c719ff913472aded460c0b8604a6cf32c4ef2c82fd743b912bb61"
     },
     "STORYBOARD.md": {
-      "hash": "8f75b3a12719fc465a714eac9f59a4b05ec58173f3220814948310b63ecc5098",
-      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8f/8f75b3a12719fc465a714eac9f59a4b05ec58173f3220814948310b63ecc5098"
+      "hash": "ab988b3444148676a0ec778a7f05843b658fdd8f6d76509557baede12ffbea7e",
+      "content": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/ab/ab988b3444148676a0ec778a7f05843b658fdd8f6d76509557baede12ffbea7e"
     },
     "assets/bgm/bgm-1793090675302.log": {
       "hash": "839b1a09087120493ab45f4293452f8720a7278b754cae1b1bd0b335dee644a8",
@@ -622,19 +622,95 @@
           "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8a/8a25371714fdf5505386d4aa2d34372b3ea2e98aade9f69f848032d378dbe024"
         }
       }
+    },
+    "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793095855455,
+      "endedAt": 1793095855462,
+      "files": {
+        "compositions/s4-pipeline.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8e/8eeddfcd1654b119326333f2b3d1a58a96a9e2f4db8ee9e6dfbcedf3cdc75487",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/c7/c705297083b9a0f7374c3f854a72898cd9b5effc7c179ae024ec3bc6596a5df0"
+        },
+        "compositions/s6-confidence.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/31/3127cba4887dad5e59e4b6e9b092b3f5ca6ec60c0604ff5d08f3e298436bfea7",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/92/9223395f8be3dac1a93d60a4fb2525a5b2327302619001d9e49e9d740aa67b77"
+        },
+        "DESIGN.md": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/13/13f5918870d08f13aaff4f83271cc2b902e1b1e8d8cb770e6edad46074f3c182",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a2/a2342804385b514cb3b5e5f7a6f77326b36e824749b8dc0b3e3dd1145827ed70"
+        },
+        "README.md": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/9d/9defca949d5fc043f96adb43a5c7282f518ab8fbc806dfecfed6523f64901379",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/4e/4eecd9f4586c719ff913472aded460c0b8604a6cf32c4ef2c82fd743b912bb61"
+        },
+        "SCRIPT.md": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/3e/3ea3f81b6398225f30a5bf9dcd675d5685fc52bdf5923f8169febf7a69290987",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a8/a82ed6bf86924c6c143db7eacbd693a967b430d5ca26d58c085558a62ceae923"
+        },
+        "STORYBOARD.md": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8f/8f75b3a12719fc465a714eac9f59a4b05ec58173f3220814948310b63ecc5098",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/ab/ab988b3444148676a0ec778a7f05843b658fdd8f6d76509557baede12ffbea7e"
+        }
+      }
+    },
+    "4f4cb8da-a1d6-4965-82ca-6139d0f0b242": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793205123744,
+      "endedAt": 1793205123758,
+      "files": {
+        "compositions/s2-complexity.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8b/8b5d9bd6ae682da1ebe37ae60140c0e32a91ec73f6cb5e286da49c2be6166659",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/b1/b1cd3ee770330541a9ede39d72726c0a52f4ef43347aa70b94f8283cbb3657a4"
+        },
+        "compositions/s4-pipeline.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/c7/c705297083b9a0f7374c3f854a72898cd9b5effc7c179ae024ec3bc6596a5df0",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/a9/a95e3902ec749958d464f72b6a8b8a6485d615386365d31e593ccbc11824d7ee"
+        },
+        "compositions/s5-engine.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8a/8a25371714fdf5505386d4aa2d34372b3ea2e98aade9f69f848032d378dbe024",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/0e/0e19f9a8b911d959153dafa35b97ddd2f75781a6aaca554e65340e50c4dbafd5"
+        },
+        "compositions/s7-endcard.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/8f/8f820d1ae6d2f3ba2fbe2ccaf04655dd754fdf897da08835b7ef2e92087122e7",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/75/7522f3eb1eb97209a8315100310a9a6854eeaad4f215b3d6fa69f6b52ca920be"
+        }
+      }
+    },
+    "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1793208997705,
+      "endedAt": 1793208997705,
+      "files": {
+        "compositions/s2-complexity.html": {
+          "before": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/b1/b1cd3ee770330541a9ede39d72726c0a52f4ef43347aa70b94f8283cbb3657a4",
+          "after": "/Users/soumyachakraborty/.cache/hyperframes/history/eacddeaf-a0b7-4627-99f2-b663650de838/blobs/9b/9bd20d8e9b7e73807c1123d661f9c48868187ac774e65f3c0493f29af5d8e634"
+        }
+      }
     }
   },
   "checks": {
     "latest": {
-      "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
-      "id": "60502ab7-6fdb-4784-87fb-696799bb3226"
+      "revision": "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba",
+      "id": "6aa46d62-4938-4f67-ad87-596ab652a34b"
     },
     "revisions": {
       "eba5d4c5-63ca-483b-ad03-dfc2cb5cfe64": [
         {
           "id": "19ee4c27-2d96-450b-87ea-4582ece8fcb0",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/19ee4c27-2d96-450b-87ea-4582ece8fcb0.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -656,14 +732,15 @@
           "revision": "eba5d4c5-63ca-483b-ad03-dfc2cb5cfe64",
           "inputFingerprint": "7f3ca9925ac3836db15714ebd8751c62e960e10744e5e05aae048bd9d46b19f8",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "2148f843-69cf-45aa-9c84-a2dc16fadc83": [
         {
           "id": "ac02d7b4-e893-4566-ac89-4c88cc6940d7",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/ac02d7b4-e893-4566-ac89-4c88cc6940d7.json",
           "metadata": {
             "ok": false,
             "browserSkipped": false,
@@ -685,14 +762,15 @@
           "revision": "2148f843-69cf-45aa-9c84-a2dc16fadc83",
           "inputFingerprint": "34f2356651630c569bbcafed3a8d928cce4cec67fcedd95433f2aa111eb1ab1f",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "9e000a54-5111-44f7-833a-1a740d025dfc": [
         {
           "id": "e4679e60-48a9-4dce-ba02-78955c2478b3",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/e4679e60-48a9-4dce-ba02-78955c2478b3.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -714,14 +792,15 @@
           "revision": "9e000a54-5111-44f7-833a-1a740d025dfc",
           "inputFingerprint": "6165a0a0e76a348147dae4a4998f81d6c13f5be4ac10e4c280b9dc8782853a5f",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "d3db6cb9-5dc1-4824-9668-2d0f980f4e40": [
         {
           "id": "53c8a618-acb7-4805-b7db-9386092f4403",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/53c8a618-acb7-4805-b7db-9386092f4403.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -743,12 +822,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "id": "766ed6b7-ba46-4853-89ba-c2e077f1465f",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/766ed6b7-ba46-4853-89ba-c2e077f1465f.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -770,12 +850,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "id": "a5632138-c402-4b90-ae0e-f74a342771d8",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/a5632138-c402-4b90-ae0e-f74a342771d8.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -797,14 +878,15 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e": [
         {
           "id": "984fbd40-7efd-4207-b9e5-279ee8b75c98",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/984fbd40-7efd-4207-b9e5-279ee8b75c98.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -826,12 +908,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "id": "22bc8b09-189b-4970-bf4f-cca2a11ff903",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/22bc8b09-189b-4970-bf4f-cca2a11ff903.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -853,12 +936,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "id": "43612f52-abf5-4423-ad1c-65bd410faf1b",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/43612f52-abf5-4423-ad1c-65bd410faf1b.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -880,14 +964,15 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "47f4b276-7046-48bd-8f0a-4c5073e12bcd": [
         {
           "id": "b432c843-3985-4c00-a945-f26b94ca0d90",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/b432c843-3985-4c00-a945-f26b94ca0d90.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -909,14 +994,15 @@
           "revision": "47f4b276-7046-48bd-8f0a-4c5073e12bcd",
           "inputFingerprint": "147c3d0a4e09d8f80084bb6787b2b8a904b3998e8bf95d6bfeba8390c3595530",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf": [
         {
           "id": "c8292474-8d27-41ab-89c1-288be9cc1e84",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/c8292474-8d27-41ab-89c1-288be9cc1e84.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -938,12 +1024,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "id": "60502ab7-6fdb-4784-87fb-696799bb3226",
           "scope": "project",
-          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/60502ab7-6fdb-4784-87fb-696799bb3226.json",
           "metadata": {
             "ok": true,
             "browserSkipped": false,
@@ -964,6 +1051,95 @@
           "contentHash": "1db0382d436e6dad41ca1c7668e38d1e16b810d7f073ecc8270285e9b5baa155",
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
+        }
+      ],
+      "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074": [
+        {
+          "id": "11bd4bd1-bced-42d7-93bf-f7dde87c070b",
+          "scope": "project",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 3000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793095861779,
+          "contentHash": "bb878ce20fee4baff80356a48eaaa4db6cb384c3f82a0aee917796ef2c3fbede",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "id": "f6aa20fb-ac07-4ba5-afa1-4f642fd52442",
+          "scope": "project",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 10000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793198683908,
+          "contentHash": "fccbbf3bba331c53c4582b054670c13358cb676c233cd824bec2fcbd3eb9c281",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        }
+      ],
+      "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba": [
+        {
+          "id": "6aa46d62-4938-4f67-ad87-596ab652a34b",
+          "scope": "project",
+          "report": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/checks/6aa46d62-4938-4f67-ad87-596ab652a34b.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 10000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1793209309023,
+          "contentHash": "36ca4a20f37b3fa51994cef79e427b1f35850a088c94dde4bda94e0b4368e545",
+          "revision": "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba",
+          "inputFingerprint": "9c49bee060c2cace57975ea38c1657c5667663ef8c2724065662849127398cb0",
           "inputScope": "local-project-files",
           "attribution": "recorded-revision"
         }
@@ -1028,15 +1204,14 @@
   },
   "snapshots": {
     "latest": {
-      "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
-      "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-10"
+      "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+      "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-5"
     },
     "revisions": {
       "d3db6cb9-5dc1-4824-9668-2d0f980f4e40": [
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-0",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-00-at-2s.png",
           "time": 2,
           "metadata": {
             "width": 1920,
@@ -1051,12 +1226,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-1",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-01-at-5.5s.png",
           "time": 5.5,
           "metadata": {
             "width": 1920,
@@ -1071,12 +1247,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-2",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-02-at-8s.png",
           "time": 8,
           "metadata": {
             "width": 1920,
@@ -1091,12 +1268,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-3",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-03-at-11.6s.png",
           "time": 11.6,
           "metadata": {
             "width": 1920,
@@ -1111,12 +1289,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-4",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-04-at-13.5s.png",
           "time": 13.5,
           "metadata": {
             "width": 1920,
@@ -1131,12 +1310,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-5",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-05-at-15.5s.png",
           "time": 15.5,
           "metadata": {
             "width": 1920,
@@ -1151,12 +1331,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-6",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-06-at-17.5s.png",
           "time": 17.5,
           "metadata": {
             "width": 1920,
@@ -1171,12 +1352,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-7",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-07-at-20.5s.png",
           "time": 20.5,
           "metadata": {
             "width": 1920,
@@ -1191,12 +1373,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-8",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-08-at-23.5s.png",
           "time": 23.5,
           "metadata": {
             "width": 1920,
@@ -1211,12 +1394,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-9",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-09-at-26.5s.png",
           "time": 26.5,
           "metadata": {
             "width": 1920,
@@ -1231,12 +1415,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-10",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-10-at-29.5s.png",
           "time": 29.5,
           "metadata": {
             "width": 1920,
@@ -1251,12 +1436,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-11",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-11-at-33.5s.png",
           "time": 33.5,
           "metadata": {
             "width": 1920,
@@ -1271,12 +1457,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-12",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-12-at-37s.png",
           "time": 37,
           "metadata": {
             "width": 1920,
@@ -1291,12 +1478,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-13",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-13-at-43.5s.png",
           "time": 43.5,
           "metadata": {
             "width": 1920,
@@ -1311,12 +1499,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-14",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-14-at-46s.png",
           "time": 46,
           "metadata": {
             "width": 1920,
@@ -1331,12 +1520,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-15",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-15-at-52.5s.png",
           "time": 52.5,
           "metadata": {
             "width": 1920,
@@ -1351,12 +1541,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-16",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-16-at-56s.png",
           "time": 56,
           "metadata": {
             "width": 1920,
@@ -1371,12 +1562,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "e4b41743-4ba5-4b46-be32-4e69dec6b073-17",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/c8cecd24-aaf1-4c25-b61c-d97aed288779/frame-17-at-58.2s.png",
           "time": 58.2,
           "metadata": {
             "width": 1920,
@@ -1391,12 +1583,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-0",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-00-at-2s.png",
           "time": 2,
           "metadata": {
             "width": 1920,
@@ -1411,12 +1604,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-1",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-01-at-4.5s.png",
           "time": 4.5,
           "metadata": {
             "width": 1920,
@@ -1431,12 +1625,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-2",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-02-at-8s.png",
           "time": 8,
           "metadata": {
             "width": 1920,
@@ -1451,12 +1646,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-3",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-03-at-11.5s.png",
           "time": 11.5,
           "metadata": {
             "width": 1920,
@@ -1471,12 +1667,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-4",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-04-at-15s.png",
           "time": 15,
           "metadata": {
             "width": 1920,
@@ -1491,12 +1688,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-5",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-05-at-18s.png",
           "time": 18,
           "metadata": {
             "width": 1920,
@@ -1511,12 +1709,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-6",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-06-at-22s.png",
           "time": 22,
           "metadata": {
             "width": 1920,
@@ -1531,12 +1730,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-7",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-07-at-26.5s.png",
           "time": 26.5,
           "metadata": {
             "width": 1920,
@@ -1551,12 +1751,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-8",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-08-at-33s.png",
           "time": 33,
           "metadata": {
             "width": 1920,
@@ -1571,12 +1772,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-9",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-09-at-44s.png",
           "time": 44,
           "metadata": {
             "width": 1920,
@@ -1591,12 +1793,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-10",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-10-at-55s.png",
           "time": 55,
           "metadata": {
             "width": 1920,
@@ -1611,12 +1814,13 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "c9d5da6e-434a-420f-aa57-1f0b9dd257a9-11",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/3c7158e5-264d-4fe6-ac68-e943b1ca12aa/frame-11-at-58.2s.png",
           "time": 58.2,
           "metadata": {
             "width": 1920,
@@ -1631,14 +1835,15 @@
           "revision": "d3db6cb9-5dc1-4824-9668-2d0f980f4e40",
           "inputFingerprint": "6cd8881e20bc2cc38ee8986c49f8e7b6ed549fffa0ffdfebcbbaf529b0aae3dc",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e": [
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-0",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-00-at-2.3s.png",
           "time": 2.3,
           "metadata": {
             "width": 1920,
@@ -1653,12 +1858,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-1",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-01-at-8s.png",
           "time": 8,
           "metadata": {
             "width": 1920,
@@ -1673,12 +1879,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-2",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-02-at-14.5s.png",
           "time": 14.5,
           "metadata": {
             "width": 1920,
@@ -1693,12 +1900,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-3",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-03-at-15.8s.png",
           "time": 15.8,
           "metadata": {
             "width": 1920,
@@ -1713,12 +1921,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-4",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-04-at-22s.png",
           "time": 22,
           "metadata": {
             "width": 1920,
@@ -1733,12 +1942,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-5",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-05-at-27.5s.png",
           "time": 27.5,
           "metadata": {
             "width": 1920,
@@ -1753,12 +1963,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-6",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-06-at-33s.png",
           "time": 33,
           "metadata": {
             "width": 1920,
@@ -1773,12 +1984,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-7",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-07-at-36s.png",
           "time": 36,
           "metadata": {
             "width": 1920,
@@ -1793,12 +2005,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-8",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-08-at-44s.png",
           "time": 44,
           "metadata": {
             "width": 1920,
@@ -1813,12 +2026,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-9",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-09-at-52s.png",
           "time": 52,
           "metadata": {
             "width": 1920,
@@ -1833,12 +2047,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-10",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-10-at-55.5s.png",
           "time": 55.5,
           "metadata": {
             "width": 1920,
@@ -1853,12 +2068,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "4eda920b-c83d-45bc-aa1a-e72b292d904a-11",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/091209cb-caaa-4e6f-b1d7-4f84858057dc/frame-11-at-58.2s.png",
           "time": 58.2,
           "metadata": {
             "width": 1920,
@@ -1873,12 +2089,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-0",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-00-at-1s.png",
           "time": 1,
           "metadata": {
             "width": 1920,
@@ -1893,12 +2110,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-1",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-01-at-3s.png",
           "time": 3,
           "metadata": {
             "width": 1920,
@@ -1913,12 +2131,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-2",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-02-at-7s.png",
           "time": 7,
           "metadata": {
             "width": 1920,
@@ -1933,12 +2152,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-3",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-03-at-13s.png",
           "time": 13,
           "metadata": {
             "width": 1920,
@@ -1953,12 +2173,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-4",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-04-at-16s.png",
           "time": 16,
           "metadata": {
             "width": 1920,
@@ -1973,12 +2194,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-5",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-05-at-24s.png",
           "time": 24,
           "metadata": {
             "width": 1920,
@@ -1993,12 +2215,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-6",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-06-at-28s.png",
           "time": 28,
           "metadata": {
             "width": 1920,
@@ -2013,12 +2236,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-7",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-07-at-34s.png",
           "time": 34,
           "metadata": {
             "width": 1920,
@@ -2033,12 +2257,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-8",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-08-at-38s.png",
           "time": 38,
           "metadata": {
             "width": 1920,
@@ -2053,12 +2278,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-9",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-09-at-44s.png",
           "time": 44,
           "metadata": {
             "width": 1920,
@@ -2073,12 +2299,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-10",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-10-at-48s.png",
           "time": 48,
           "metadata": {
             "width": 1920,
@@ -2093,12 +2320,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-11",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-11-at-53s.png",
           "time": 53,
           "metadata": {
             "width": 1920,
@@ -2113,12 +2341,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-12",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-12-at-57s.png",
           "time": 57,
           "metadata": {
             "width": 1920,
@@ -2133,12 +2362,13 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         },
         {
           "scope": "full",
           "id": "77e1628e-b15e-4f9b-a3e0-a586a5517f4b-13",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/41a462b1-1e42-42e3-a826-417cca0abfb2/frame-13-at-58.2s.png",
           "time": 58.2,
           "metadata": {
             "width": 1920,
@@ -2153,14 +2383,15 @@
           "revision": "ded496c5-dc6d-4ce1-a412-68c71f4b7b9e",
           "inputFingerprint": "2ca46eb57c8ad7fb18027596627a9c9c40532392de7f767420f912217634a33d",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "a2224ea3-514b-4bbc-a227-cf736d0bf9cf"
         }
       ],
       "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf": [
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-0",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-00-at-2.5s.png",
           "time": 2.5,
           "metadata": {
             "width": 1920,
@@ -2175,12 +2406,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-1",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-01-at-6s.png",
           "time": 6,
           "metadata": {
             "width": 1920,
@@ -2195,12 +2427,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-2",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-02-at-10s.png",
           "time": 10,
           "metadata": {
             "width": 1920,
@@ -2215,12 +2448,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-3",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-03-at-14s.png",
           "time": 14,
           "metadata": {
             "width": 1920,
@@ -2235,12 +2469,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-4",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-04-at-16s.png",
           "time": 16,
           "metadata": {
             "width": 1920,
@@ -2255,12 +2490,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-5",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-05-at-24s.png",
           "time": 24,
           "metadata": {
             "width": 1920,
@@ -2275,12 +2511,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-6",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-06-at-30s.png",
           "time": 30,
           "metadata": {
             "width": 1920,
@@ -2295,12 +2532,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-7",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-07-at-36s.png",
           "time": 36,
           "metadata": {
             "width": 1920,
@@ -2315,12 +2553,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-8",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-08-at-44s.png",
           "time": 44,
           "metadata": {
             "width": 1920,
@@ -2335,12 +2574,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-9",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-09-at-55s.png",
           "time": 55,
           "metadata": {
             "width": 1920,
@@ -2355,12 +2595,13 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
-          "attribution": "recorded-revision"
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
         },
         {
           "scope": "full",
           "id": "1345bb89-eef5-4934-b04b-aebd8fba2e7c-10",
-          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/12ec2f13-e6b7-41d4-a146-0672bf8da6f6/frame-10-at-58.2s.png",
           "time": 58.2,
           "metadata": {
             "width": 1920,
@@ -2375,10 +2616,1014 @@
           "revision": "071c8fe8-2ea0-4b0d-a465-b93fe2025bdf",
           "inputFingerprint": "abc70c7a26a9baff830d0e0b031ae96975aa5fa8ee725adb277fd2ab3fd96e4a",
           "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "398153b0-e764-4505-bee8-791fe9f07f9b"
+        }
+      ],
+      "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074": [
+        {
+          "scope": "full",
+          "id": "28793913-2694-47ea-af70-f8cd21f16d85-0",
+          "time": 26,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095885836,
+          "contentHash": "0b7b637c774e03cf95fb22e0b7098bafabc3dd46e62f56e4c48f9ae8b5b72dce",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "28793913-2694-47ea-af70-f8cd21f16d85-1",
+          "time": 30,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095885836,
+          "contentHash": "5a03615674c96f91842672b7e342fff4a2d208915cda41004102790d80a52f26",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "28793913-2694-47ea-af70-f8cd21f16d85-2",
+          "time": 44,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095885836,
+          "contentHash": "33d73c6b3fa0d7fb57d9d4d12112b66746f0b981251e133db58e0dd91f92a57e",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "28793913-2694-47ea-af70-f8cd21f16d85-3",
+          "time": 58.2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095885836,
+          "contentHash": "a05869376c1eb331899fcb43606d6c0946bc78defbd8d36236322ee5f7ea820a",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-0",
+          "time": 3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "081cc9435d4539bd814fab3d78ebb5c4bc53342f332af764a81c3a55086c1055",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-1",
+          "time": 16,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "dfb1ce0556a2cca01fdd19e26e86de9c406f1047388cf64a5d386057f4cdf1d1",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-2",
+          "time": 24,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "4c8b4d4e1bf831cdd96ea57dc53e225a38101d2ad2104a8823a62c0fb97e1fb9",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-3",
+          "time": 32,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "d03c5edd28f6aa3ce5797199969bb0210c1dc6f45d68de0f3979fca5c59bc794",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-4",
+          "time": 44,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "33d73c6b3fa0d7fb57d9d4d12112b66746f0b981251e133db58e0dd91f92a57e",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-5",
+          "time": 56,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "a05869376c1eb331899fcb43606d6c0946bc78defbd8d36236322ee5f7ea820a",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "ccf18b5e-f359-4b6f-8aa5-a4f51c3ec544-6",
+          "time": 58.2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793095891686,
+          "contentHash": "a05869376c1eb331899fcb43606d6c0946bc78defbd8d36236322ee5f7ea820a",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "1f133862a132cb1dd14d4c1edebdd801dfc8a4b51c10ecc4d68c3fb0410411f1",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-0",
+          "time": 2.3,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717616,
+          "contentHash": "d47ec0f18d91134a23e7f9311c12dbb7fa3642e4493c99b26d21decad239f3ed",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-1",
+          "time": 8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "e2ee5f1da70e9ee864acd50aabbda93e0ab440cd7e1c3ce36e3433589fe691fe",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-2",
+          "time": 14.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "3d28ab1aa99e1d6d11e00297c4930a7df4680b789c4264d3c482d15490eff1d0",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-3",
+          "time": 16,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "dfb1ce0556a2cca01fdd19e26e86de9c406f1047388cf64a5d386057f4cdf1d1",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-4",
+          "time": 22,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "b8b4fcc6715b6e827343c93f19d9c5f249716657243d1de2eac92a1453e0501c",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-5",
+          "time": 27.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "8ff260deb3c77e32e5395ff58360afb30fba993f5dc50ff46f660af5765db1ef",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-6",
+          "time": 33,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "fd49843b730a14f1d537f9d93da181b5047baf2baa12b17b550a7b78933957a8",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-7",
+          "time": 36,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "4e24cedd3441d0f66bf3928907dcdd5f2e89f4e2e0b2fe500cc8c536af75aadd",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-8",
+          "time": 44,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "33d73c6b3fa0d7fb57d9d4d12112b66746f0b981251e133db58e0dd91f92a57e",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-9",
+          "time": 52,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "e28feb2b4e2c6ac0a2a9c0c903df3d7fe9ae96fc1378a784ad30bd4ad7da9b07",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-10",
+          "time": 55.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "73778dd646795af668ac79ec4572058e7d5886241fcd206be7467e4eb54b234f",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-11",
+          "time": 58,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "a05869376c1eb331899fcb43606d6c0946bc78defbd8d36236322ee5f7ea820a",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        },
+        {
+          "scope": "full",
+          "id": "342c7b6f-1f22-4f86-a65c-12c0fe9ac556-12",
+          "time": 59.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793198717617,
+          "contentHash": "a05869376c1eb331899fcb43606d6c0946bc78defbd8d36236322ee5f7ea820a",
+          "revision": "ca1e27d5-b4c9-4fc5-a3c2-8321b1c74074",
+          "inputFingerprint": "380d6fd7021fcc8624edcaaee89e1a2bfccefefe897de4cb9b37ac7786188656",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41"
+        }
+      ],
+      "4f4cb8da-a1d6-4965-82ca-6139d0f0b242": [
+        {
+          "scope": "full",
+          "id": "0c85cf21-2985-48e1-a1ae-339553f2ecc2-0",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/a7836362-3e9c-4c99-81e5-becd03db4ded/frame-00-at-8s.png",
+          "time": 8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205126462,
+          "contentHash": "4c3af4ef9ef9698884423de0bf5df1a7c61199cac84fe3127216501e6297c097",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "0c85cf21-2985-48e1-a1ae-339553f2ecc2-1",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/a7836362-3e9c-4c99-81e5-becd03db4ded/frame-01-at-27.5s.png",
+          "time": 27.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205126463,
+          "contentHash": "53890fc3139839842ef3b878c8eb1e9693cf1ca60d64aca5e3743fb54e34bee2",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "0c85cf21-2985-48e1-a1ae-339553f2ecc2-2",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/a7836362-3e9c-4c99-81e5-becd03db4ded/frame-02-at-33s.png",
+          "time": 33,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205126463,
+          "contentHash": "8ce94271c4988859636968bd966b4be7e6ffb6cf44fb0f6734b7b819e97b14fa",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "0c85cf21-2985-48e1-a1ae-339553f2ecc2-3",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/a7836362-3e9c-4c99-81e5-becd03db4ded/frame-03-at-55.5s.png",
+          "time": 55.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205126463,
+          "contentHash": "92143d18edf50e2f4397b09cb0f58408db165cb56abcd3bb27bbf28e832a7ae2",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "0c85cf21-2985-48e1-a1ae-339553f2ecc2-4",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/a7836362-3e9c-4c99-81e5-becd03db4ded/frame-04-at-59.75s.png",
+          "time": 59.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205126463,
+          "contentHash": "c02b0f47766a38ccbdce5213892e64faca137721332fe928149fe80eaaf6a86e",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-0",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-00-at-2s.png",
+          "time": 2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450033,
+          "contentHash": "9a2203e9147e80e05d667a8dee271b86818dffed9a407f62f047343e1161f4d7",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-1",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-01-at-8s.png",
+          "time": 8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450033,
+          "contentHash": "36cbf047f8daa5114f0160587154532b8bd1ef97d119fc1e931372c8ce7f3203",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-2",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-02-at-14s.png",
+          "time": 14,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "87d5f0fcaf04262d61025e3ac074329683963151598c6dbeeeac96fc660f642f",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-3",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-03-at-22s.png",
+          "time": 22,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "b8b4fcc6715b6e827343c93f19d9c5f249716657243d1de2eac92a1453e0501c",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-4",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-04-at-27.5s.png",
+          "time": 27.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "53890fc3139839842ef3b878c8eb1e9693cf1ca60d64aca5e3743fb54e34bee2",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-5",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-05-at-33s.png",
+          "time": 33,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "8ce94271c4988859636968bd966b4be7e6ffb6cf44fb0f6734b7b819e97b14fa",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-6",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-06-at-36s.png",
+          "time": 36,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "cf7124bc6c2e0b72f177bc859aa53a450eef9704cd2a7d67f8f8f7f40cd0bd23",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-7",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-07-at-44s.png",
+          "time": 44,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "33d73c6b3fa0d7fb57d9d4d12112b66746f0b981251e133db58e0dd91f92a57e",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-8",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-08-at-48s.png",
+          "time": 48,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "b721f6fc9874a0a3ea890cb986c4842c71bf2a78775cf5f2788d2feafad568ab",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-9",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-09-at-52s.png",
+          "time": 52,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "e28feb2b4e2c6ac0a2a9c0c903df3d7fe9ae96fc1378a784ad30bd4ad7da9b07",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-10",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-10-at-55.5s.png",
+          "time": 55.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "92143d18edf50e2f4397b09cb0f58408db165cb56abcd3bb27bbf28e832a7ae2",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-11",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-11-at-58s.png",
+          "time": 58,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "c02b0f47766a38ccbdce5213892e64faca137721332fe928149fe80eaaf6a86e",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "14b2f5e9-a2cc-4675-be2a-b0e8342970c2-12",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/0851e757-f9fe-4d69-8108-e0a5ca39daeb/frame-12-at-59.75s.png",
+          "time": 59.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793205450034,
+          "contentHash": "c02b0f47766a38ccbdce5213892e64faca137721332fe928149fe80eaaf6a86e",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-0",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-00-at-7s.png",
+          "time": 7,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416546,
+          "contentHash": "d348566d6d209e251183a7d9f17b410f04cdab67188f3862e1960893a3fabc4f",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-1",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-01-at-7.5s.png",
+          "time": 7.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416546,
+          "contentHash": "363989c8edc7a62433aef352638501a4a192ff4fd5df317862eb11fb3b257b00",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-2",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-02-at-8s.png",
+          "time": 8,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416546,
+          "contentHash": "4c3af4ef9ef9698884423de0bf5df1a7c61199cac84fe3127216501e6297c097",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-3",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-03-at-8.5s.png",
+          "time": 8.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416547,
+          "contentHash": "d0ccadf1536b91fcd6b690bb1764727da5c22fb89717facb9182ec285f037c97",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-4",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-04-at-9s.png",
+          "time": 9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416547,
+          "contentHash": "fbe6d9be76e0d0b96e40a9edb3237674cdbde70a91ffc492a015c3e189721358",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "8ebc5b15-0c73-476e-a32f-bdc43c473df7-5",
+          "image": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/.hyperframes/artifacts/snapshots/d9fcc350-4c9c-4a3b-81cd-b0060ba34319/frame-05-at-59.75s.png",
+          "time": 59.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1793206416547,
+          "contentHash": "c02b0f47766a38ccbdce5213892e64faca137721332fe928149fe80eaaf6a86e",
+          "revision": "4f4cb8da-a1d6-4965-82ca-6139d0f0b242",
+          "inputFingerprint": "da2e9b18e3303fbcace4d90feafbc0b143ae0dc4b383114c63445111900476b4",
+          "inputScope": "local-project-files",
           "attribution": "recorded-revision"
         }
       ]
     },
     "unversioned": []
-  }
+  },
+  "renders": {
+    "latest": {
+      "id": "8a2ee1b9-2e62-409c-8db1-52ffdf546b41",
+      "completedAt": 1793209060363,
+      "output": "/Users/soumyachakraborty/Documents/Veylqorix/video/veylqorix-launch-film/veylqorix-launch-film.mp4",
+      "status": "completed",
+      "revision": "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba"
+    },
+    "retainedRevisions": [
+      "2a6b36b6-d0fd-41ac-bb1f-285f81b94fba",
+      "4f4cb8da-a1d6-4965-82ca-6139d0f0b242"
+    ]
+  },
+  "pendingArtifactCleanup": []
 }

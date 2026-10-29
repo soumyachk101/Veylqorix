@@ -110,7 +110,7 @@ Scanner adapters **reuse existing tools rather than reimplementing them**:
 | Scanner      | Backed by                                                         | Offline? |
 |--------------|-------------------------------------------------------------------|----------|
 | dependencies | `npm audit` (Node) / `pip-audit` (Python); `cargo audit` in the Rust engine | optional |
-| secrets      | built-in rule set (9 named rules, values redacted); Gitleaks delegation in the Rust engine when the binary is on PATH | yes |
+| secrets      | built-in rule set (9 named rules, values redacted); Gitleaks delegation in the Rust engine (opt-in via `preferGitleaks`, when the binary is on PATH) | yes |
 | licenses     | manifest license checks                                           | yes      |
 | quality      | `tsc`, `eslint`, `ruff`, project test scripts                    | no       |
 
@@ -207,7 +207,7 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 | GitHub Actions gate           | `.github/workflows/veylqorix-gate.yml`   | Reusable `workflow_call` gate: real scan + SARIF upload, SHA-pinned actions, least-privilege permissions. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
 | Agent skills                  | `packages/skills`                        | Portable `SKILL.md` + ready-made MCP configs for Claude Code, Codex, and Cursor.                                              | [packages/skills](packages/skills) |
 | Plugin SDK (`@veylqorix/plugin`) | `packages/plugin`                     | Custom scanners/checks that plug into `runAudit` and the gate; shell-free `exec`, no silent passes. **Not published to npm — run from source via `workspace:*` until publish.** | [docs/plugin.md](docs/plugin.md) |
-| Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 60 tests; called by the TypeScript core through the engine adapter. | below |
+| Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 75 tests; called by the TypeScript core through the engine adapter. | below |
 
 **Honest note:** the gate and the CLI hooks are *advisory* until
 enforcement (branch protection) is in place; the CLI is packaged and
@@ -613,10 +613,14 @@ binary stays small and fast. Dependencies are pure Rust (`serde`,
 > present; when it is not, `runAudit` degrades to the byte-compatible
 > TypeScript secret scanner and policy engine and records an explicit
 > "degraded compatibility mode" note on the secret scanner result, so a
-> degraded run is never presented as a full engine run (a scan whose coverage
-> degrades still comes out `INCOMPLETE`, exit 2, — never a silent pass).
-> The engine runs the secret scan and evaluates the gate over the merged
-> evidence, and its decision drives the exit codes the surfaces report.
+> degraded run is never presented as a full engine run. The label is a
+> scanner note, not a completeness gap: a clean repo with the engine binary
+> missing still evaluates `PASS` (exit 0, FULL coverage), and coverage
+> degrades to `INCOMPLETE` (exit 2) only when a scanner separately could
+> not run (offline mode, a missing tool, an errored check) — never a
+> silent pass. The engine runs the secret scan and evaluates the gate over
+> the merged evidence, and its decision drives the exit codes the surfaces
+> report.
 
 ### Protocol
 
@@ -695,7 +699,9 @@ never become a silent pass.
   --json`, run with the audit root as the working directory (the lockfile
   is passed via `-f`). No `Cargo.lock` → `SKIPPED` ("not a pass");
   missing `cargo-audit` binary → `SKIPPED` with an install hint
-  (`cargo install cargo-audit`); timeout → `ERROR`. SKIPPED-never-PASS
+  (`cargo install cargo-audit`); timeout → `ERROR`. An unrecognized
+  output shape (older or changed `cargo-audit` payload) → `ERROR`, so an
+  audit the engine cannot read is never turned into a pass. SKIPPED-never-PASS
   semantics are documented in the module header and enforced in code.
 - **Safe execution.** All external tool runs are shell-free (explicit
   argument arrays, no shell), carry a timeout (default 120 000 ms; the
@@ -710,15 +716,16 @@ never become a silent pass.
 
 ### Tests and CI
 
-60 tests: **31 unit** (gate mapping, policy evaluation, safe exec,
+75 tests: **41 unit** (gate mapping, policy evaluation, safe exec,
 redaction, cargo-audit handling, process-group timeout cleanup) and
-**29 integration**:
+**34 integration**:
 
 | Suite              | File                        | What it pins                                                        |
 |--------------------|-----------------------------|----------------------------------------------------------------------|
 | Golden             | `tests/golden.rs`           | TypeScript golden vectors — finding ids byte-identical to the TS core |
 | Gate differential  | `tests/gate-differential.rs`| gate decisions match reference behavior across policy inputs         |
 | Secret parity      | `tests/secret-parity.rs`    | secret detection + redaction parity with the TS scanner             |
+| Parity fixtures    | `tests/parity-fixtures.rs`  | fixture-driven differential + protocol parity with the TS core      |
 | Protocol e2e       | `tests/protocol-e2e.rs`     | spawns the real binary and round-trips the stdio protocol          |
 | External tools     | `tests/external-tools.rs`   | live `cargo-audit` (vulnerable + clean lockfile) and `gitleaks` delegation paths, run only when the tools are installed |
 
@@ -727,8 +734,10 @@ CI (`.github/workflows/ci.yml`) runs against the workspace manifest:
 --all-features`, and `cargo build --release` (stable toolchain with
 clippy + rustfmt, all third-party actions pinned to commit SHAs) —
 before the TypeScript test suite. CI also installs `cargo-audit` and
-pinned `gitleaks` so the external-tools tests exercise the real
-delegation paths rather than skipping.
+pinned `gitleaks` (non-fatally, `continue-on-error`) so the external-tools
+tests exercise the real delegation paths when the install succeeds; when a
+tool is unavailable the tests log an honest SKIP rather than skipping the
+scan silently.
 
 ## Policy and exceptions
 
@@ -839,7 +848,10 @@ absence of vulnerabilities or secrets. Specifically:
   `packages/core/src/engine/index.ts` when the `veylqorix-engine`
   binary is available, and degrades to the byte-compatible TypeScript
   fallback with an explicit "degraded compatibility mode" note on the
-  secret scanner result when it is not — never a silent fallback.
+  secret scanner result when it is not — never a silent fallback. A
+  clean repo with the engine binary missing still exits `0` (PASS, FULL
+  coverage); exit `2` (INCOMPLETE) appears only when a scanner
+  separately could not run.
 - **The API store is a single-process JSON file**
   (`VEYLQORIX_STORE_PATH`, default `./.veylqorix-store.json`):
   repositories and scan history survive restarts, and in-flight scans
@@ -894,12 +906,12 @@ cargo test --manifest-path crates/Cargo.toml --workspace --all-features
 ```
 
 The TypeScript suite covers the gate logic, finding normalization,
-secret redaction, path confinement, and policy validation against six
-fixture repositories (`clean-repo`, `failing-tests-repo`,
-`insecure-repo`, `no-scanner-repo`, `secret-repo`, `vulnerable-repo`
-— fake data only, never real credentials), the full audit flow, the
-REST API over real HTTP, and the MCP server through an in-memory
-client. The Rust suite adds 60 tests (see
+secret redaction, path confinement, and policy validation against the
+fixture repositories in `tests/fixtures/` (including `clean-repo`,
+`failing-tests-repo`, `insecure-repo`, `no-scanner-repo`, `secret-repo`,
+`vulnerable-repo` — fake data only, never real credentials), the full
+audit flow, the REST API over real HTTP, and the MCP server through an
+in-memory client. The Rust suite adds 75 tests (see
 [Rust security engine](#rust-security-engine)).
 
 **Ground rules** (full text in [CONTRIBUTING.md](CONTRIBUTING.md)): no
@@ -922,7 +934,7 @@ Two suites, both run in CI:
   `packages/*/src` and `apps/*/src`, against the fixture repositories
   in `tests/fixtures/` (fake data only).
 - **Rust engine** — `cargo test --manifest-path crates/Cargo.toml
-  --workspace --all-features`: 60 tests covering the gate, policy,
+  --workspace --all-features`: 75 tests covering the gate, policy,
   redaction, safe exec, and the stdio protocol. See
   [Rust security engine — Tests and CI](#tests-and-ci).
 

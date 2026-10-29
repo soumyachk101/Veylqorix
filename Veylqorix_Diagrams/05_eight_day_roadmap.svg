@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#6A768C"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="560" fill="#FBFAF7"/>
+  <g font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="14">
+    <g>
+      <rect x="48" y="34" width="34" height="34" rx="8" fill="#44CDBB"/>
+      <rect x="62" y="44" width="34" height="34" rx="8" fill="#9B84F3" opacity="0.92"/>
+      <rect x="55" y="70" width="20" height="20" rx="5" fill="#E3BE45"/>
+      <text x="118" y="60" font-size="28" font-weight="700" fill="#17213A">VEYLQORIX</text>
+      <text x="118" y="80" font-size="12" fill="#5A6B85">No Unsafe Code Gets Through.</text>
+      <line x1="350" y1="42" x2="350" y2="86" stroke="#D6DAE4" stroke-width="2"/>
+      <text x="376" y="58" font-size="24" font-weight="700" fill="#17213A">Eight-day build roadmap — archived</text>
+      <text x="376" y="80" font-size="14" fill="#5A6B85">The original build plan; every milestone shipped. Kept as a historical record, not a schedule.</text>
+    </g>
+
+    <!-- row 1 -->
+    <rect x="60" y="140" width="250" height="100" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+    <text x="185" y="170" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 1</text>
+    <text x="185" y="194" font-size="12.5" fill="#46536A" text-anchor="middle">Repository audit</text>
+    <text x="185" y="214" font-size="12.5" fill="#46536A" text-anchor="middle">architecture · baseline tests</text>
+
+    <line x1="310" y1="190" x2="330" y2="190" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="336" y="140" width="250" height="100" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+    <text x="461" y="170" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 2</text>
+    <text x="461" y="194" font-size="12.5" fill="#46536A" text-anchor="middle">Rust core + CLI</text>
+    <text x="461" y="214" font-size="12.5" fill="#46536A" text-anchor="middle">scanner interfaces · tests</text>
+
+    <line x1="586" y1="190" x2="606" y2="190" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="612" y="140" width="250" height="100" rx="12" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="1.6"/>
+    <text x="737" y="170" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 3</text>
+    <text x="737" y="194" font-size="12.5" fill="#46536A" text-anchor="middle">Real scanners</text>
+    <text x="737" y="214" font-size="12.5" fill="#46536A" text-anchor="middle">deps · secrets · quality</text>
+
+    <line x1="862" y1="190" x2="882" y2="190" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="888" y="140" width="250" height="100" rx="12" fill="#F0EBFF" stroke="#9B84F3" stroke-width="1.6"/>
+    <text x="1013" y="170" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 4</text>
+    <text x="1013" y="194" font-size="12.5" fill="#46536A" text-anchor="middle">MCP + skill</text>
+    <text x="1013" y="214" font-size="12.5" fill="#46536A" text-anchor="middle">validated tools · client setup</text>
+
+    <!-- connector down -->
+    <polyline points="1013,240 1013,310 285,310" fill="none" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="285" y1="310" x2="285" y2="348" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+
+    <!-- row 2 -->
+    <rect x="160" y="354" width="250" height="100" rx="12" fill="#FFF3C8" stroke="#E3BE45" stroke-width="1.6"/>
+    <text x="285" y="384" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 5</text>
+    <text x="285" y="408" font-size="12.5" fill="#46536A" text-anchor="middle">GitHub gate</text>
+    <text x="285" y="428" font-size="12.5" fill="#46536A" text-anchor="middle">hooks · Actions · JSON / SARIF</text>
+
+    <line x1="410" y1="404" x2="430" y2="404" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="436" y="354" width="250" height="100" rx="12" fill="#FFF3C8" stroke="#E3BE45" stroke-width="1.6"/>
+    <text x="561" y="384" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 6</text>
+    <text x="561" y="408" font-size="12.5" fill="#46536A" text-anchor="middle">API + dashboard</text>
+    <text x="561" y="428" font-size="12.5" fill="#46536A" text-anchor="middle">real scan data · findings UI</text>
+
+    <line x1="686" y1="404" x2="706" y2="404" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="712" y="354" width="250" height="100" rx="12" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="1.6"/>
+    <text x="837" y="384" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 7</text>
+    <text x="837" y="408" font-size="12.5" fill="#46536A" text-anchor="middle">Integration hardening</text>
+    <text x="837" y="428" font-size="12.5" fill="#46536A" text-anchor="middle">E2E · permissions · bug fixes</text>
+
+    <line x1="962" y1="404" x2="982" y2="404" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="988" y="354" width="250" height="100" rx="12" fill="#F0EBFF" stroke="#9B84F3" stroke-width="1.6"/>
+    <text x="1113" y="384" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">DAY 8</text>
+    <text x="1113" y="408" font-size="12.5" fill="#46536A" text-anchor="middle">Showcase preparation</text>
+    <text x="1113" y="428" font-size="12.5" fill="#46536A" text-anchor="middle">reproducible demo · docs</text>
+
+    <!-- all shipped marker -->
+    <line x1="1113" y1="454" x2="1113" y2="496" stroke="#58B98A" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="880" y="500" width="458" height="44" rx="10" fill="#DFF5E8" stroke="#58B98A" stroke-width="1.6"/>
+    <text x="1109" y="527" font-size="13" font-weight="700" fill="#17213A" text-anchor="middle">all milestones shipped — see CHANGELOG.md</text>
+  </g>
+</svg>

@@ -192,8 +192,8 @@ repository side is merged, green, and verified.
 
 ## 4c. Bootstrap state as of 2026-10-27 (23:00, after `npm login`)
 
-After the owner ran `npm login` (as `soumya.chk101`, who is the **owner** of
-the `@veylqorix` scope — confirmed via `npm org ls veylqorix`), the bootstrap
+After the owner ran `npm login` on the account that owns the `@veylqorix`
+scope (confirmed via `npm org ls veylqorix`), the bootstrap
 was executed as far as the credential allows:
 
 - **Discovery that forced a procedure change:** `npm publish` of the 0.0.1
@@ -260,27 +260,102 @@ jobs") or via `gh run rerun` — no version bump needed.
   ("fix(release): publish via ./-prefixed tarball paths"); `main` ==
   `origin/main` == `dd2054f`. The `v0.1.1` tag was re-pointed to
   `dd2054f`; `v0.1.0` still points at `e768d08` and was not touched.
-- The tag-push triggered release run [40558927305](https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305),
-  which **failed at the `Publish @veylqorix/core` step** — verbatim:
-
-      npm error code ENEEDAUTH
-      npm error need auth This command requires you to be logged in to https://registry.npmjs.org/
-      npm error need auth You need to authorize this machine using `npm adduser`
-
-- `0.1.1` is **unpublished** (verified via `npm view ... versions`:
-  both packages list only `0.0.0-stage`; `npm view
-  @veylqorix/core@0.1.1` / `@veylqorix/cli@0.1.1` both 404), so the
-  run can be cleanly re-triggered.
-- Remaining owner actions: create the two trusted-publisher records
-  (npm web UI, 2FA session — the configured bypass-2FA token fails
-  `npm trust` with `EOTP`), then re-run the failed run
+- The tag-push triggered release run [40558927305](https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305).
+  **Correction:** this run **published `@veylqorix/core@0.1.1`
+  successfully** (signed provenance attestation) and failed only at the
+  `Publish @veylqorix/cli` step with `ENEEDAUTH` — the CLI's
+  trusted-publisher record was missing or misconfigured while core's
+  was already registered. See section 4f for the log evidence.
+- The registry is now **partway published**: `@veylqorix/core@0.1.1`
+  exists (the signed-publish line in run 40558927305's log confirms it),
+  the CLI remains unpublished, so the tag's completion is a single
+  re-run after the CLI record is created. (A read-only
+  `npm view @veylqorix/core@0.1.1` / `npm view @veylqorix/cli versions`
+  will confirm both halves.)
+- Remaining owner actions: create the **CLI** trusted-publisher record
+  only (npm web UI, 2FA session — the configured bypass-2FA token
+  fails `npm trust` with `EOTP`), then re-run the release
   (`gh run rerun 40558927305`). Full step-by-step:
-  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` section 6.
+  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` section 7.
+
+## 4f. Confirmed ENEEDAUTH diagnosis (2026-10-28, from the Actions logs)
+
+The `gh` CLI was available and authenticated in this environment, so run
+[40558927305](https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305)
+(`v0.1.1`, head `dd2054f`) was fetched and read. The step-level evidence:
+
+- Job `pack`: success — tag/version guard accepted `v0.1.1` against both
+  `0.1.1` manifests; builds and `pnpm pack` passed; the `packaged-tarballs`
+  artifact uploaded and was downloaded back with a matching SHA-256 digest
+  (`sha256:1ec9dbed...`), so the `./`-prefix fix (`dd2054f`) is
+  confirmed working.
+- Job `publish` (runner image reports Node `v24.21.0`, npm `11.19.0`):
+  - `Publish @veylqorix/core` — **success**, verbatim log lines:
+
+        npm notice 📦  @veylqorix/core@0.1.1
+        npm notice publish Signed provenance statement with source and build information from GitHub Actions
+
+  - `Wait for @veylqorix/core to be visible on the registry` — success
+    on the first poll attempt.
+  - `Publish @veylqorix/cli` — **failure, exit code 1**, verbatim:
+
+        npm notice 📦  @veylqorix/cli@0.1.1
+        npm error code ENEEDAUTH
+        npm error need auth This command requires you to be logged in to https://registry.npmjs.org/
+        npm error need auth You need to authorize this machine using `npm adduser`
+
+**Diagnosis:** `ENEEDAUTH` is the error npm returns for a trusted
+publishing request whose OIDC token it cannot authorize for that
+package — i.e. the trusted-publisher record for `@veylqorix/cli`
+(matching owner `soumyachk101`, repository `Veylqorix`, workflow
+`release.yml`) does not exist, or does not allow direct `npm publish`.
+The same run, same OIDC token, same repository, same workflow file
+published core with a signed provenance attestation — so the
+repository-side workflow, the OIDC token, and the core record are all
+proven correct; the gap is exactly one npm-side record, for the CLI.
+
+Likely specific causes, in order of likelihood (all on the npm side,
+none require a code change):
+1. No trusted-publisher record was ever created for `@veylqorix/cli`
+   (records are per-package — configuring core does not authorize the
+   CLI).
+2. A CLI record exists but was left at the post-2026-09-03
+   stage-only default, with direct `npm publish` not enabled.
+3. A CLI record exists with a mismatched field (repository or workflow
+   filename) against the one core uses: owner `soumyachk101`,
+   repository `Veylqorix`, workflow `release.yml`, environment unset.
+
+Copy-paste-ready CLI check (read-only, no secrets):
+`npm trust list @veylqorix/cli --json` — it should list **zero**
+records with `allowPublish` or the equivalent; if it lists a record,
+diff its fields against the ones above. The same command for
+`@veylqorix/core` should list the working record.
+
+**Workflow change made in response:** both publish steps in
+`.github/workflows/release.yml` now first check the registry
+(`npm view <pkg>@<version>`) and skip an already-published version
+with a `::notice::` instead of failing with `EPUBLISHCONFLICT` —
+without it, every re-run of `v0.1.1` would die at the core step,
+which is permanently published. This makes the re-run that completes
+the CLI publish idempotent. A new `test` job (mirroring the
+`ci.yml` quality loop: install, build, Rust fmt/clippy/test, engine
+release build, `pnpm test`, typecheck, lint) now gates the `publish`
+job alongside `pack`, so a tag can no longer publish a commit whose
+validation checks failed.
 
 ## 5. Actions requiring the owner's npm / GitHub account
 
 These are the only steps that can move the release forward. Full detail in
 `NPM_TRUSTED_PUBLISHING_SETUP.md`.
+
+> **Superseded in part (2026-10-28, see §4f):** items 1–3 below predate
+> the partial release: core's trusted-publisher record exists and has
+> already validated its first publish (`@veylqorix/core@0.1.1` is on the
+> registry with a provenance attestation), and the bootstrap staging
+> versions exist for both packages. The only remaining owner action for
+> the release is item 4 **for the CLI package**, then item 6's re-run —
+> the exact current procedure is `NPM_TRUSTED_PUBLISHING_SETUP.md`
+> section 6 (updated 2026-10-28). Items 1–3 are kept for history.
 
 1. **Fix the npm credential** (currently the top blocker): run `npm login`
    on the owner's machine, or install a fresh granular token with the
@@ -314,6 +389,17 @@ These are the only steps that can move the release forward. Full detail in
    and monitor the run.
 
 ## 6. Remaining release blockers
+
+> Status column reflects 2026-10-28 after the §4f log confirmation. The
+> original table (pre-release) is preserved below it for history.
+
+| # | Blocker | Priority | Who | Status 2026-10-28 |
+|---|---|---|---|---|
+| B1 | CLI trusted-publisher record missing (or stage-only / mismatched) — the confirmed cause of the ENEEDAUTH at `Publish @veylqorix/cli` in run 40558927305 | **P0** | Owner (npm web UI, 2FA session; §4f has the exact fields) | **open — the single remaining blocker** |
+| B2 | `release.yml` still without the idempotent re-run guard / validation job — an old-workflow re-run would hard-fail at the core step with `EPUBLISHCONFLICT` before reaching the CLI | **P0** | This working tree (fix made, not yet committed/pushed) | open until committed + tag re-pointed |
+| B3 | The CLI's 2-day trusted-publisher validation clock starts when B1's record is created — the STEP-3 re-run must happen the same day | **P1** | Owner | follows B1 |
+
+Original table (superseded; kept for history):
 
 | # | Blocker | Priority | Who |
 |---|---|---|---|

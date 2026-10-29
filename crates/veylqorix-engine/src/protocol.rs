@@ -24,7 +24,7 @@
 //! in the response carry the decision, and protocol errors are out-of-band,
 //! structurally unable to be read as a pass.
 
-use std::io::{BufRead, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -300,7 +300,15 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
             "`root` is required for the scan command".to_string(),
         )
     })?;
-    let root_path = Path::new(root);
+    let root_path = match std::fs::canonicalize(Path::new(root)) {
+        Ok(p) => p,
+        Err(_) => {
+            return Err((
+                ErrorKind::RootNotFound,
+                format!("audit root '{root}' does not exist or is not a directory"),
+            ));
+        }
+    };
     if !root_path.is_dir() {
         return Err((
             ErrorKind::RootNotFound,
@@ -327,24 +335,32 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
         // its own findings on top. An unavailable gitleaks is recorded, not
         // silenced.
         if args.prefer_gitleaks && which("gitleaks") {
-            let res = gitleaks_scan(root_path, timeout_ms);
+            let res = gitleaks_scan(&root_path, timeout_ms);
             notes.push(gitleaks_note(&res));
             if res.status == ScannerStatus::Pass || res.status == ScannerStatus::Fail {
                 engine_results.push(res);
             }
         }
-        let files = collect_files(root_path, &options, &staged).map_err(|e| {
-            (
-                ErrorKind::Internal,
-                format!("secret scan could not read the audit root: {e}"),
-            )
-        })?;
+        let mut collect_notes: Vec<String> = Vec::new();
+        let files =
+            collect_files(&root_path, &options, &staged, &mut collect_notes).map_err(|e| {
+                (
+                    ErrorKind::Internal,
+                    format!("secret scan could not read the audit root: {e}"),
+                )
+            })?;
         let source = if args.prefer_gitleaks && which("gitleaks") {
             "offline-rules+gitleaks"
         } else {
             "offline-rules"
         };
-        engine_results.push(secret_scanner_result(&files, source));
+        let mut result = secret_scanner_result(&files, source);
+        // Record degraded coverage on the scanner result itself so an
+        // unreadable subdirectory never reads as a clean, complete scan.
+        if !collect_notes.is_empty() {
+            result.notes.extend(collect_notes);
+        }
+        engine_results.push(result);
     }
 
     // The orchestrator (TypeScript adapter) enables cargo audit when it
@@ -352,7 +368,7 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
     // no-lockfile and missing-binary cases inside `cargo_audit` still
     // surface as SKIPPED, never PASS.
     if args.run_cargo_audit {
-        let result = cargo_audit(root_path, timeout_ms);
+        let result = cargo_audit(&root_path, timeout_ms);
         notes.push(cargo_note(&result));
         engine_results.push(result);
     }
@@ -678,6 +694,45 @@ fn error_frame(kind: ErrorKind, message: String) -> Response {
     }
 }
 
+/// Read one request line from stdin (up to the first `\n` or EOF), enforcing
+/// [`MAX_INPUT_BYTES`] *during* the read so an oversized document is rejected
+/// without buffering the whole payload into memory.
+///
+/// Returns the bytes up to (excluding) the newline, or `None` when the line
+/// exceeded the cap.
+fn read_bounded_line(mut reader: impl Read) -> Result<Option<Vec<u8>>, std::io::Error> {
+    let mut out: Vec<u8> = Vec::with_capacity(4096);
+    let mut chunk = [0u8; 4096];
+    loop {
+        let n = reader.read(&mut chunk)?;
+        if n == 0 {
+            // EOF: the document was under the cap (or empty).
+            if out.len() > MAX_INPUT_BYTES {
+                return Ok(None);
+            }
+            return Ok(Some(out));
+        }
+        let chunk_start = out.len();
+        out.extend_from_slice(&chunk[..n]);
+        // Stop at the first newline in the freshly appended bytes so the
+        // returned slice matches `read_line` semantics (one document only).
+        // The cap check includes the newline, the way the previous
+        // `read_line`-based check did.
+        if let Some(pos) = out[chunk_start..].iter().position(|&b| b == b'\n') {
+            let line_end = chunk_start + pos + 1;
+            out.truncate(chunk_start + pos);
+            if line_end > MAX_INPUT_BYTES {
+                return Ok(None);
+            }
+            return Ok(Some(out));
+        }
+        // No newline yet: reject at the cap instead of buffering more.
+        if out.len() > MAX_INPUT_BYTES {
+            return Ok(None);
+        }
+    }
+}
+
 /// Read one request document from stdin (capped), execute it, and write one
 /// response document to stdout (capped). Used by the binary.
 ///
@@ -685,18 +740,11 @@ fn error_frame(kind: ErrorKind, message: String) -> Response {
 /// On any protocol error the binary writes a structured error frame to
 /// stdout, prints the reason to stderr, and returns the error's exit code.
 pub fn serve() -> i32 {
-    let mut input = String::new();
-    match std::io::stdin().lock().read_line(&mut input) {
-        Ok(0) => {
-            let reason = "veylqorix-engine: empty request; expected one JSON document on stdin";
-            let frame = error_frame(
-                ErrorKind::Malformed,
-                "empty request; expected one JSON document on stdin".into(),
-            );
-            write_error(&frame, reason);
-            return exit::MALFORMED;
-        }
-        Ok(n) if n > MAX_INPUT_BYTES => {
+    // The read is cap-bounded: an oversized payload is rejected at the cap,
+    // not after the whole document has been buffered.
+    let raw = match read_bounded_line(std::io::stdin()) {
+        Ok(Some(bytes)) => bytes,
+        Ok(None) => {
             let reason =
                 format!("veylqorix-engine: request exceeds the {MAX_INPUT_BYTES}-byte input cap");
             let frame = error_frame(
@@ -706,14 +754,23 @@ pub fn serve() -> i32 {
             write_error(&frame, &reason);
             return exit::MALFORMED;
         }
-        Ok(_) => {}
         Err(e) => {
             let reason = format!("veylqorix-engine: failed to read request: {e}");
             let frame = error_frame(ErrorKind::Internal, format!("failed to read request: {e}"));
             write_error(&frame, &reason);
             return exit::INTERNAL;
         }
+    };
+    if raw.is_empty() {
+        let reason = "veylqorix-engine: empty request; expected one JSON document on stdin";
+        let frame = error_frame(
+            ErrorKind::Malformed,
+            "empty request; expected one JSON document on stdin".into(),
+        );
+        write_error(&frame, reason);
+        return exit::MALFORMED;
     }
+    let input = String::from_utf8_lossy(&raw).into_owned();
     let req = match parse_request(&input) {
         Ok(r) => r,
         Err((kind, msg)) => {

@@ -2,7 +2,7 @@
 
 The dashboard (`apps/web`) shows **real** scan data from the Veylqorix API.
 When the API is unreachable it renders clearly-labeled sample data with a
-**DEMO MODE** banner — it never presents a demo as a live result.
+**SAMPLE DATA** banner — it never presents sample data as a live result.
 
 > `apps/web` is a Next.js 15 + React 19 app. It proxies `/api/*` to the API
 > server via Next.js rewrites (`next.config.mjs`), targeting
@@ -84,7 +84,7 @@ build-time variable read by the web app. `.env.example` documents both sets.
 ## What the dashboard shows
 
 - **Mode banner** — top-right: **LIVE** (green, real API data) or
-  **DEMO MODE** (amber, labeled sample data).
+  **SAMPLE DATA** (gold, labeled sample data).
 - **Gate result** — PASS / FAIL / INCOMPLETE with the blocking reasons and
   coverage level.
 - **Findings** — normalized findings sorted by severity, with scanner, rule,
@@ -129,7 +129,7 @@ curl -s -X POST http://localhost:4173/api/repositories \
 
 ## Troubleshooting
 
-- **Dashboard stuck in DEMO MODE.** The web app cannot reach the API. Confirm
+- **Dashboard stuck showing SAMPLE DATA.** The web app cannot reach the API. Confirm
   `NEXT_PUBLIC_API_BASE` points at a running API (and re-run `pnpm --filter
   @veylqorix/web build` after changing it, since it is a build-time variable)
   and that the API port is not blocked.

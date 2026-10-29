@@ -4,6 +4,13 @@
   "description": "MCP security server for AI coding agents: dependency, secret, and quality-check tools backed by the Veylqorix core.",
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

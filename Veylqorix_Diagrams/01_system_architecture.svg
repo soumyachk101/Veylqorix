@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1080" viewBox="0 0 1200 1080">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#6A768C"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="1080" fill="#FBFAF7"/>
+  <g font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="14">
+    <!-- header -->
+    <g>
+      <rect x="48" y="34" width="34" height="34" rx="8" fill="#44CDBB"/>
+      <rect x="62" y="44" width="34" height="34" rx="8" fill="#9B84F3" opacity="0.92"/>
+      <rect x="55" y="70" width="20" height="20" rx="5" fill="#E3BE45"/>
+      <text x="118" y="60" font-size="30" font-weight="700" fill="#17213A">VEYLQORIX</text>
+      <text x="118" y="82" font-size="13" fill="#5A6B85">No Unsafe Code Gets Through.</text>
+      <line x1="360" y1="42" x2="360" y2="86" stroke="#D6DAE4" stroke-width="2"/>
+      <text x="392" y="60" font-size="26" font-weight="700" fill="#17213A">System architecture</text>
+      <text x="392" y="84" font-size="15" fill="#5A6B85">One security engine, every entry point</text>
+    </g>
+    <!-- legend -->
+    <g>
+      <line x1="980" y1="50" x2="1030" y2="50" stroke="#6A768C" stroke-width="2.5" marker-end="url(#arr)"/>
+      <text x="1042" y="55" font-size="13" fill="#46536A">implemented</text>
+      <line x1="980" y1="78" x2="1030" y2="78" stroke="#9B84F3" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arr)"/>
+      <text x="1042" y="83" font-size="13" fill="#46536A">planned</text>
+    </g>
+
+    <!-- row 1: entry points -->
+    <text x="60" y="150" font-size="13" font-weight="700" fill="#245B55" letter-spacing="1.5">ENTRY POINTS</text>
+    <g>
+      <rect x="60" y="164" width="255" height="92" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+      <text x="187" y="196" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">Veylqorix CLI + git hooks</text>
+      <text x="187" y="218" font-size="12.5" fill="#46536A" text-anchor="middle">local scans · pre-commit / pre-push</text>
+      <text x="187" y="236" font-size="12.5" fill="#46536A" text-anchor="middle">convenience layer, not a boundary</text>
+
+      <rect x="335" y="164" width="255" height="92" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+      <text x="462" y="196" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">GitHub Actions gate</text>
+      <text x="462" y="218" font-size="12.5" fill="#46536A" text-anchor="middle">reusable workflow</text>
+      <text x="462" y="236" font-size="12.5" fill="#46536A" text-anchor="middle">pull-request enforcement</text>
+
+      <rect x="610" y="164" width="255" height="92" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+      <text x="737" y="196" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">MCP server + skill</text>
+      <text x="737" y="218" font-size="12.5" fill="#46536A" text-anchor="middle">Claude Code · Codex · Cursor</text>
+      <text x="737" y="236" font-size="12.5" fill="#46536A" text-anchor="middle">validated tools · structured results</text>
+
+      <rect x="885" y="164" width="255" height="92" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+      <text x="1012" y="196" font-size="15" font-weight="700" fill="#17213A" text-anchor="middle">Web dashboard + API</text>
+      <text x="1012" y="218" font-size="12.5" fill="#46536A" text-anchor="middle">live scan status · findings · history</text>
+      <text x="1012" y="236" font-size="12.5" fill="#46536A" text-anchor="middle">file-backed store, atomic writes</text>
+    </g>
+
+    <!-- engine -->
+    <line x1="187" y1="256" x2="187" y2="330" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="462" y1="256" x2="462" y2="330" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="737" y1="256" x2="737" y2="330" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="1012" y1="256" x2="1012" y2="330" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="60" y="336" width="1080" height="112" rx="14" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="2.6"/>
+    <text x="600" y="374" font-size="18" font-weight="700" fill="#17213A" text-anchor="middle">Rust security engine</text>
+    <text x="600" y="398" font-size="13" fill="#46536A" text-anchor="middle">spawned per scan as a subprocess by the TypeScript core · JSON protocol over stdio</text>
+    <text x="600" y="420" font-size="13" fill="#46536A" text-anchor="middle">scanner orchestration · bounded subprocess execution · structured errors · redacted evidence</text>
+
+    <!-- adapters -->
+    <line x1="207" y1="448" x2="207" y2="530" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="482" y1="448" x2="482" y2="530" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="757" y1="448" x2="757" y2="530" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="1032" y1="448" x2="1032" y2="530" stroke="#9B84F3" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arr)"/>
+    <rect x="60" y="536" width="1080" height="212" rx="14" fill="none" stroke="#3BC9B7" stroke-width="1.6"/>
+    <text x="80" y="562" font-size="13" font-weight="700" fill="#245B55" letter-spacing="1.5">SCANNER ADAPTERS — DELEGATE TO EXISTING TOOLS</text>
+    <g>
+      <rect x="80" y="576" width="255" height="118" rx="12" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="1.6"/>
+      <text x="207" y="606" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Dependency audit</text>
+      <text x="207" y="630" font-size="12.5" fill="#46536A" text-anchor="middle">cargo audit (Rust)</text>
+      <text x="207" y="650" font-size="12.5" fill="#46536A" text-anchor="middle">npm audit (npm/pnpm/yarn)</text>
+      <text x="207" y="670" font-size="12.5" fill="#46536A" text-anchor="middle">pip-audit (Python)</text>
+
+      <rect x="355" y="576" width="255" height="118" rx="12" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="1.6"/>
+      <text x="482" y="606" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Secret detection</text>
+      <text x="482" y="630" font-size="12.5" fill="#46536A" text-anchor="middle">built-in offline scanner</text>
+      <text x="482" y="650" font-size="12.5" fill="#46536A" text-anchor="middle">optional gitleaks delegation</text>
+      <text x="482" y="670" font-size="12.5" fill="#46536A" text-anchor="middle">deterministic redaction</text>
+
+      <rect x="630" y="576" width="255" height="118" rx="12" fill="#D7F7F0" stroke="#3BC9B7" stroke-width="1.6"/>
+      <text x="757" y="606" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Quality checks</text>
+      <text x="757" y="630" font-size="12.5" fill="#46536A" text-anchor="middle">tsc · ESLint · ruff</text>
+      <text x="757" y="650" font-size="12.5" fill="#46536A" text-anchor="middle">vitest · pytest</text>
+      <text x="757" y="670" font-size="12.5" fill="#46536A" text-anchor="middle">config-gated: missing config = SKIPPED</text>
+
+      <rect x="905" y="576" width="215" height="118" rx="12" fill="#F0EBFF" stroke="#9B84F3" stroke-width="1.6" stroke-dasharray="7 5"/>
+      <text x="1012" y="606" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Static analysis (SAST)</text>
+      <text x="1012" y="630" font-size="12.5" fill="#46536A" text-anchor="middle">Semgrep · Clippy · Bandit</text>
+      <text x="1012" y="650" font-size="12.5" fill="#46536A" text-anchor="middle">(planned)</text>
+    </g>
+    <text x="80" y="730" font-size="12.5" fill="#46536A">An unavailable tool reports SKIPPED with a reason — never a pass.</text>
+
+    <!-- results & enforcement -->
+    <line x1="207" y1="748" x2="207" y2="820" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="60" y="826" width="1080" height="196" rx="14" fill="none" stroke="#E3BE45" stroke-width="1.6"/>
+    <text x="80" y="852" font-size="13" font-weight="700" fill="#735A0B" letter-spacing="1.5">RESULTS &amp; ENFORCEMENT</text>
+    <g>
+      <rect x="80" y="866" width="255" height="118" rx="12" fill="#FFF3C8" stroke="#E3BE45" stroke-width="1.8"/>
+      <text x="207" y="896" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Policy gate</text>
+      <text x="207" y="920" font-size="12.5" fill="#46536A" text-anchor="middle">PASS · FAIL · INCOMPLETE</text>
+      <text x="207" y="940" font-size="12.5" fill="#46536A" text-anchor="middle">exit codes 0 / 1 / 2</text>
+      <text x="207" y="960" font-size="12.5" fill="#46536A" text-anchor="middle">auditable, expiring exceptions</text>
+
+      <line x1="335" y1="925" x2="353" y2="925" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="355" y="866" width="255" height="118" rx="12" fill="#FFF3C8" stroke="#E3BE45" stroke-width="1.6"/>
+      <text x="482" y="896" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Reports</text>
+      <text x="482" y="920" font-size="12.5" fill="#46536A" text-anchor="middle">JSON · SARIF 2.1.0 · Markdown</text>
+      <text x="482" y="940" font-size="12.5" fill="#46536A" text-anchor="middle">one scan, all formats</text>
+      <text x="482" y="960" font-size="12.5" fill="#46536A" text-anchor="middle">redacted evidence</text>
+
+      <line x1="610" y1="925" x2="628" y2="925" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="630" y="866" width="255" height="118" rx="12" fill="#FFF3C8" stroke="#E3BE45" stroke-width="1.6"/>
+      <text x="757" y="896" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Persistence</text>
+      <text x="757" y="920" font-size="12.5" fill="#46536A" text-anchor="middle">file-backed JSON store</text>
+      <text x="757" y="940" font-size="12.5" fill="#46536A" text-anchor="middle">atomic writes (temp + fsync + rename)</text>
+      <text x="757" y="960" font-size="12.5" fill="#46536A" text-anchor="middle">RUNNING → INTERRUPTED on restart</text>
+
+      <line x1="885" y1="925" x2="903" y2="925" stroke="#6A768C" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="905" y="866" width="215" height="118" rx="12" fill="#DDF7F3" stroke="#44CDBB" stroke-width="1.6"/>
+      <text x="1012" y="896" font-size="14" font-weight="700" fill="#17213A" text-anchor="middle">Web dashboard + API</text>
+      <text x="1012" y="920" font-size="12.5" fill="#46536A" text-anchor="middle">live status · findings · trends</text>
+      <text x="1012" y="940" font-size="12.5" fill="#46536A" text-anchor="middle">reads the file-backed store</text>
+    </g>
+  </g>
+</svg>

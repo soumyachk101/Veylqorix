@@ -196,7 +196,7 @@ mod glob_tests {
 /// reports and when exceptions are applied to specific findings.
 ///
 /// Byte-compatible with `compareFindings` in `packages/core/src/policy.ts`:
-/// descending severity, then descending confidence, then ascending ruleId,
+/// descending severity, then ascending confidence, then ascending ruleId,
 /// then ascending location file.
 pub fn compare_findings(a: &FindingLike<'_>, b: &FindingLike<'_>) -> std::cmp::Ordering {
     use std::cmp::Ordering;

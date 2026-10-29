@@ -15,9 +15,16 @@ available, the byte-compatible TypeScript engine otherwise).
 
 - **No silent passes.** A plugin scanner that throws or overruns its
   timeout is wrapped by the core's safe scanner runner and recorded as an
-  `ERROR` result — which blocks the gate under the default policy and
-  degrades coverage to `INCOMPLETE` (exit 2). Same for plugin checks: an
-  errored/failed check is a first-class gate input.
+  `ERROR` result. An errored/failed plugin check is likewise a first-class
+  gate input. Under the **default** policy (`blockOnScannerError` and
+  `blockOnSkippedCheck` both `true`, `packages/core/src/policy.ts`) an
+  `ERROR` check or scanner **hard-fails the gate** — `FAIL`, exit `1`
+  (see `packages/core/src/gate/index.ts`). Only when the corresponding
+  `blockOnScannerError` / `blockOnSkippedCheck` flags are disabled does the
+  gap instead degrade coverage to `INCOMPLETE` (exit `2`). A *skipped*
+  mandatory scanner is a completeness gap, not a content violation: under
+  the strict flags it is reported but leaves the gate `INCOMPLETE`,
+  never a silent pass.
 - **Normalized findings.** Findings returned by plugin scanners go through
   the core's `normalizeFindings`: deterministic ids, severity/confidence
   clamping, malformed entries dropped and counted. The id algorithm is

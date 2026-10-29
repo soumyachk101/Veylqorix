@@ -172,7 +172,7 @@
     }
     .s4-redact {
       margin-top: 12px;
-      font-size: 28px;
+      font-size: 20px;
       color: #f0ac1b;
       border-left: 4px solid #f0ac1b;
       padding: 8px 12px;
@@ -183,7 +183,7 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 930px;
+      top: 996px;
       display: flex;
       justify-content: center;
       gap: 22px;
@@ -194,7 +194,7 @@
       gap: 14px;
       background: #0e2a3d;
       border: 4px solid #1f4763;
-      padding: 14px 24px;
+      padding: 12px 24px;
       box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
     }
     .s4-res .badge {
@@ -272,19 +272,19 @@
         <div class="s4-kicker"><span class="n">04</span> NORMALIZE</div>
         <div class="s4-title">One finding schema</div>
         <div class="s4-sub">values redacted</div>
-        <div id="s4-redact" class="s4-redact">AKIA…CDEF (20 chars, redacted)</div>
+        <div id="s4-redact" class="s4-redact">AKIA…CDEF<br>(20 chars, redacted)</div>
       </div>
       <div class="s4-stage st" id="s4-st5">
         <div class="s4-dot"></div>
         <div class="s4-kicker"><span class="n">05</span> POLICY</div>
         <div class="s4-title">Gate evaluation</div>
-        <div class="s4-sub">block-on HIGH, CRITICAL</div>
+        <div class="s4-sub">block-on<br>HIGH · CRITICAL</div>
       </div>
     </div>
 
     <div id="s4-results" class="clip s4-results" data-start="7.2" data-duration="4.8" data-track-index="4">
       <div id="s4-resfail" class="s4-res fail">
-        <span class="badge">FAIL</span><span class="code">exit 1</span>
+        <span class="badge">BLOCK</span><span class="code">exit 1</span>
       </div>
       <div id="s4-respass" class="s4-res pass">
         <span class="badge">PASS</span><span class="code">exit 0</span>

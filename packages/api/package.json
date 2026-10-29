@@ -4,6 +4,13 @@
   "description": "Veylqorix REST API: repository registration, scan execution, finding retrieval, and report generation. Backs the web dashboard with real scan data.",
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

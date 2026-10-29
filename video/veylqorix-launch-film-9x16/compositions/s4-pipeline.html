@@ -1,0 +1,369 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Hanken Grotesk";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/313510e2713fb214-s.p.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("assets/fonts/558ca1a6aa3cb55e-s.p.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #0c2334;
+      overflow: hidden;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .s4-grid {
+      position: absolute;
+      inset: -60px;
+      background-image: linear-gradient(rgba(233, 247, 243, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(233, 247, 243, 0.035) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .s4-term {
+      position: absolute;
+      left: 80px;
+      top: 110px;
+    }
+    .s4-cmd {
+      font-size: 30px;
+      font-weight: 500;
+      color: #e9f7f3;
+      white-space: nowrap;
+    }
+    .s4-cmd .d {
+      color: #14b3ad;
+      font-weight: 700;
+    }
+    .s4-cmd .caret {
+      display: inline-block;
+      width: 12px;
+      height: 30px;
+      background: #6fe9e2;
+      vertical-align: -4px;
+      margin-left: 6px;
+    }
+    .s4-out {
+      margin-top: 16px;
+      font-size: 24px;
+      white-space: nowrap;
+      color: #7fa6a8;
+      letter-spacing: 0.01em;
+    }
+    .s4-out .c {
+      color: #ff9c9c;
+    }
+    .s4-out .h {
+      color: #f0ac1b;
+    }
+    .s4-out .ill {
+      font-size: 22px;
+      color: #7fa6a8;
+      margin-left: 10px;
+    }
+    .s4-word {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 240px;
+      text-align: center;
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+      font-size: 96px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #e9f7f3;
+      line-height: 1;
+      opacity: 0;
+    }
+    .s4-word .acc {
+      color: #6fe9e2;
+    }
+    .s4-pipe {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 430px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .s4-stage {
+      position: relative;
+      width: 640px;
+      background: #0e2a3d;
+      border: 4px solid #1f4763;
+      padding: 16px 20px 18px;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+    }
+    /* pixel corner ticks */
+    .s4-stage::before,
+    .s4-stage::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #14b3ad;
+    }
+    .s4-stage::before {
+      left: -8px;
+      top: -8px;
+    }
+    .s4-stage::after {
+      right: -8px;
+      bottom: -8px;
+    }
+    .s4-kicker {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #7fa6a8;
+    }
+    .s4-kicker .n {
+      color: #14b3ad;
+    }
+    .s4-title {
+      margin-top: 8px;
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #e9f7f3;
+    }
+    .s4-sub {
+      margin-top: 6px;
+      font-size: 24px;
+      color: #7fa6a8;
+      line-height: 1.45;
+    }
+    .s4-dot {
+      position: absolute;
+      right: 16px;
+      top: 18px;
+      width: 14px;
+      height: 14px;
+      background: #1f4763;
+    }
+    .s4-dot.on {
+      background: #14b3ad;
+      box-shadow: 0 0 14px rgba(20, 179, 173, 0.7);
+    }
+    .s4-chips {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .s4-chip {
+      font-size: 24px;
+      font-weight: 500;
+      color: #e9f7f3;
+      border: 2px solid #1f4763;
+      padding: 4px 9px;
+      background: rgba(31, 71, 99, 0.35);
+    }
+    .s4-redact {
+      margin-top: 10px;
+      font-size: 24px;
+      color: #f0ac1b;
+      border-left: 4px solid #f0ac1b;
+      padding: 6px 12px;
+      background: rgba(240, 172, 27, 0.07);
+      line-height: 1.4;
+    }
+    .s4-results {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 1700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .s4-res {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #0e2a3d;
+      border: 4px solid #1f4763;
+      padding: 12px 24px;
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+    }
+    .s4-res .badge {
+      font-family: "Hanken Grotesk", sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .s4-res .code {
+      font-size: 24px;
+      color: #7fa6a8;
+    }
+    .s4-res.fail .badge {
+      color: #ef5f5f;
+    }
+    .s4-res.fail {
+      border-color: #ef5f5f;
+    }
+    .s4-res.pass .badge {
+      color: #6fe9e2;
+    }
+    .s4-res.pass {
+      border-color: #14b3ad;
+    }
+    .s4-line {
+      position: absolute;
+      height: 3px;
+      background: #1f4763;
+      top: 480px;
+      left: 0;
+      transform-origin: left center;
+    }
+  </style>
+  <div id="root" data-composition-id="s4" data-width="1080" data-height="1920">
+    <div id="s4-grid" class="clip s4-grid" data-start="0" data-duration="12" data-layout-ignore data-track-index="0"></div>
+
+    <div id="s4-term" class="clip s4-term" data-start="0.2" data-duration="11.8" data-track-index="1">
+      <div class="s4-cmd">
+        <span class="d">$</span>
+        <span id="s4-cmdtext"></span><span id="s4-caret" class="caret" style="opacity: 0"></span>
+      </div>
+      <div id="s4-out" class="s4-out">
+        23 findings <span class="c">· 2 critical</span> <span class="h">· 5 high</span> · 8 medium · 8 low
+        <span class="ill">illustrative</span>
+      </div>
+    </div>
+
+    <div id="s4-w1" class="clip s4-word" data-start="2.2" data-duration="2.2" data-track-index="2">Inspect<span class="acc">.</span></div>
+    <div id="s4-w2" class="clip s4-word" data-start="4.4" data-duration="2.2" data-track-index="2">Verify<span class="acc">.</span></div>
+    <div id="s4-w3" class="clip s4-word" data-start="6.6" data-duration="2.4" data-track-index="2">Enforce<span class="acc">.</span></div>
+
+    <div id="s4-pipe" class="clip s4-pipe" data-start="0" data-duration="12" data-track-index="3" data-layout-allow-overflow>
+      <div class="s4-stage st" id="s4-st1">
+        <div class="s4-dot"></div>
+        <div class="s4-kicker"><span class="n">01</span> CHANGE</div>
+        <div class="s4-title">Code changes</div>
+        <div class="s4-sub">diff +132 −51<br>push · staged</div>
+      </div>
+      <div class="s4-stage st" id="s4-st2">
+        <div class="s4-dot"></div>
+        <div class="s4-kicker"><span class="n">02</span> DISCOVER</div>
+        <div class="s4-title">Project + deps</div>
+        <div class="s4-sub">npm · cargo<br>3 manifests found</div>
+      </div>
+      <div class="s4-stage st" id="s4-st3">
+        <div class="s4-dot"></div>
+        <div class="s4-kicker"><span class="n">03</span> SCAN</div>
+        <div class="s4-title">Applicable scanners</div>
+        <div class="s4-chips">
+          <span class="s4-chip sc">deps</span><span class="s4-chip sc">secrets</span><span class="s4-chip sc">license</span><span class="s4-chip sc">quality</span><span class="s4-chip sc">tests</span>
+        </div>
+      </div>
+      <div class="s4-stage st" id="s4-st4">
+        <div class="s4-dot"></div>
+        <div class="s4-kicker"><span class="n">04</span> NORMALIZE</div>
+        <div class="s4-title">One finding schema</div>
+        <div class="s4-sub">values redacted</div>
+        <div id="s4-redact" class="s4-redact">AKIA…CDEF (20 chars, redacted)</div>
+      </div>
+      <div class="s4-stage st" id="s4-st5">
+        <div class="s4-dot"></div>
+        <div class="s4-kicker"><span class="n">05</span> POLICY</div>
+        <div class="s4-title">Gate evaluation</div>
+        <div class="s4-sub">block-on HIGH, CRITICAL</div>
+      </div>
+    </div>
+
+    <div id="s4-results" class="clip s4-results" data-start="7.2" data-duration="4.8" data-track-index="4">
+      <div id="s4-resfail" class="s4-res fail">
+        <span class="badge">BLOCK</span><span class="code">exit 1</span>
+      </div>
+      <div id="s4-respass" class="s4-res pass">
+        <span class="badge">PASS</span><span class="code">exit 0</span>
+      </div>
+    </div>
+
+    <div id="s4-dip" class="clip" data-start="11.5" data-duration="0.5" data-layout-ignore data-track-index="5"
+      style="position: absolute; inset: 0; background: #0c2334; opacity: 0"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // grid drifts (camera)
+    tl.fromTo("#s4-grid", { x: 0 }, { x: -48, duration: 11.9, ease: "power1.inOut" }, 0);
+
+    // type the command: deterministic char reveal
+    const cmd = "veylqorix scan . --json";
+    const cmdEl = document.getElementById("s4-cmdtext");
+    const spans = [];
+    for (let i = 0; i < cmd.length; i++) {
+      const s = document.createElement("span");
+      s.textContent = cmd[i];
+      s.style.opacity = "0";
+      cmdEl.appendChild(s);
+      spans.push(s);
+    }
+    tl.set("#s4-caret", { opacity: 1 }, 0.25);
+    tl.to("#s4-caret", { opacity: 0, duration: 0.12, repeat: 9, yoyo: true, ease: "steps(1)" }, 0.3);
+    spans.forEach((s, i) => {
+      tl.to(s, { opacity: 1, duration: 0.04 }, 0.35 + i * 0.055);
+    });
+    // findings line appears
+    tl.fromTo("#s4-out", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 1.6);
+
+    // stage activation: cards rise, dot lights, contents fill
+    const stages = ["#s4-st1", "#s4-st2", "#s4-st3", "#s4-st4", "#s4-st5"];
+    const dots = [
+      document.querySelector("#s4-st1 .s4-dot"),
+      document.querySelector("#s4-st2 .s4-dot"),
+      document.querySelector("#s4-st3 .s4-dot"),
+      document.querySelector("#s4-st4 .s4-dot"),
+      document.querySelector("#s4-st5 .s4-dot"),
+    ];
+    // base: all start hidden
+    tl.set(stages, { opacity: 0, y: 26 }, 0);
+    function stageIn(id, dot, t) {
+      tl.to(id, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, t);
+      tl.to(dot, { backgroundColor: "#14b3ad", boxShadow: "0 0 14px rgba(20,179,173,0.7)", duration: 0.15, ease: "power2.out" }, t + 0.35);
+    }
+    stageIn("#s4-st1", dots[0], 2.45);
+    stageIn("#s4-st2", dots[1], 2.75);
+    stageIn("#s4-st3", dots[2], 4.65);
+    stageIn("#s4-st4", dots[3], 4.95);
+    stageIn("#s4-st5", dots[4], 6.85);
+    // scanner chips inside stage 3
+    tl.fromTo("#s4-st3 .sc", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out", stagger: 0.09 }, 5.0);
+    // redaction reveal
+    tl.fromTo("#s4-redact", { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, 5.5);
+
+    // the three words: land dead-still, hold, blur-out
+    function wordIn(id, tIn, tOut) {
+      tl.fromTo(id, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power4.out" }, tIn);
+      tl.to(id, { opacity: 0, filter: "blur(6px)", duration: 0.2, ease: "power2.in" }, tOut);
+    }
+    wordIn("#s4-w1", 2.3, 4.1);
+    wordIn("#s4-w2", 4.5, 6.3);
+    wordIn("#s4-w3", 6.7, 8.8);
+
+    // outcome chips pop in (fail first, then the pass that carries the gate)
+    tl.fromTo("#s4-resfail", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)", transformOrigin: "center" }, 7.55);
+    tl.fromTo("#s4-respass", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)", transformOrigin: "center" }, 7.95);
+    // the pass chip gets a one-time glow pulse (no loop)
+    tl.fromTo("#s4-respass", { boxShadow: "4px 4px 0 rgba(0,0,0,0.3)" }, { boxShadow: "0 0 34px rgba(111,233,226,0.45)", duration: 0.5, ease: "power2.out" }, 8.3);
+
+    // hold the complete system, drift gently
+    tl.to("#s4-pipe", { x: -24, duration: 3.4, ease: "power1.inOut" }, 8.8);
+
+    // dip cut into the next world
+    tl.to("#s4-dip", { opacity: 1, duration: 0.5, ease: "power2.in" }, 11.5);
+    window.__timelines["s4"] = tl;
+  </script>
+</template>

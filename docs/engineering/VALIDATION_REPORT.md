@@ -1,183 +1,70 @@
 # Veylqorix — Validation Report
 
-Final report for the engineering hardening & release-readiness effort.
-Branch: `feat/engineering-hardening`. Companion docs: `BASELINE_AUDIT.md`,
-`SECURITY_HARDENING.md`, `STORAGE_AND_OPERATIONS.md`, `SUPPLY_CHAIN.md`,
-`RELEASE_READINESS.md`, `ENGINE_PARITY.md`.
+Release-validation scaffold, generated 2026-10-28 by the security sweep.
+**Every result below is `PENDING - not yet executed`.** The lead runs each
+command and fills in the real result before release; nothing is pre-marked as
+passed. The per-branch validation log from the earlier
+`feat/engineering-hardening` effort was a session report; it no longer
+represents the current tree and has been superseded by this scaffold.
 
-## A. Findings fixed
+Status values allowed when the lead fills in: `PASS`, `FAIL (evidence)`,
+`SKIP (<reason>)`.
 
-### F-05 — `check` / restricted-scan exit honesty (HIGH, RESOLVED)
-- **Problem:** `veylqorix check` (and any audit with `onlyScanners`) could
-  exit 0 / PASS on a repo full of secrets: unselected mandatory scanners
-  were not recorded in the gate input (Rust path computed the gate before
-  appending the stub; TS path recorded no SKIPPED entry at all).
-- **Fix:** `packages/core/src/audit.ts` now records every unselected
-  *mandatory* scanner as `SKIPPED` **in the gate input**, on both engine and
-  TS paths. Restricted audits are INCOMPLETE (exit 2), never PASS.
-- **Regression tests:** `tests/integration/audit.test.ts` (engine path via
-  `describe.skipIf(!isEngineAvailable)`, TS path always).
-- **Docs:** `BASELINE_AUDIT.md` F-05 marked resolved; CLI help text and
-  `docs/cli.md` `check` row now state INCOMPLETE/exit 2.
+## A. Rust engine (`crates/`)
 
-### API exposure, confinement, persistence (HIGH)
-- **Auth:** bearer-token gate (401 missing / 403 wrong, timing-safe SHA-256
-  digest compare) on all `/api` routes except `/api/health`; loopback-only
-  default bind; non-loopback host without a token **refuses to start**.
-  `packages/api/src/{index.ts,bin.ts}`.
-- **CORS:** exact-origin allowlist (`VEYLQORIX_CORS_ORIGINS`), no
-  wildcard, no credentials, consistent preflight.
-- **Roots:** `packages/api/src/roots.ts` — realpath + segment containment
-  (no string-prefix), fail-closed on invalid roots, shared by registration
-  and scan endpoints so registration cannot be bypassed.
-- **Limits:** 413 body cap, 400 field-length cap, 429 bounded concurrency
-  (rejected scans are never recorded), safe JSON catch-all errors.
-- **Persistence:** `packages/api/src/store.ts` — atomic JSON file store
-  (temp + fsync + rename + dir-fsync), in-flight scans recover as
-  `INTERRUPTED` on reload (never "completed"), schema-version fail-closed.
-- **Operational:** graceful shutdown with drain + flush, `/api/health`,
-  redacted structured logging, env validation with guidance.
-- **Tests:** `packages/api/src/api.test.ts` (auth, CORS, confinement,
-  limits, persistence/reload/interrupted, E2E over HTTP).
-
-### Gate workflow honesty (HIGH)
-- **Single-scan reporting:** one CLI scan feeds JSON + Markdown + SARIF via
-  `renderAllReports` in `packages/core/src/report/index.ts`; the duplicate
-  SARIF scan is gone from `veylqorix-gate.yml`.
-- **Verdict honesty:** PASS only when required checks completed; INCOMPLETE
-  (exit 2) and NO-SCAN (70, no usable CLI) both fail the gate; report-file
-  absence is a red `::error`; SARIF is **validated before upload** (2.1.0,
-  ≥1 run) and an upload failure fails red — never claimed successful.
-- **Supply chain:** all six external actions pinned to commit SHAs;
-  `ci.yml` gitleaks download now fails closed on SHA-256 mismatch
-  (digest computed live against the v8.30.1 asset).
-- **Tests:** `tests/report-gate.test.ts` (PASS/FAIL/INCOMPLETE verdicts,
-  malformed scanner output, report write-failure propagation, SARIF
-  validity with 0 and many findings, `validateSarifFile`, upload-failure
-  simulation, CLI scanner/severity validation).
-
-### TS/Rust engine parity (HIGH)
-- **Protocol:** structured error frames on stdout for exit 64/65/70
-  (`ok:false`, `error{code,exitCode,message}`); truncated/malformed
-  gitleaks output degrades to empty, never panics.
-  `crates/veylqorix-engine/src/protocol.rs`.
-- **Adapter:** binary discovery (env → PATH → install locations → repo
-  walk), spawn-failure classification, stderr never parsed as protocol
-  data, protocol version checked both directions.
-  `packages/core/src/engine/index.ts`.
-- **Fixtures + differential tests:** 15 shared fixtures under
-  `tests/fixtures/`; `tests/engine-differential.test.ts` (TS side
-  unconditional, engine side explicitly-labeled skip) and
-  `crates/veylqorix-engine/tests/parity-fixtures.rs` (same fixtures through
-  `parse_request` + `execute`). Covered: PASS/FAIL/INCOMPLETE verdicts,
-  soft/strict exit codes, exception expiry, malformed findings (never a
-  pass), protocol-version rejection, missing-root 65, byte-identical
-  redaction vectors.
-- **Honesty:** degraded engine-absent clean runs PASS with an explicit
-  "Rust engine unavailable" TS-compat note; INCOMPLETE only for
-  coverage-degrading gaps. See `docs/engineering/ENGINE_PARITY.md` for the
-  per-behavior coverage table and its limits.
-
-### MCP server confinement & redaction (HIGH)
-- `VEYLQORIX_ROOTS` is now **required** (unset → exit 1, no cwd fallback);
-  roots canonicalized up front; symlink-escape rejected; PEM private-key
-  blocks and assigned-credential patterns scrubbed from all outputs
-  (plain, nested, Markdown, structured); truncation never slices the JSON
-  payload (status fields preserved); scanner-unavailability is a
-  structured condition, never success.
-- **Tests:** `packages/mcp-server/src/mcp.test.ts` + `tests/mcp-server.test.ts`.
-
-### CLI release readiness (MEDIUM)
-- `files: ["dist"]`, `engines node >=20.18`, `publishConfig.access: public`
-  on `@veylqorix/cli` and `@veylqorix/core`; `pnpm pack --dry-run` lists
-  recorded in `RELEASE_READINESS.md`.
-- `.github/workflows/release.yml`: on-tag, OIDC trusted publishing,
-  **inert until the owner registers an npm trusted publisher**. No publish,
-  release, or tag was created.
-- Rust engine documented honestly: build from source or set
-  `VEYLQORIX_ENGINE`; no assumed developer-local path; reduced coverage is
-  labeled in the result, never silent.
-
-### Path confinement bug found in review (HIGH)
-- `packages/core/src/util/paths.ts` `validatePath` did its containment test
-  on the *lexical* candidate against *realpath*'d roots using string-prefix
-  matching — on macOS (where `/var` → `/private/var`) any valid path under a
-  symlinked root was rejected `PATH_ERROR`, and sibling-prefix paths were
-  admitted by prefix. Replaced with canonical-vs-canonical, path-aware
-  containment (`path.relative` segment check). Regression tests in
-  `tests/unit/paths.test.ts`.
-
-### Supply chain & workspace (MEDIUM)
-- `pnpm-workspace.yaml` `allowBuilds` placeholder strings replaced with real
-  booleans (`esbuild: true`, `sharp: true`); `pnpm-workspace.yaml.bak`
-  deleted; `.env.example` reconciled (dead vars removed, real vars
-  documented).
-- `pnpm audit`: 8 vulns, all transitive under `next` in `apps/web`
-  (postcss/sharp) — **BLOCKED**, needs an owner decision (bump `next` vs
-  `overrides` + lockfile regen). `cargo audit`: 0 vulnerabilities.
-
-## B. Validation matrix
-
-All commands run on `feat/engineering-hardening`, 2026-10-26.
+All commands target the workspace manifest at `crates/Cargo.toml` (there is no
+`Cargo.toml` at the repo root), mirroring `.github/workflows/ci.yml`.
 
 | # | Command | Result |
 |---|---|---|
-| 1 | `pnpm install --frozen-lockfile` | PASS |
-| 2 | `pnpm build` | PASS |
-| 3 | `pnpm typecheck` | PASS |
-| 4 | `pnpm lint` | PASS (0 errors, 0 warnings) |
-| 5 | `pnpm test` (vitest) | PASS — 16 files, **281 tests** |
-| 6 | `cargo fmt --manifest-path crates/Cargo.toml --all -- --check` | PASS |
-| 7 | `cargo clippy --manifest-path crates/Cargo.toml --workspace --all-targets --all-features -- -D warnings` | PASS |
-| 8 | `cargo test --manifest-path crates/Cargo.toml --workspace --all-features` | PASS — 9 test targets, 0 failures |
-| 9 | `cargo build --manifest-path crates/Cargo.toml --workspace --release` | PASS |
-| 10 | `pnpm pack --dry-run` (`@veylqorix/cli`, `@veylqorix/core`) | PASS — file lists recorded in RELEASE_READINESS.md |
+| R1 | `cargo fmt --manifest-path crates/Cargo.toml --all -- --check` | PENDING - not yet executed |
+| R2 | `cargo clippy --manifest-path crates/Cargo.toml --workspace --all-targets --all-features -- -D warnings` | PENDING - not yet executed |
+| R3 | `cargo test --manifest-path crates/Cargo.toml --workspace --all-features` | PENDING - not yet executed |
+| R4 | `cargo build --manifest-path crates/Cargo.toml --workspace --release` (produces `crates/target/release/veylqorix-engine`; the TS engine-adapter tests spawn this binary, so R4 must pass before T4) | PENDING - not yet executed |
+| R5 | `cargo audit --file crates/Cargo.lock` (optional; external tool — honest SKIP allowed when the tool is absent; last recorded result 0 vulns per `docs/engineering/SUPPLY_CHAIN.md` §1.2, 2026-10-26) | PENDING - not yet executed |
 
 Notes:
-- The TS differential suite (100 tests) **ran the engine-backed groups** in
-  this environment (release binary present). In a clean CI checkout the
-  engine groups skip with explicit labels after the cargo build step.
-- `apps/web` vitest integration (`tests/integration/api-routes.test.ts`)
-  uses the prebuilt `packages/api` — it passes against the rebuilt
-  `dist/`. No website changes.
-- Engine-side assertions that cannot run without gitleaks/external tools
-  are labeled skips, not passes.
+- R3 external-tool probes (gitleaks, cargo-audit) log a SKIP when the tool is
+  absent — record that as `SKIP (<tool> unavailable)`, not a failure.
+- `crates/Cargo.lock` must remain in sync (no dependency bumps pending on
+  `main`).
 
-## C. Remaining work
+## B. TypeScript / pnpm workspace
 
-### Code issues fixed but worth a follow-up
-- `tests/fixtures/rust-clean` / `rust-vulnerable` predate the fixtures
-  convention; they are used by `external-tools.rs` only. Optional
-  consolidation.
+| # | Command | Result |
+|---|---|---|
+| T1 | `pnpm install --frozen-lockfile` (proves the lockfile matches every `package.json` and the `pnpm-workspace.yaml` `overrides`/`allowBuilds` resolve under pnpm 11.9.0) | PENDING - not yet executed |
+| T2 | `pnpm build` (root script → `pnpm -r build`) | PENDING - not yet executed |
+| T3 | `pnpm lint` (`eslint . --ext .ts --max-warnings 0`) | PENDING - not yet executed |
+| T4 | `pnpm typecheck` (`tsc -p tsconfig.json --noEmit`) | PENDING - not yet executed |
+| T5 | `pnpm test` (vitest: `tests/**`, `packages/*/src/**`, `apps/*/src/**` — engine-backed groups require R4's binary first; they self-skip with explicit labels when absent) | PENDING - not yet executed |
+| T6 | `pnpm audit` (record the vuln count; `docs/engineering/SUPPLY_CHAIN.md` §1.1 documents the `postcss`/`sharp` overrides; both must still resolve to the patched versions `postcss@8.5.31` / `sharp@0.35.5` in the tree) | PENDING - not yet executed |
+| T7 | `node -e "require('sharp')"` from `apps/web` (confirms the sharp native binary actually built under `allowBuilds: { sharp: true }`) | PENDING - not yet executed |
 
-### Deployment / owner actions (not done here, by design)
-- **npm publish + release:** `release.yml` is inert; registering an npm
-  trusted publisher (OIDC) and the first tag are owner actions. Nothing was
-  published.
-- **Branch protection:** making the Veylqorix gate a *required* status
-  check must be configured by the repo owner (branch protection or ruleset);
-  the workflow is advisory until then. Documented in `docs/github-actions.md`.
-- **`apps/web` vulnerabilities (8, transitive postcss/sharp under next):**
-  blocked on the owner's choice between a `next` bump and `overrides` +
-  lockfile regeneration. Recorded in `SUPPLY_CHAIN.md`.
-- **Multi-instance / shared-filesystem deployments:** the JSON file store
-  is single-process by design (documented). A horizontally scaled API needs
-  the SQLite/Postgres adapter the `ApiStore` interface is ready for.
-- **CI gitleaks digest:** the pinned SHA-256 was computed against the
-  v8.30.1 asset at commit time; re-verify if the pinned version ever changes.
+## C. Docs / diagram validation
 
-### Production security checks unverified in this environment
-- Live remote-mode smoke test (bind non-loopback + token from a second
-  machine) — covered by unit/integration tests, not a real network path.
-- `upload-sarif` behavior against a real code-scanning-enabled repo —
-  simulated at unit level; the owner's first real run is the final check.
+| # | Command | Result |
+|---|---|---|
+| D1 | Verify every image/diagram referenced by `docs/` and `README.md` exists on disk: `grep -rEoh '\(Veylqorix_Diagrams/[^)]+\)' README.md docs | while read -r p; do [ -f "$p" ] || echo "MISSING $p"; done` (no output = pass) | PENDING - not yet executed |
+| D2 | Verify every cross-referenced `docs/engineering/*.md` link target exists: `for f in $(grep -rEoh 'docs/engineering/[A-Z_]+\.md' docs README.md CHANGELOG.md | sort -u); do [ -f "$f" ] || echo "MISSING $f"; done` | PENDING - not yet executed |
+| D3 | `Veylqorix_Diagrams/` inventory: the five architecture screenshots (`01_…05_`) plus `reference-screenshot-{1,2}.png` are tracked and their `README.md` legend matches the filenames | PENDING - not yet executed |
+| D4 | Confirm no doc claims a version/state not true on `main`: `git tag -l` (expect `v0.1.0`, `v0.1.1`), `grep -rn '0\.1\.1' CHANGELOG.md packages/core/package.json apps/cli/package.json` (expect both manifests at `0.1.1`) | PENDING - not yet executed |
+| D5 | Launch-film assets under `video/`: source (compositions, assets, README) tracked; generated caches untracked-or-ignored (`.gitignore` now lists `video/**/.hyperframes/` and `video/**/*.mp4`) — verify with `git status --porcelain | grep '^??'` for no new generated files | PENDING - not yet executed |
 
-## D. Scope confirmation
+## D. Package inspection (npm publication)
 
-The website's UI/UX, styling, copy, SEO metadata, sitemap, `robots.txt`,
-AEO/GEO content, and Google/Bing webmaster configuration were **not
-changed**. `apps/web` and `veylqorix-website` contain no modified files in
-this branch; the dashboard was documented, not touched. No packages were
-published, no releases or tags created, no repository settings changed,
-and no commits were pushed — all work lives on the local branch
-`feat/engineering-hardening` for review.
+| # | Command | Result |
+|---|---|---|
+| P1 | `pnpm --filter @veylqorix/core pack --dry-run` and `pnpm --filter @veylqorix/cli pack --dry-run` — record the tarball file lists; expect **only** `dist/**` + `LICENSE` + `package.json` (no `src/`, `tsconfig.json`, lockfiles, `.env*`, fixtures, or test output) | PENDING - not yet executed |
+| P2 | `pnpm --filter @veylqorix/cli pack --pack-destination /tmp/vqx-inspect && tar -xOf /tmp/vqx-inspect/veylqorix-cli-*.tgz package/package.json` — confirm the packed CLI manifest carries a **concrete** `@veylqorix/core` version, never the unresolvable `workspace:` protocol | PENDING - not yet executed |
+| P3 | Inspect both packed `package.json`s: `"files": ["dist"]`, `"engines": { "node": ">=20.18" }`, `publishConfig` `{ "access": "public", "provenance": true }`, CLI `bin` → `dist/index.js` with shebang present in `dist/index.js` | PENDING - not yet executed |
+| P4 | Clean-consumer smoke (registry-free variant, safe to run pre-publish): `cd /tmp && mkdir vqx-consumer && cd vqx-consumer && npm init -y && npm install <core-tgz> <cli-tgz> && ./node_modules/.bin/veylqorix --help` (expect usage text, exit 0) — per the procedure in the former §6 of this file's predecessor, now in `docs/engineering/NPM_PUBLICATION_REPORT.md` | PENDING - not yet executed |
+| P5 | Post-publish-only (after the trusted-publisher step in §E of `RELEASE_READINESS.md`): `npm view @veylqorix/cli@0.1.1 dist.integrity` + provenance attestation visible on both npm package pages | PENDING - not yet executed |
+
+## E. Sign-off
+
+| Item | Result |
+|---|---|
+| All of A+B+D1–D4, P1–P4 executed and PASS (or honestly labeled SKIP) | PENDING - not yet executed |
+| `release.yml` `test` job (new, in-worktree) green on a tag push | PENDING - not yet executed |
+| Maintainer trusted-publisher step complete (see `RELEASE_READINESS.md` §C) | PENDING - not yet executed |

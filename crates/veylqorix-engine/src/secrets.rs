@@ -158,8 +158,19 @@ pub const RULES: &[SecretRule] = &[
     },
 ];
 
-/// Files that must never be walked (mirrors the TypeScript `walk` ignore set).
-pub const IGNORED_DIRS: &[&str] = &["node_modules", ".git", "__pycache__", "venv", ".venv"];
+/// Directories that must never be walked. Mirrors the TypeScript secret
+/// scanner's effective ignore set: the `walk` hard-coded set
+/// (`node_modules`, `.git`, `__pycache__`, `venv`, `.venv`) plus the
+/// secret scanner's `options.ignore` (`dist`, `build`).
+pub const IGNORED_DIRS: &[&str] = &[
+    "node_modules",
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "dist",
+    "build",
+];
 
 /// Whether a file (relative to the audit root) should be scanned.
 pub fn should_scan(file: &str, extra_extensions: &[String], exclude: &[String]) -> bool {
@@ -321,10 +332,17 @@ pub fn secret_scanner_result(files: &[(String, String)], source: &str) -> Scanne
 /// Walk a directory tree, returning `(relative_posix_path, content)` pairs
 /// for files that [`should_scan`] accepts. Respects the ignore set and a max
 /// depth. Binary or oversized files are skipped.
+///
+/// Unreadable *sub*directories are skipped (mirroring the TypeScript `walk`
+/// ignore set, which swallows `readdirSync` failures) and an honest note is
+/// appended so the degraded coverage is recorded — never a fabricated pass.
+/// Unreadable *root* directories propagate as an error: an empty file list
+/// must not turn "we could not read the tree" into a clean scan.
 pub fn collect_files(
     root: &std::path::Path,
     options: &SecretScanOptions,
     only_files: &Option<Vec<String>>,
+    notes: &mut Vec<String>,
 ) -> Result<Vec<(String, String)>, crate::EngineError> {
     let mut files: Vec<(String, String)> = Vec::new();
     let mut queue: std::collections::VecDeque<(std::path::PathBuf, u32)> =
@@ -335,7 +353,24 @@ pub fn collect_files(
     while let Some((dir, depth)) = queue.pop_front() {
         let read_dir = match std::fs::read_dir(&dir) {
             Ok(rd) => rd,
-            Err(_) => continue,
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied && depth > 0 => {
+                // Unreadable *sub*directories degrade with an honest note; an
+                // unreadable *root* (depth 0) must fall through to the error
+                // arm below — an empty file list must not read as a clean,
+                // complete scan.
+                notes.push(format!(
+                    "skipped unreadable directory '{}': {}",
+                    dir.to_string_lossy(),
+                    e
+                ));
+                continue;
+            }
+            Err(e) => {
+                return Err(crate::EngineError::Io(format!(
+                    "failed to read directory '{}': {e}",
+                    dir.to_string_lossy()
+                )));
+            }
         };
         for entry in read_dir.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();

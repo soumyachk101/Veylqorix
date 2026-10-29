@@ -9,13 +9,34 @@ reported as SKIPPED or ERROR, never as a clean pass.
 
 Requires Node.js ≥ 20.18.
 
-```
-# From the npm registry (once a version is published — see
-# docs/engineering/RELEASE_READINESS.md for publication status):
-npm install -g @veylqorix/cli
+**Primary install path today: the monorepo build.** Neither `@veylqorix/cli`
+nor `@veylqorix/core` is published to the npm registry in a working version.
+Both exist on the registry only as staged placeholders (`0.0.0-stage` and the
+staged `0.0.1` bootstrap, whose approval is a 2FA-protected owner step);
+installing one gives you the placeholder, not a working CLI. The real
+`0.1.1` publication of both is gated on an owner step (register the npm
+trusted-publisher record, then re-trigger the `v0.1.1` release). Until that
+completes, the working install is a monorepo build:
 
-# Verify:
-veylqorix --help
+```
+git clone https://github.com/soumyachk101/Veylqorix
+cd Veylqorix
+pnpm install
+pnpm build
+node apps/cli/dist/index.js --help      # or link it: pnpm link
+```
+
+**From the npm registry (once the packages are published).** As of the last
+registry check, neither package has a working published version — only the
+`0.0.0-stage` placeholder (a "temporary package stub for staged publishing")
+and the pending staged `0.0.1` bootstrap, which requires the owner's
+2FA-protected approval. The publication status lives in
+`docs/engineering/RELEASE_READINESS.md` and the owner's trusted-publishing
+runbook in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` (§6 "Execute
+the v0.1.1 release"). Once a real version is published:
+
+```
+npm install -g @veylqorix/cli   # then: veylqorix --help
 ```
 
 **No global install?** Run the package locally instead:
@@ -25,13 +46,9 @@ npm install @veylqorix/cli
 npx veylqorix scan
 ```
 
-**From a development checkout** (monorepo, no publish needed):
-
-```
-pnpm install
-pnpm build
-node apps/cli/dist/index.js --help      # or link it: pnpm link
-```
+**Version discovery.** The CLI has no `--version` flag. The version is in
+the package manifest (`apps/cli/package.json` → `version`); in a monorepo
+checkout it is the checkout's commit (`git rev-parse --short HEAD`).
 
 ## Upgrade
 
@@ -66,12 +83,16 @@ downloaded automatically. How it is located at runtime, in order:
    This is how monorepo development finds a locally built engine — and it is
    why a clean npm consumer never silently picks up a binary they don't have.
 
-**When the engine is absent, coverage is reduced and the result is marked
-explicitly — never a silent pass.** The secrets scanner note becomes
+**When the engine is absent, the run is labeled — not silently passed.**
+The secrets scanner note becomes
 `Rust engine unavailable: TypeScript policy engine evaluated the gate
-(degraded compatibility mode)`, it appears in the JSON, Markdown, and SARIF
-report surfaces, and any resulting completeness gap makes the gate
-`INCOMPLETE` with exit code `2`. Details: `docs/engine.md` and
+(degraded compatibility mode)`; it appears in the JSON, Markdown, and SARIF
+report surfaces. The label is a scanner note, not a completeness gap: a
+clean repo with the engine deliberately unavailable still exits `0` (PASS
+with FULL coverage) — `tests/engine-adapter.test.ts` asserts exactly that.
+Exit `2` (INCOMPLETE) happens only when a mandatory scanner separately
+could not run (e.g. `--offline` skips the dependencies scanner, or a tool
+is missing). Details: `docs/engine.md` and
 `docs/engineering/RELEASE_READINESS.md`.
 
 ## Cross-platform notes
@@ -143,7 +164,7 @@ are out-of-band. This is what CI should branch on.
 |------|---------|---------|
 | `0` | PASS — gate passed, no blocking findings. | `veylqorix scan . --no-tests` on a clean tree. |
 | `1` | FAIL — blocking findings present. | A CRITICAL dependency advisory the policy blocks on. |
-| `2` | INCOMPLETE — coverage degraded (a mandatory scanner errored or was skipped, a required check failed to run, or the Rust engine was unavailable with a gap). **Never** treated as green. | `--offline` skips `npm audit`; engine absent → labeled degraded mode. |
+| `2` | INCOMPLETE — coverage degraded (a mandatory scanner errored or was skipped, a required check failed to run, or a scanner result is missing that the gate needs). **Never** treated as green. A missing Rust engine binary alone does *not* cause exit `2` — it produces the labeled degraded run, which still exits `0` when nothing else is incomplete. | `--offline` skips `npm audit`; `pip-audit` missing. |
 | `64` | Usage error — bad flag, invalid policy file, or hook error. | `veylqorix scan --format xml` (unknown format value); `config validate` on a malformed policy. |
 | `65` | Bad root / missing policy file / nothing staged. | `veylqorix scan /nonexistent`; `config validate missing.json`; `scan --staged` with no staged changes. |
 | `70` | Unexpected error. | Anything thrown outside the known paths. |
@@ -194,6 +215,11 @@ The installer:
 - writes a marker so it can recognize and manage its own hooks;
 - supports an emergency local override via `VEYLQORIX_OVERRIDE=1`.
 
+`hooks uninstall` removes only Veylqorix-installed hooks (hooks carrying the
+installer's marker); non-Veylqorix hooks are left untouched and reported as
+skipped. Worktree and submodule `.git` layouts are not supported by the
+installer — run it from the main work tree.
+
 Run `hooks install` from inside a Git work tree; it requires `.git/` and will
 not create a repository for you.
 
@@ -201,7 +227,7 @@ not create a repository for you.
 
 | Symptom | What it means / what to do |
 |---------|---------------------------|
-| Exit `2` with a `Rust engine unavailable … (degraded compatibility mode)` note | The engine binary is not resolvable. Set `VEYLQORIX_ENGINE` (see *Engine binary* above) for authoritative results, or accept the labeled degraded run. The exit `2` is correct: coverage was reduced. |
+| A `Rust engine unavailable … (degraded compatibility mode)` note on the secrets scanner | The engine binary is not resolvable; the run was labeled, not failed. Set `VEYLQORIX_ENGINE` (see *Engine binary* above) for authoritative results, or accept the labeled degraded run. A clean tree with the engine absent still exits `0`; exit `2` appears only if a mandatory scanner also could not run. |
 | Exit `2` with a scanner `SKIPPED: … offline …` note | `--offline` (or no network) skips `npm audit`/`pip-audit`. Run online for full advisory coverage; `--no-tests` is fine but still degrades test coverage. |
 | Exit `64` "Unknown option" / "Policy file … is invalid" | Typo in a flag or flag value, or the policy JSON failed validation. Fix the input; see the emitted issues for the exact fields. |
 | Exit `65` "Root directory does not exist" | The root path (positional or `--root`) doesn't exist — check that you're in the repo or pass an absolute path. |

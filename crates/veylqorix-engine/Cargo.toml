@@ -1,6 +1,9 @@
 [package]
 name = "veylqorix-engine"
 version = "0.1.0"
+# Internal, per-scan subprocess of the TypeScript core — never a crates.io
+# artifact.
+publish = false
 edition = "2021"
 license = "MIT"
 description = "Veylqorix security engine: deterministic policy evaluation, gate decision, exit-code mapping, and the offline secret scanner, exposed over a bounded JSON stdio protocol."
