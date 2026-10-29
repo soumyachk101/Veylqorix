@@ -98,7 +98,7 @@ Other command/engine errors may use `64` for usage or malformed input, `65` for 
 
 # 2. System architecture
 
-![veylqorix system architecture](veylqorix_doc_assets/01_system_architecture.png)
+![veylqorix system architecture](Veylqorix_Diagrams/01_system_architecture.png)
 
 *Figure 1. System architecture. The diagram is a high-level conceptual map; module-level behavior is described below from the repository sources.*
 
@@ -173,7 +173,7 @@ Results are exposed through:
 
 # 3. End-to-end scan lifecycle
 
-![Veylqorix security scan lifecycle](veylqorix_doc_assets/02_scan_lifecycle.png)
+![Veylqorix security scan lifecycle](Veylqorix_Diagrams/02_scan_lifecycle.png)
 
 *Figure 2. From code change to evidence-backed decision and rescan verification.*
 
@@ -392,7 +392,7 @@ This wrapper is important because a subprocess failure must not be mistaken for 
 
 # 7. Rust engine and TypeScript adapter
 
-![Veylqorix integration model](veylqorix_doc_assets/04_ai_integrations.png)
+![Veylqorix integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 
 *Figure 3. Multiple integration surfaces feed a shared engine and normalized results.*
 
@@ -761,7 +761,7 @@ The web application is under `apps/web/` and uses Next.js. The dashboard present
 
 # 14. GitHub Actions and CI enforcement
 
-![GitHub pull-request gate](veylqorix_doc_assets/03_github_security_gate.png)
+![GitHub pull-request gate](Veylqorix_Diagrams/03_github_security_gate.png)
 
 *Figure 4. Local hooks give fast feedback; GitHub Actions is the independent remote check. Repository rules determine whether a failing check actually blocks a merge.*
 
@@ -1024,11 +1024,11 @@ An installed consumer should separately provision the Rust binary if authoritati
 
 # 20. Architecture figures and their interpretation
 
-![AI agent integration model](veylqorix_doc_assets/04_ai_integrations.png)
+![AI agent integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 
 *Figure 5. AI integrations. Agents call the CLI, MCP or a plugin interface where supported; the shared core remains the source of scan/policy decisions.*
 
-![Release readiness sequence](veylqorix_doc_assets/05_release_readiness.png)
+![Release readiness sequence](Veylqorix_Diagrams/05_eight_day_roadmap.png)
 
 *Figure 6. Release-readiness sequence. This is a checklist-style sequence, not a claim that each step is complete. Resolve CI, package, and trusted-publishing blockers before tagging; verify the actual workflow and npm package pages afterward.*
 
