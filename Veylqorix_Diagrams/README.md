@@ -29,4 +29,11 @@ numbered diagram set (renamed from their raw clipboard names on 2026-10-28).
 - Warm yellow: `#E3BE45`
 - Coral: `#EF8B9B`
 
-Diagram sources are not included in the repo; the PNGs are the current record.
+Diagram sources are not included in the repo and will not be added. PNG-only is a permanent constraint: the seven PNGs above are the canonical record, and no SVG, Mermaid, or PDF sources and no diagram-generation pipeline are included or planned.
+
+## Integrity
+
+`SHA256SUMS` is the checksum manifest for the seven PNGs in this directory. To verify them from inside the directory:
+
+- macOS/BSD: `shasum -a 256 -c SHA256SUMS`
+- Linux: `sha256sum -c SHA256SUMS`

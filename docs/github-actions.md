@@ -159,7 +159,8 @@ repository settings.
 - `@veylqorix/cli` is not yet published to the npm registry in a working
   version. `@veylqorix/core@0.1.1` is published (with a provenance
   attestation), but the CLI still awaits an owner step (register its
-  npm trusted-publisher record, then re-trigger the `v0.1.1` release) — see
+  npm trusted-publisher record, then re-point the `v0.1.1` tag at the
+  commit carrying the fixed release workflow and push it the same day) — see
   `docs/engineering/RELEASE_READINESS.md` and
   `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6. Until the CLI is
   published, non-monorepo callers cannot `npm install` a usable CLI; the

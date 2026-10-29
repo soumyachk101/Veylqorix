@@ -12,9 +12,10 @@ Requires Node.js ≥ 20.18.
 **Primary install path today: the monorepo build.** `@veylqorix/core@0.1.1`
 is published to the npm registry, but `@veylqorix/cli@0.1.1` is **not**
 published yet — its publication is gated on an owner step (register the npm
-trusted-publisher record for the CLI package, then re-trigger the `v0.1.1`
-release). The registry also holds a staged `0.0.1` bootstrap of both
-packages (staged via `npm stage publish`; its approval is a 2FA-protected
+trusted-publisher record for the CLI package, then re-point the `v0.1.1`
+tag at the commit carrying the fixed release workflow and push it the same
+day). The registry also holds a staged `0.0.0-stage` placeholder for
+the CLI (staged via `npm stage publish`; its approval is a 2FA-protected
 owner step and is optional — the `0.1.1` release does not depend on it).
 Because the CLI is the surface you run, the working install until it is
 published is a monorepo build:
@@ -29,10 +30,12 @@ node apps/cli/dist/index.js --help      # or link it: pnpm link
 
 **From the npm registry (once the CLI is published).** As of the last
 registry check, `@veylqorix/cli` has no working published version yet —
-only the staged `0.0.1` bootstrap (whose approval is a 2FA-protected owner
-action; see `docs/engineering/RELEASE_READINESS.md`). `@veylqorix/core`
-is already published. Once the CLI's trusted-publisher record is registered
-and the release completes:
+the registry holds only the `0.0.0-stage` placeholder (staged via
+`npm stage publish`; its approval is a 2FA-protected owner action; see
+`docs/engineering/RELEASE_READINESS.md`). `@veylqorix/core@0.1.1` is
+already published (with a provenance attestation). The install examples
+below become usable once the CLI's trusted-publisher record is
+registered and the release completes:
 
 ```
 npm install -g @veylqorix/cli   # then: veylqorix --help

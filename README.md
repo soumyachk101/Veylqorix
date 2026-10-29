@@ -10,7 +10,7 @@
   <a href="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml"><img src="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-44CDBB.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D22.13-44CDBB.svg" alt="Node: >= 22.13"></a>
-  <a href="crates/"><img src="https://img.shields.io/badge/rust-engine-0.1.0-EF8B9B.svg" alt="Rust engine: 0.1.0"></a>
+  <a href="crates/"><img src="https://img.shields.io/badge/rust%20engine-0.1.0-EF8B9B.svg" alt="Rust engine: 0.1.0"></a>
   <a href="packages/mcp-server/"><img src="https://img.shields.io/badge/mcp-6%20tools-9B84F3.svg" alt="MCP: 6 tools"></a>
 </p>
 
@@ -101,9 +101,13 @@ covered in depth in [Rust security engine](#rust-security-engine).
 
 ![Veylqorix system architecture](Veylqorix_Diagrams/01_system_architecture.png)
 
-*System architecture — the editable SVG sources for the rendered PNGs and
-re-render notes are in
+*System architecture — the PNG is the canonical record; diagram sources are
+not included in the repo (PNG-only is a permanent constraint). Palette and
+rendering notes are in
 [Veylqorix_Diagrams/README.md](Veylqorix_Diagrams/README.md).*
+
+*For the full module-level architecture walkthrough, see
+[Veylqorix_Master_Doc.md](Veylqorix_Master_Doc.md).*
 
 Scanner adapters **reuse existing tools rather than reimplementing them**:
 
@@ -151,8 +155,11 @@ pnpm test         # vitest unit + integration suite
 
 ### Scan a repository from the CLI
 
-The CLI is packaged and dry-run-validated (`pnpm pack --dry-run`) but not
-published to npm yet — run it from the build output until publish:
+`@veylqorix/core@0.1.1` is published to npm (with a provenance
+attestation). The CLI is packaged and dry-run-validated (`pnpm pack
+--dry-run`) but not published yet — its publication is blocked on the
+owner's npm trusted-publisher registration. Until the CLI is published,
+run it from the build output:
 
 ```sh
 node apps/cli/dist/index.js scan --root /path/to/repo --json
@@ -202,7 +209,7 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 
 | Surface                       | Where                                    | Status (verified)                                                                                                             | Docs |
 |-------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|------|
-| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. **Packaged and dry-run-validated; not published to npm — run from `dist/` until publish.** | [docs/cli.md](docs/cli.md) |
+| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. `@veylqorix/core@0.1.1` is published; the CLI itself is packaged and dry-run-validated but **not published to npm — run from `dist/` until the CLI's trusted-publisher registration unblocks publication.** | [docs/cli.md](docs/cli.md) |
 | MCP server (`veylqorix-mcp`)  | `packages/mcp-server`                    | Six Zod-validated tools, root confinement + redaction. Requires `pnpm build`.                                                 | [docs/mcp.md](docs/mcp.md) |
 | REST API + dashboard          | `packages/api`, `apps/web`               | Dependency-free API on `:4173`; Next.js dashboard on `:3000` with a clearly-labeled **SAMPLE DATA** fallback when the API is down. | [docs/api.md](docs/api.md) · [docs/dashboard.md](docs/dashboard.md) |
 | GitHub Actions gate           | `.github/workflows/veylqorix-gate.yml`   | Reusable `workflow_call` gate: real scan + SARIF upload, SHA-pinned actions, least-privilege permissions. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
@@ -211,8 +218,10 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 | Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 75 tests; called by the TypeScript core through the engine adapter. | below |
 
 **Honest note:** the gate and the CLI hooks are *advisory* until
-enforcement (branch protection) is in place; the CLI is packaged and
-dry-run-validated but not published to npm yet. See
+enforcement (branch protection) is in place. `@veylqorix/core@0.1.1` is
+published, but the CLI itself is packaged and dry-run-validated, not yet
+published to npm — its publication is blocked on the owner's
+trusted-publisher registration. See
 [Honest limitations](#honest-limitations) and
 [docs/faq.md](docs/faq.md).
 
@@ -841,9 +850,10 @@ absence of vulnerabilities or secrets. Specifically:
 - **A clean gate is not a security certification.** A green quality
   check proves only that the checks that ran passed.
 - **The gate and hooks are advisory** until a branch-protection rule
-  or ruleset requires the gate's status check. The CLI is packaged and
-  dry-run-validated but not published to npm yet, so the gate workflow
-  builds it from `dist/`/source when available.
+  or ruleset requires the gate's status check. `@veylqorix/core@0.1.1`
+  is published, but the CLI itself is not yet on npm (publication is
+  blocked on the owner's trusted-publisher registration), so the gate
+  workflow builds it from `dist/`/source when available.
 - **The Rust engine is committed and wired in** — `runAudit`
   (`packages/core/src/audit.ts`) calls it through the adapter in
   `packages/core/src/engine/index.ts` when the `veylqorix-engine`
@@ -870,16 +880,19 @@ Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
       `packages/mcp-server`, `packages/plugin`, `packages/skills`, and
       `apps/web` still read 0.1.0, while the root, `packages/core`, and
       `apps/cli` are at 0.1.1.
-- [ ] Publish `@veylqorix/cli` to the npm registry (packaging is
-      validated by dry-run; trusted-publisher setup is the remaining
-      owner step)
+- [ ] Finish publishing `@veylqorix/cli` to the npm registry:
+      `@veylqorix/core@0.1.1` is already published (with a provenance
+      attestation); the CLI's remaining blocker is the owner-side
+      npm trusted-publisher registration, after which the existing
+      `v0.1.1` release is re-run (the tag is re-pointed at the commit
+      carrying the fixed release workflow; core is never republished)
 - [ ] Gitleaks as a first-class secret scanner (delegation already
       exists in the engine)
 - [ ] GitHub Actions branch-protection guide with screenshots
-- [ ] Commit the editable diagram sources for the `Veylqorix_Diagrams/`
-      PNGs (the historical Graphviz `.dot` sources were removed from the
-      tree; the SVGs now in `Veylqorix_Diagrams/` are the canonical
-      editable record, per the diagrams' own README)
+- [ ] Document the diagram-source constraint: the `Veylqorix_Diagrams/`
+      PNGs are the canonical record and their sources are not included in
+      the repo; PNG-only is a permanent constraint, so no SVG, Mermaid,
+      PDF, or new diagram-generation pipeline will be added
 
 The build plan that shipped 0.1.x is archived here:
 
@@ -959,6 +972,7 @@ crates/                 Rust security engine (cargo workspace, veylqorix-engine)
 docs/                   per-surface documentation
 tests/                  vitest suite + fixture repositories (fake data only)
 Veylqorix_Diagrams/     rendered architecture diagrams + palette notes
+Veylqorix_Master_Doc.md   full engineering master doc (architecture, lifecycle, engine, publishing)
 ```
 
 The core engine is independent of every front-end. CLI, MCP, and API
@@ -982,6 +996,7 @@ when it is not.
 | [docs/faq.md](docs/faq.md) | honest limitations and general questions |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | "why did it fail" answers |
 | [Veylqorix_Diagrams/README.md](Veylqorix_Diagrams/README.md) | diagram palette and rendered PNGs |
+| [Veylqorix_Master_Doc.md](Veylqorix_Master_Doc.md) | full engineering master doc |
 
 ## Community
 
