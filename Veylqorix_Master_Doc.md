@@ -811,7 +811,7 @@ Before merging a change to scanners, the gate, policy, data model, Rust protocol
 | Package | Role | Registry state in the checked record |
 |---|---|---|
 | `@veylqorix/core` | Shared scanner/policy/gate/report library | `0.1.1` **is published** on the registry with a signed provenance attestation (release run `40558927305`). See §15.3 for the recorded release history. |
-| `@veylqorix/cli` | `veylqorix` executable | `0.1.1` is **not yet published** — the registry lists only the `0.0.0-stage` staged placeholder. The CLI is the single outstanding item: publication is gated on the owner registering the CLI trusted-publisher record (the core record is done and validated), then re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and pushing it the same day, because the record expires unless its first successful publish happens within 2 days. Until then, run it from the monorepo build (`dist/`). Verify current registry state before publishing. |
+| `@veylqorix/cli` | `veylqorix` executable | `0.1.1` **is published** on the registry with a provenance attestation (release run `40932201210`). Consumers install it with `npm install -g @veylqorix/cli@0.1.1`. The registry also still carries the `0.0.0-stage` staged placeholder. Verify current registry state before publishing. |
 | `@veylqorix/plugin` | Extension SDK | Docs state it is available in monorepo but not yet published. |
 | `@veylqorix/mcp-server` | MCP tool server | Workspace package; its publish readiness must be audited separately before treating it as part of the public npm release. |
 
@@ -830,10 +830,21 @@ Actions are pinned to immutable SHAs and the workflow avoids an `NPM_TOKEN` secr
 Per [CHANGELOG.md](CHANGELOG.md) and `docs/engineering/RELEASE_READINESS.md`, the current recorded state is:
 
 - **Nothing was published at `0.1.0`.** The `v0.1.0` tag release run (`40500854557`) failed **before** `npm publish` was ever invoked: the publish job's artifact download unpacked tarballs into a directory the publish steps did not glob (`packaged-tarballs/`), so `npm` was never reached. `0.1.0` remains free on the registry. A later fix moved the download into the matching path and added a registry-visibility wait before publishing the CLI.
-- **`@veylqorix/core@0.1.1` is published; `@veylqorix/cli@0.1.1` is the single outstanding item.** The `v0.1.1` release run (`40558927305`) published `@veylqorix/core@0.1.1` successfully, with a signed provenance attestation, and then failed only at the CLI step with `ENEEDAUTH`, because the CLI's npm trusted-publisher record is missing or stage-only (an npm-side account setting only the maintainer can change). The `@veylqorix/cli` registry therefore lists only the `0.0.0-stage` staged placeholder, with no release version. CLI publication is gated on the owner registering the CLI trusted-publisher record and re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and pushing it the same day, so the record's first successful publish lands within its 2-day validation window.
+- **`@veylqorix/core@0.1.1` was published by run `40558927305`; the CLI was the single outstanding item at the time — it is now published (release run `40932201210`, 2026-10-29).** The `v0.1.1` release run (`40558927305`) published `@veylqorix/core@0.1.1` successfully, with a signed provenance attestation, and then failed only at the CLI step with `ENEEDAUTH`, because the CLI's npm trusted-publisher record is missing or stage-only (an npm-side account setting only the maintainer can change). The `@veylqorix/cli` registry therefore lists only the `0.0.0-stage` staged placeholder, with no release version. CLI publication is gated on the owner registering the CLI trusted-publisher record and re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and pushing it the same day, so the record's first successful publish lands within its 2-day validation window. (That gate cleared 2026-10-29: record created, tag re-pointed, run `40932201210` published `@veylqorix/cli@0.1.1`; the description above is the recorded history of run `40558927305`.)
 - A `0.0.1` bootstrap of both packages is **staged** on the registry (its approval/rejection is a 2FA-protected owner action, optional, and not required for the `0.1.1` release).
 
-The remaining owner actions (register the CLI trusted-publisher record — the core record is done and validated, so it should not be re-created; optionally approve/reject the staged `0.0.1` bootstrap; then re-point the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and push it the same day as the record creation) are documented in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6 and `docs/engineering/RELEASE_READINESS.md`.
+The 0.1.1 release is **complete (2026-10-29).** The owner registered the CLI
+trusted-publisher record (the core record was already done and was not
+re-created), re-pointed the `v0.1.1` tag at the commit carrying the fixed
+`release.yml` and pushed it the same day; the re-triggered run `40932201210`
+then published `@veylqorix/cli@0.1.1` with a provenance attestation, so both
+`@veylqorix/core@0.1.1` and `@veylqorix/cli@0.1.1` are on the registry. The
+only remaining owner action is optional and has no effect on 0.1.1:
+approve or reject the staged `0.0.0-stage` bootstrap placeholders (a
+2FA-protected owner choice, `npm stage approve`/`reject`). The register/
+re-point procedure (now satisfied) is documented in
+`docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6 and
+`docs/engineering/RELEASE_READINESS.md`.
 
 See the repository's actual workflow page before acting:
 
@@ -1120,7 +1131,7 @@ These lists are intended to be checked off during actual work. A checked box mea
 - [ ] Do not call an incomplete scan safe.
 - [ ] Do not say “all vulnerabilities detected.”
 - [ ] Do not label an advisory gate as merge-blocking until branch protection requires it.
-- [ ] Do not claim Trusted Publishing works until a real successful OIDC publish has been observed.
+- [ ] Do not claim Trusted Publishing works until a real successful OIDC publish has been observed. (Observed for 0.1.1: a successful OIDC publish with provenance, run `40932201210`, 2026-10-29.)
 - [ ] Do not claim a package is published unless the registry confirms it.
 - [ ] Do not treat recommendations in this guide as already shipped features.
 

@@ -71,13 +71,13 @@ only).
 
 ## B. Blocked items
 
-- [ ] **B1 — CLI trusted-publisher record not registered** (core record is
-  done: `@veylqorix/core@0.1.1` published with a signed provenance
-  attestation in run `40558927305`). The run then failed only at
-  `Publish @veylqorix/cli` with `ENEEDAUTH` — the one remaining gap.
-  Owner action, ~2 min; exact fields and CLI commands in
-  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §6 (STEP 1).
-  **The single remaining blocker for the release.**
+- [x] **B1 — CLI trusted-publisher record registered** (done 2026-10-29) — the
+  CLI record was created by the owner (web UI, 2FA session, direct `npm
+  publish` allowed, environment unset); the core record was already done and
+  was not re-created. The record was validated by release run `40932201210`,
+  which published `@veylqorix/cli@0.1.1` with a provenance attestation. The
+  2-day first-publish window was satisfied by that successful publish, so the
+  record is no longer at expiry risk.
 - [x] **B2 — `@veylqorix` scope ownership + 2FA** — owner ran
   `npm login` on the owning account and confirmed scope ownership via
   `npm org ls veylqorix` (2026-10-27, `NPM_PUBLICATION_REPORT.md` §4c).
@@ -123,81 +123,80 @@ only).
 
 ## C. Required maintainer actions (npm side, owner only)
 
-All entries are on the owning npm account (not the GitHub org) and are the
-sole blockers to a successful `0.1.1` publish. Single source of truth:
+All entries are on the owning npm account (not the GitHub org). As of
+2026-10-29 the `0.1.1` release is **complete** (C1, C4, C5 done; see §C);
+the only open item is the optional C3. Single source of truth:
 `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`.
 
-- [ ] **C1 — Register the npm trusted-publisher record for `@veylqorix/cli`
-  (core is already done)** — as of the confirmed `v0.1.1` run
-  (`40558927305`), `@veylqorix/core@0.1.1` published successfully with a
-  signed provenance attestation, so the **core** record is validated and
-  must **not** be re-created; the run then failed only at `Publish
-  @veylqorix/cli` with `ENEEDAUTH`. The one remaining gap is the **CLI**
-  record: run the CLI `npm trust github …` command in
-  `NPM_TRUSTED_PUBLISHING_SETUP.md` §2/§6 with `--allow-publish` (new
-  configurations default to stage-only; the direct-publish action must be
-  explicitly enabled or the workflow's `npm publish` is rejected 403 — that
-  rejection is exactly the `ENEEDAUTH` seen). The step-by-step, owner-only
-  (2FA web session) account is `NPM_TRUSTED_PUBLISHING_SETUP.md` §6.
-  Commands (for reference; only the CLI line is still needed):
+- [x] **C1 — Register the npm trusted-publisher record for `@veylqorix/cli`
+  (core is already done)** — **done 2026-10-29.** The owner created the
+  CLI trusted-publisher record (web UI, 2FA session, direct `npm publish`
+  allowed, environment unset). The core record was already done and was not
+  re-created. Validated by release run `40932201210`, which published
+  `@veylqorix/cli@0.1.1` with a provenance attestation; the 2-day
+  first-publish window was satisfied by that publish. Historical context:
+  the confirmed `v0.1.1` run (`40558927305`) had published `@veylqorix/core@0.1.1`
+  successfully (signed provenance attestation) and failed only at `Publish
+  @veylqorix/cli` with `ENEEDAUTH` — the CLI record was the one remaining
+  gap at the time. For reference, the CLI command that registers the record
+  is:
 
   ```bash
-  npm trust github @veylqorix/core \
-    --file release.yml --repository soumyachk101/Veylqorix --allow-publish
   npm trust github @veylqorix/cli \
     --file release.yml --repository soumyachk101/Veylqorix --allow-publish
   ```
 
   **2-day window:** a trusted-publisher configuration that does not complete
   its first successful publish within 2 days expires and must be deleted and
-  re-created.
+  re-created. This window was satisfied by run `40932201210`.
 - [ ] **C2 — Confirm `@veylqorix` scope ownership + 2FA** on the owning
   account (`NPM_TRUSTED_PUBLISHING_SETUP.md` §1). The `0.0.0-stage`
   bootstrap placeholders (§verified in A above) already require this.
 - [ ] **C3 — Approve or reject the staged `0.0.0-stage` bootstrap
   placeholders** (`npm stage approve`/`npm stage reject`) — 2FA-protected
-  owner action, optional (the `0.1.1` release does not depend on the staged
-  placeholder), but the record must exist before C1.
-- [ ] **C4 — Re-trigger the `v0.1.1` release with the fixed workflow** —
-  create the **CLI** record (C1), then re-point the tag at the commit that
-  carries the fixed `release.yml` (currently `6480b4a`, the release-audit
-  commit on `main`) and push it:
-  `git tag -f v0.1.1 && git push -f origin v0.1.1`. Do this **the same day**
-  as C1, so the CLI record's 2-day first-publish window isn't missed.
-  **Why not `gh run rerun 40558927305`:** `gh run rerun` re-executes the
-  workflow *from the run's commit* (`dd2054f`), which has no `test` job and
-  a non-idempotent core step — since `@veylqorix/core@0.1.1` is now
-  published, re-running *that* commit would hard-fail on the core step with
-  `EPUBLISHCONFLICT` and never reach the CLI step. (The tag/version guard
-  still passes: the manifests at the new commit declare `0.1.1`.) Do not
-  move or recreate the `v0.1.0` tag. There is **no version bump to
-  `0.1.2`** — the tag is re-pointed, and core `0.1.1` is never republished
-  (npm versions are immutable; the workflow's registry-presence pre-check
-  skips it with a notice).
-- [ ] **C5 — Monitor the new `release.yml` run** to green: the new `test`
-  job must pass, `pack` must succeed, the core publish step **skips with a
-  notice** (already on the registry — the registry-presence pre-check), the
-  registry-visibility poll must succeed, and `publish` for CLI must
-  succeed. Both packages must show a provenance attestation on npm
-  (core's exists from run `40558927305`; CLI's comes with the new publish —
-  `NPM_TRUSTED_PUBLISHING_SETUP.md` §3).
+  owner action, **OPTIONAL and inert** (the `0.1.1` release does not depend
+  on the staged placeholder; approving or rejecting it has no effect on the
+  completed `0.1.1` release). Left open as an owner choice.
+- [x] **C4 — Re-trigger the `v0.1.1` release with the fixed workflow** —
+  **done 2026-10-29.** After the CLI record was created (C1), the `v0.1.1`
+  tag was re-pointed to the public main head `bee183c3` (the commit carrying
+  the fixed `release.yml`) and pushed. The trigger produced release run
+  `40932201210`. Do **not** move or recreate the `v0.1.0` tag. No version
+  bump to `0.1.2` — the tag was re-pointed, and core `0.1.1` was never
+  republished (npm versions are immutable; the workflow's registry-presence
+  pre-check skipped it with a notice).
+- [x] **C5 — Monitor the new `release.yml` run** — **done 2026-10-29, green.**
+  Release run `40932201210` on `soumyachk101/Veylqorix` completed SUCCESS:
+  the `pack` job passed the tag/version guard, the `test` job (full CI loop)
+  passed, `Publish @veylqorix/core` **skipped with a notice** (already on
+  the registry — the idempotency guard worked), and `Publish @veylqorix/cli`
+  **succeeded** (`npm publish` with `--provenance`). The registry now lists
+  `0.1.1` for both packages; `@veylqorix/cli@0.1.1` depends on
+  `@veylqorix/core@0.1.1` and carries a `dist.integrity`
+  (`sha512-b0sOgpk64qkq2lRrp1tbqURfILZc+5IxhaEEM0ATIxemWJDDE/0NCRyHdtvP3OLu+sDw4pHoFritYwqBptr63A==`).
+  A clean registry install (`npm install @veylqorix/cli@0.1.1` in a fresh
+  dir) added 2 packages, 0 vulnerabilities, and `./node_modules/.bin/veylqorix
+  --help` exits 0 with the usage block.
 
 ## Order of operations
 
-1. C3 (approve/reject the `0.0.0-stage` placeholder, optional) → **C1
-   (create the CLI trusted-publisher record)** → **C4 (re-point `v0.1.1` at
-   the fixed commit and push, same day)** → C5 (verify).
+1. **C1 (create the CLI trusted-publisher record) → C4 (re-point `v0.1.1` at
+   the fixed commit and push, same day) → C5 (verify)** — **all three
+   complete 2026-10-29** (run `40932201210`). **C3** (approve/reject the
+   `0.0.0-stage` placeholder) is **OPTIONAL and inert** — a 2FA-protected
+   owner choice with no effect on the `0.1.1` release, and it is not
+   required.
 2. In parallel: B8 (gitleaks digest — no action today). B3, B5, and B7 are
    already closed (see §B): the validation report is filled in with real
    results, the stray checkout is gone, and `cargo audit` was re-run
    (0 vulnerabilities).
 
-The repo-side work is complete and committed: the fixed `release.yml`
-(three jobs `pack`+`test`→`publish`, idempotent re-run guards, registry-
-visibility wait) is on `main` at `6480b4a`, and every runnable validation
-command (Rust, TypeScript, package inspection) has been executed locally and
-recorded **PASS** in `VALIDATION_REPORT.md`. The `v0.1.1` tag still points
-at `dd2054f` (pre-fix), so C4's re-point is the one remaining git step.
-`@veylqorix/core@0.1.1` is already published; only `@veylqorix/cli@0.1.1`
-remains, and only C1/C4/C5 — all owner-only — can complete the release from
-here.
+The `0.1.1` release is **complete** (2026-10-29). Both `@veylqorix/core@0.1.1`
+and `@veylqorix/cli@0.1.1` are on the registry, each with a provenance
+attestation (core from run `40558927305`, CLI from run `40932201210`). The
+only remaining item is the optional 2FA-gated approve/reject of the staged
+`0.0.0-stage` placeholders, which has no effect on the `0.1.1` release. The
+fixed `release.yml` (three jobs `pack`+`test`→`publish`, idempotent re-run
+guards, registry-visibility wait) is on `main`, the `v0.1.1` tag was
+re-pointed to `bee183c3` (the public main head carrying the fixed workflow)
+and pushed, and release run `40932201210` completed SUCCESS.

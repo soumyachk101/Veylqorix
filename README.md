@@ -155,11 +155,14 @@ pnpm test         # vitest unit + integration suite
 
 ### Scan a repository from the CLI
 
-`@veylqorix/core@0.1.1` is published to npm (with a provenance
-attestation). The CLI is packaged and dry-run-validated (`pnpm pack
---dry-run`) but not published yet — its publication is blocked on the
-owner's npm trusted-publisher registration. Until the CLI is published,
-run it from the build output:
+`@veylqorix/core@0.1.1` and `@veylqorix/cli@0.1.1` are published to npm
+(each with a provenance attestation). Install the CLI from the registry:
+
+```sh
+npm install -g @veylqorix/cli   # then: veylqorix --help
+```
+
+Or run it from the monorepo build output:
 
 ```sh
 node apps/cli/dist/index.js scan --root /path/to/repo --json
@@ -209,7 +212,7 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 
 | Surface                       | Where                                    | Status (verified)                                                                                                             | Docs |
 |-------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|------|
-| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. `@veylqorix/core@0.1.1` is published; the CLI itself is packaged and dry-run-validated but **not published to npm — run from `dist/` until the CLI's trusted-publisher registration unblocks publication.** | [docs/cli.md](docs/cli.md) |
+| CLI (`veylqorix`)             | `apps/cli`                               | Real scans, deterministic exit codes, safe dry-run hook installer. `@veylqorix/cli@0.1.1` is published to npm (with a provenance attestation); install with `npm install -g @veylqorix/cli@0.1.1`. | [docs/cli.md](docs/cli.md) |
 | MCP server (`veylqorix-mcp`)  | `packages/mcp-server`                    | Six Zod-validated tools, root confinement + redaction. Requires `pnpm build`.                                                 | [docs/mcp.md](docs/mcp.md) |
 | REST API + dashboard          | `packages/api`, `apps/web`               | Dependency-free API on `:4173`; Next.js dashboard on `:3000` with a clearly-labeled **SAMPLE DATA** fallback when the API is down. | [docs/api.md](docs/api.md) · [docs/dashboard.md](docs/dashboard.md) |
 | GitHub Actions gate           | `.github/workflows/veylqorix-gate.yml`   | Reusable `workflow_call` gate: real scan + SARIF upload, SHA-pinned actions, least-privilege permissions. **Advisory until a branch-protection rule requires the check.** | [docs/github-actions.md](docs/github-actions.md) |
@@ -218,10 +221,12 @@ echo '{"protocolVersion":1,"command":"ping","args":{}}' \
 | Rust security engine          | `crates/veylqorix-engine`                | Binary + JSON-stdio protocol + 75 tests; called by the TypeScript core through the engine adapter. | below |
 
 **Honest note:** the gate and the CLI hooks are *advisory* until
-enforcement (branch protection) is in place. `@veylqorix/core@0.1.1` is
-published, but the CLI itself is packaged and dry-run-validated, not yet
-published to npm — its publication is blocked on the owner's
-trusted-publisher registration. See
+enforcement (branch protection) is in place. `@veylqorix/core@0.1.1` and
+`@veylqorix/cli@0.1.1` are both published to npm (each with a provenance
+attestation); the CLI is installable with `npm install -g
+@veylqorix/cli@0.1.1`. The registry also still carries a staged
+`0.0.0-stage` placeholder for the CLI (approval is a 2FA-protected owner
+step and is optional). See
 [Honest limitations](#honest-limitations) and
 [docs/faq.md](docs/faq.md).
 
@@ -851,9 +856,9 @@ absence of vulnerabilities or secrets. Specifically:
   check proves only that the checks that ran passed.
 - **The gate and hooks are advisory** until a branch-protection rule
   or ruleset requires the gate's status check. `@veylqorix/core@0.1.1`
-  is published, but the CLI itself is not yet on npm (publication is
-  blocked on the owner's trusted-publisher registration), so the gate
-  workflow builds it from `dist/`/source when available.
+  and `@veylqorix/cli@0.1.1` are both published to npm (each with a
+  provenance attestation); the CLI is installable with `npm install -g
+  @veylqorix/cli@0.1.1`, so non-monorepo callers can install it directly.
 - **The Rust engine is committed and wired in** — `runAudit`
   (`packages/core/src/audit.ts`) calls it through the adapter in
   `packages/core/src/engine/index.ts` when the `veylqorix-engine`
@@ -880,12 +885,13 @@ Progress is tracked in [CHANGELOG.md](CHANGELOG.md) (0.1.1 released
       `packages/mcp-server`, `packages/plugin`, `packages/skills`, and
       `apps/web` still read 0.1.0, while the root, `packages/core`, and
       `apps/cli` are at 0.1.1.
-- [ ] Finish publishing `@veylqorix/cli` to the npm registry:
-      `@veylqorix/core@0.1.1` is already published (with a provenance
-      attestation); the CLI's remaining blocker is the owner-side
-      npm trusted-publisher registration, after which the existing
-      `v0.1.1` release is re-run (the tag is re-pointed at the commit
-      carrying the fixed release workflow; core is never republished)
+- [x] Finish publishing `@veylqorix/cli` to the npm registry:
+      **done 2026-10-29** — `@veylqorix/core@0.1.1` and
+      `@veylqorix/cli@0.1.1` are both on the registry (each with a
+      provenance attestation). The CLI trusted-publisher record was
+      registered, the `v0.1.1` tag re-pointed to the commit carrying
+      the fixed release workflow, and release run `40932201210`
+      published the CLI (core was never republished).
 - [ ] Gitleaks as a first-class secret scanner (delegation already
       exists in the engine)
 - [ ] GitHub Actions branch-protection guide with screenshots
