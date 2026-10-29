@@ -102,9 +102,9 @@ Other command/engine errors may use `64` for usage or malformed input, `65` for 
 
 *Figure 1. System architecture — a high-level conceptual map; solid elements
 are implemented, and the dashed Static-analysis (SAST) box is planned. The
-editable SVG source is `Veylqorix_Diagrams/01_system_architecture.svg`
-(see `Veylqorix_Diagrams/README.md`); module-level behavior is described
-below from the repository sources.*
+PNG is the canonical record; diagram sources are not included in the
+repository (see `Veylqorix_Diagrams/README.md`); module-level behavior is
+described below from the repository sources.*
 
 ## 2.1 Architectural layers
 
@@ -180,8 +180,9 @@ Results are exposed through:
 ![Veylqorix security scan lifecycle](Veylqorix_Diagrams/02_scan_lifecycle.png)
 
 *Figure 2. From code change to evidence-backed decision and rescan
-verification. Every stage reflects shipped behavior; the editable SVG source
-is `Veylqorix_Diagrams/02_scan_lifecycle.svg`.*
+verification. Every stage reflects shipped behavior; the PNG is the
+canonical record and diagram sources are not included in the repository
+(see `Veylqorix_Diagrams/README.md`).*
 
 ## Step 1 — Accept and validate the target
 
@@ -400,8 +401,9 @@ This wrapper is important because a subprocess failure must not be mistaken for 
 ![Veylqorix integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 
 *Figure 3. Multiple integration surfaces feed a shared engine and normalized
-results. Solid elements are implemented; the diagram is the editable SVG
-`Veylqorix_Diagrams/04_ai_integrations.svg`.*
+results. Solid elements are implemented; the PNG is the canonical record
+and diagram sources are not included in the repository (see
+`Veylqorix_Diagrams/README.md`).*
 
 ## 7.1 Engine responsibilities
 
@@ -808,8 +810,8 @@ Before merging a change to scanners, the gate, policy, data model, Rust protocol
 
 | Package | Role | Registry state in the checked record |
 |---|---|---|
-| `@veylqorix/core` | Shared scanner/policy/gate/report library | `0.1.1` is **not yet published** — the `v0.1.1` release failed at the trusted-publisher gate before `npm publish` ran; the registry state is recorded as unpublished (`E404`). Until then, use the monorepo workspace build. See §15.3 for the recorded release history. |
-| `@veylqorix/cli` | `veylqorix` executable | `0.1.1` is **not yet published** — publication is gated on the owner registering the trusted-publisher record, then re-triggering the `v0.1.1` release. Until then, run it from the monorepo build (`dist/`). Verify current registry state before publishing. |
+| `@veylqorix/core` | Shared scanner/policy/gate/report library | `0.1.1` **is published** on the registry with a signed provenance attestation (release run `40558927305`). See §15.3 for the recorded release history. |
+| `@veylqorix/cli` | `veylqorix` executable | `0.1.1` is **not yet published** — the registry lists only the `0.0.0-stage` staged placeholder. The CLI is the single outstanding item: publication is gated on the owner registering the CLI trusted-publisher record (the core record is done and validated), then re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and pushing it the same day, because the record expires unless its first successful publish happens within 2 days. Until then, run it from the monorepo build (`dist/`). Verify current registry state before publishing. |
 | `@veylqorix/plugin` | Extension SDK | Docs state it is available in monorepo but not yet published. |
 | `@veylqorix/mcp-server` | MCP tool server | Workspace package; its publish readiness must be audited separately before treating it as part of the public npm release. |
 
@@ -828,10 +830,10 @@ Actions are pinned to immutable SHAs and the workflow avoids an `NPM_TOKEN` secr
 Per [CHANGELOG.md](CHANGELOG.md) and `docs/engineering/RELEASE_READINESS.md`, the current recorded state is:
 
 - **Nothing was published at `0.1.0`.** The `v0.1.0` tag release run (`40500854557`) failed **before** `npm publish` was ever invoked: the publish job's artifact download unpacked tarballs into a directory the publish steps did not glob (`packaged-tarballs/`), so `npm` was never reached. `0.1.0` remains free on the registry. A later fix moved the download into the matching path and added a registry-visibility wait before publishing the CLI.
-- **Neither `@veylqorix/core@0.1.1` nor `@veylqorix/cli@0.1.1` is published yet.** The `v0.1.1` release run (`40558927305`) failed at the trusted-publisher gate (`ENEEDAUTH`); both `0.1.1` versions are recorded as verified unpublished on the registry (`E404`). Publication of both packages is gated on the owner registering the npm trusted-publisher records and re-triggering the `v0.1.1` release.
+- **`@veylqorix/core@0.1.1` is published; `@veylqorix/cli@0.1.1` is the single outstanding item.** The `v0.1.1` release run (`40558927305`) published `@veylqorix/core@0.1.1` successfully, with a signed provenance attestation, and then failed only at the CLI step with `ENEEDAUTH`, because the CLI's npm trusted-publisher record is missing or stage-only (an npm-side account setting only the maintainer can change). The `@veylqorix/cli` registry therefore lists only the `0.0.0-stage` staged placeholder, with no release version. CLI publication is gated on the owner registering the CLI trusted-publisher record and re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and pushing it the same day, so the record's first successful publish lands within its 2-day validation window.
 - A `0.0.1` bootstrap of both packages is **staged** on the registry (its approval/rejection is a 2FA-protected owner action, optional, and not required for the `0.1.1` release).
 
-The remaining owner actions (create the two trusted-publisher records, optionally approve/reject the staged `0.0.1` bootstrap, then re-trigger the `v0.1.1` release) are documented in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6 and `docs/engineering/RELEASE_READINESS.md`.
+The remaining owner actions (register the CLI trusted-publisher record — the core record is done and validated, so it should not be re-created; optionally approve/reject the staged `0.0.1` bootstrap; then re-point the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` and push it the same day as the record creation) are documented in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6 and `docs/engineering/RELEASE_READINESS.md`.
 
 See the repository's actual workflow page before acting:
 
@@ -856,7 +858,7 @@ Safe order:
 7. Confirm both packages install in a clean consumer project.
 8. Configure Trusted Publishing separately on each package, including direct `npm publish` permission if that is required by the current npm settings.
 9. Ensure the first successful trusted-publisher use occurs within the current npm-defined validation window; check official docs at that time.
-10. Use a valid new tag/version pair for a future release. Never move or repurpose an existing tag.
+10. Use a valid new tag/version pair for a future release. Never move or repurpose an existing tag, with the single documented exception in §15.3: re-pointing the existing `v0.1.1` tag at the commit carrying the fixed `release.yml` to complete the CLI publish.
 
 Useful registry checks (run only after installing npm and confirming scope access):
 

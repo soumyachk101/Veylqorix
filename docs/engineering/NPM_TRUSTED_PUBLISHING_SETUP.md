@@ -127,16 +127,28 @@ Ordered npm-side actions (the whole of what's left to do):
 
 1. Confirm who owns the `@veylqorix` scope on npm and that it is the
    owner's account; enable 2FA on that account if not already.
-2. Run the one-time bootstrap publish of **both** packages
-   (section 0 above, `0.0.1` or the staging-placeholder variant).
-3. Add the trusted-publisher record for `@veylqorix/core`
-   (section 2 fields, **including the "allow npm publish" action**).
-4. Add the trusted-publisher record for `@veylqorix/cli` (same).
-5. Push the `v0.1.1` tag so `release.yml` publishes both via OIDC —
-   this is the first successful publish that *validates* both
-   configurations; both must complete it **within 2 days** of being
-   created (section 2), or each configuration expires and must be
-   deleted and re-created.
+2. Bootstrap (section 0) is **already done** — both packages exist on the
+   registry via the `0.0.0-stage` staged placeholder, and their `0.0.1`
+   staged values await an optional 2FA-gated approve/reject. No bootstrap
+   publish remains.
+3. Add the trusted-publisher record for `@veylqorix/cli` (section 2 fields,
+   **including the "allow npm publish" action**). The **core** record is
+   already done and validated — `@veylqorix/core@0.1.1` published with a
+   signed provenance attestation in run 40558927305 — so do **not**
+   re-create it.
+4. Re-point the existing `v0.1.1` tag at the commit that carries the fixed
+   `release.yml` (committed at `6480b4a`, or the current `main` head — both
+   declare `0.1.1` in both manifests) and push it, **the same day** the CLI
+   record was created: the CLI record must complete its first successful
+   publish **within 2 days** of being created (section 2), or it expires and
+   must be deleted and re-created. This re-trigger publishes the CLI; the
+   core publish step skips with a notice because `@veylqorix/core@0.1.1` is
+   already on the registry (npm versions are immutable — core is never
+   republished).
+
+   Do **not** `gh run rerun 40558927305`: that re-executes the pre-fix
+   workflow at `dd2054f`, whose non-idempotent core step now hard-fails with
+   `EPUBLISHCONFLICT` and never reaches the CLI step.
 
 Sources checked 2026-10-27:
 <https://docs.npmjs.com/trusted-publishers/>,
@@ -370,10 +382,12 @@ Facts npm's current docs state, checked 2026-10-27:
 
 ## 6. Execute the v0.1.1 release (owner, ~2 min, one clean action)
 
-Dated 2026-10-27, updated 2026-10-28. The repo side is done: `main` is at
-`dd2054f` ("fix(release): publish via ./-prefixed tarball paths"), the `v0.1.1`
-tag points at `dd2054f`, and `v0.1.0` still points at `e768d08` (do not touch
-it).
+Dated 2026-10-27, updated 2026-10-28, re-verified 2026-10-29. The repo side
+is done: the fixed `release.yml` (registry-presence pre-checks, the `test`
+validation job, idempotent re-run guards, `./`-prefixed tarball paths) is
+committed on `main` at `6480b4a` and later. The `v0.1.1` tag still points
+at `dd2054f` (the pre-fix workflow), and `v0.1.0` still points at
+`e768d08` (do not touch it).
 
 **Where the run actually stands now (run 40558927305, confirmed from its logs
 2026-10-28):** `@veylqorix/core@0.1.1` was **published successfully** —
@@ -448,38 +462,36 @@ Two things must be true before the re-trigger:
 1. The CLI trusted-publisher record from STEP 1 exists.
 2. The tag points at a commit that carries the **fixed** `release.yml`
    (the version with the registry-presence pre-checks and the `test`
-   validation job — the one in the working tree of this repo as of the
-   2026-10-28 release-workflow fix). This matters: `gh run rerun`
-   re-executes the workflow file *from the run's commit*. Run
-   40558927305 ran on `dd2054f`, whose workflow is the old one — it has
-   no `test` job and its core publish step would now hard-fail with
-   `EPUBLISHCONFLICT` (core is permanently published), never reaching
-   the CLI step. So the re-trigger must run the new workflow:
+   validation job — committed at `6480b4a` on `main`). The `v0.1.1` tag
+   still points at `dd2054f`, the pre-fix workflow — its `publish` step has
+   no registry-presence guard, and since `@veylqorix/core@0.1.1` is now
+   published on the registry, that non-idempotent core step would hard-fail
+   with `EPUBLISHCONFLICT` and never reach the CLI step.
+
+   Re-point the existing tag at the commit that carries the fixed workflow,
+   then push it. Do **not** use `git tag -f` at HEAD of the tag and
+   **do not** use `gh run rerun 40558927305` — that re-executes the
+   pre-fix workflow at `dd2054f`, never the fixed one:
 
    ```bash
-   # commit the .github/workflows/release.yml fix to main and push it,
-   # then re-point the tag at that commit (the tag/version guard passes:
-   # the manifests still declare 0.1.1) and push the updated tag.
-   git add .github/workflows/release.yml
-   git commit -m "fix(release): gate publish on a validation job, make re-runs idempotent"
-   git push origin main
-   git tag -f v0.1.1
-   git push -f origin v0.1.1   # triggers a fresh release run on the new commit
+   # confirm which commit carries the fixed release.yml (6480b4a or the
+   # current main head):
+   git log --oneline -- .github/workflows/release.yml | head
+   # re-point the tag at that commit and push it:
+   git tag -f v0.1.1 6480b4a        # or: git tag -f v0.1.1 <current main head>
+   git push -f origin v0.1.1        # triggers a fresh release run on the fixed workflow
    ```
 
-   If the fixed workflow is already what the tag points at (check with
-   `gh run list --workflow release.yml` and read the head commit), the
-   plain re-run of the newest run works instead — no tag move needed:
+   The `pack` job's tag/version guard still passes: both manifests at the
+   fixed commit declare `0.1.1`, matching the tag. On the fresh run, the
+   core publish step skips with a notice (`@veylqorix/core@0.1.1` is already
+   on the registry), the registry-visibility poll succeeds, and the CLI
+   publishes.
 
-   ```bash
-   gh run rerun 40558927305
-   ```
-
-   (or the "Re-run all jobs" button on the GitHub Actions run page,
-   <https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>).
-
-   Either way the tag must still match the manifests' `0.1.1` (the `pack`
-   job's tag/version guard enforces this before anything publishes).
+   Never: `gh run rerun 40558927305` (re-executes the pre-fix workflow and
+   hard-fails at the core step), republish `0.1.1` or any version already on
+   the registry, move the `v0.1.0` tag, or bump the version to "test"
+   authentication.
 
 **STEP 4 — verify**
 

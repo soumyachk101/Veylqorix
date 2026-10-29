@@ -9,10 +9,22 @@ house-style choice; the convention is consistent across releases.
 ### Release docs
 - New owner runbook for the `v0.1.1` trusted-publishing step
   ([docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md](docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md) §6):
-  create the two trusted-publisher records, approve/reject the two staged
-  `0.0.1` bootstrap versions, then re-run the failed `v0.1.1` release
-  (`gh run rerun 40558927305`). The pipeline itself and the release work it
-  covers are all in the `v0.1.1` tree — only this docs step is unreleased.
+  the **core** trusted-publisher record is done and validated —
+  `@veylqorix/core@0.1.1` was published with a signed provenance
+  attestation in release run `40558927305`. Only the **CLI** record
+  remains: the owner creates it (web UI, 2FA session, direct `npm publish`
+  allowed, environment unset), then re-points the existing `v0.1.1` tag
+  at the commit carrying the fixed `release.yml` (the fixed workflow is
+  committed at `6480b4a` or current main head; both manifests declare
+  `0.1.1`) and pushes it the same day, inside the 2-day first-publish
+  window. Do **not** re-run the failed release (`gh run rerun
+  40558927305`) — that would re-execute the pre-fix workflow, whose
+  non-idempotent core step now hard-fails with `EPUBLISHCONFLICT` and
+  never reaches the CLI step. The staged bootstrap shows on the registry
+  as the `0.0.0-stage` placeholder; the `0.0.1` stages await the owner's
+  optional 2FA-gated approve/reject. The pipeline itself and the release
+  work it covers are all in the `v0.1.1` tree — only this docs step is
+  unreleased.
 
 ## 0.1.1 (2026-10-27)
 
@@ -108,15 +120,25 @@ dashboard, MCP tooling, CLI/hooks hardening, and CI pinning.
 - `docs/cli.md`: install/upgrade, engine prerequisite, cross-platform notes,
   and exit-code examples matching the implementation.
 - Status: packaging validated locally (dry-run only). The `v0.1.0` release run
-  (`40500854557`) and the `v0.1.1` release run (`40558927305`, failed at the
-  trusted-publisher gate with `ENEEDAUTH`) are recorded in
-  `docs/engineering/NPM_PUBLICATION_REPORT.md`; `0.1.1` is verified
-  unpublished on the registry (`E404`). The `0.0.1` bootstrap is staged on
-  the registry. **Owner actions remaining
-  (per `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §6):** create the
-  two trusted-publisher records (web UI, 2FA session), optionally
-  approve/reject the two staged `0.0.1` versions, then re-run the failed
-  `v0.1.1` release (`gh run rerun 40558927305`).
+  (`40500854557`) failed **before** npm was ever called, and the `v0.1.1`
+  release run (`40558927305`) failed at the `Publish @veylqorix/cli` step
+  with `ENEEDAUTH` (the CLI trusted-publisher record was missing or
+  stage-only); both are recorded in
+  `docs/engineering/NPM_PUBLICATION_REPORT.md`. Verified registry state:
+  `@veylqorix/core@0.1.1` **is published** (signed provenance attestation,
+  run `40558927305`); `@veylqorix/cli@0.1.1` is not published — the
+  registry lists only the `0.0.0-stage` placeholder for the CLI, and the
+  `0.0.1` bootstrap values exist only as staged packages pending the
+  owner's 2FA-gated approve/reject (no `0.0.1` version is visible on the
+  registry for either package). **Owner actions remaining
+  (per `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` §6):** create
+  the CLI trusted-publisher record (web UI, 2FA session, direct `npm
+  publish` allowed, environment unset), re-point the existing `v0.1.1`
+  tag at the commit carrying the fixed `release.yml` (`6480b4a` or
+  current main head) and push it the same day; optionally approve/reject
+  the staged bootstrap. Do **not** recommend `gh run rerun 40558927305`:
+  it re-executes the pre-fix workflow, whose non-idempotent core step now
+  hard-fails with `EPUBLISHCONFLICT` and never reaches the CLI step.
 
 ### Release fixes
 - `@veylqorix/core` and `@veylqorix/cli` are now `0.1.1`. Nothing was
@@ -232,7 +254,9 @@ First public build of the Veylqorix security platform.
 Process documentation lives outside the changelog: the current release
 checklist, owner actions, and registry state are recorded in
 `docs/engineering/RELEASE_READINESS.md` §7. One item stays here because it
-is the one outstanding release fact: `@veylqorix/cli` (and
-`@veylqorix/core`) have not been published to the npm registry at `0.1.1`
-— the registry is still at the `0.0.1` bootstrap stage (verified
-unpublished, `E404`).
+is the one outstanding release fact: `@veylqorix/core@0.1.1` **is
+published** (signed provenance attestation, run `40558927305`);
+`@veylqorix/cli@0.1.1` has not been published — the registry lists only
+the `0.0.0-stage` placeholder for the CLI, and the CLI is gated on the
+owner creating the CLI trusted-publisher record and re-pointing the
+`v0.1.1` tag at the fixed-workflow commit (push the same day).

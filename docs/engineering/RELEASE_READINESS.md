@@ -83,30 +83,43 @@ only).
   `npm org ls veylqorix` (2026-10-27, `NPM_PUBLICATION_REPORT.md` §4c).
   Residual nuance: the configured granular token bypasses 2FA, so
   2FA-gated steps (`npm trust`, `npm stage approve`) require the web UI.
-- [ ] **B3 — `docs/engineering/VALIDATION_REPORT.md` is PENDING for the
-  Rust/TS/package sections.** Docs + diagram verification (§C, D1–D5) ran
-  2026-10-29 and is recorded **PASS** in that report; the Rust (A), TS (B),
-  and package-inspection (D, P1–P4) results remain PENDING against the
-  current tree and are owned by the parallel workstreams — the lead or those
-  agents must fill them in before the tag re-trigger. See that doc's
-  PENDING markers.
+- [x] **B3 — `docs/engineering/VALIDATION_REPORT.md` is filled in with real
+  results.** Every runnable section was executed in this checkout on
+  2026-10-29 and is recorded **PASS** with evidence: Rust (A: R1–R5, including
+  `cargo audit` → 0 vulnerabilities), TypeScript/pnpm (B: T1–T7, including
+  `pnpm audit` → 0 known vulnerabilities and the `postcss@8.5.31` /
+  `sharp@0.35.5` override resolution), docs/diagrams (C: D1–D7), and package
+  inspection (D: P1–P4, including the clean-consumer install and the
+  `veylqorix --help` smoke test). P5 is split honestly: the **core** half is
+  verified on the registry, the **CLI** half is explicitly left pending the
+  owner action in §C — it is not claimed as passing. The only remaining
+  PENDING items are the hosted tag-push `test` job and the maintainer
+  trusted-publisher step, both of which are outside this checkout.
 - [x] **B4 — Launch-film generated cache removed from tracking** (`video/
   veylqorix-launch-film/.hyperframes/**`, 97 files incl. `video-state.json`
   with machine-local paths; `video/**/*.mp4` render outputs). Staged for
   deletion in the 2026-10-28 audit commit (`6480b4a`); `.gitignore` covers
   the paths so they stay out.
-- [ ] **B5 — Stray website working copy** `veylqorix-website_try/` (own
-  `.git`, `.next/`, `node_modules`) is untracked; `.gitignore` now covers it
-  but the directory itself should be removed or intentionally kept by the
-  owning workstream. Purely hygiene.
+- [x] **B5 — Stray website working copy removed.** `veylqorix-website_try/`
+  (own `.git`, `.next/`, `node_modules`) no longer exists on disk as of
+  2026-10-29; the `.gitignore` entry is retained defensively. Purely
+  hygiene, now closed.
 - [x] **B6 — `packages/mcp-server/package.json.bak`** removed from tracking
   in `6480b4a` (was a byte-identical dead copy of `package.json`).
-- [ ] **B7 — `cargo audit` last recorded 0 vulns (2026-10-26)** — re-run at
-  release time; `cargo audit` is optional in CI (tool-probe + honest SKIP).
+- [x] **B7 — `cargo audit` re-run at release time.** Executed 2026-10-29 with
+  cargo-audit 0.22.2: scanned 37 crate dependencies against 1386 advisories,
+  exit 0, **0 vulnerabilities**. `cargo audit` remains optional in CI
+  (tool-probe + honest SKIP).
 - [ ] **B8 — CI gitleaks SHA-256 digest** is pinned to v8.30.1 (digest
   computed at commit time, 2026-10); re-verify **only** if the pinned
   version ever changes. No action today.
-- [ ] **B9 — Root `SHA256SUMS` decoy + `apps/web/tsconfig.tsbuildinfo` hygiene** (2026-10-29 re-sweep, `REPOSITORY_AUDIT.md` A23/A24). The root-level `SHA256SUMS` is a bare 7-line filename list with **no digests** (a decoy distinct from the real `Veylqorix_Diagrams/SHA256SUMS`); both it and `apps/web/tsconfig.tsbuildinfo` are now gitignored by this sweep. The on-disk deletion of the decoy is a repo-owner choice (see `REPOSITORY_AUDIT.md` A24). Purely hygiene; not blocking the release.
+- [x] **B9 — Root `SHA256SUMS` decoy + `apps/web/tsconfig.tsbuildinfo`
+  hygiene** (2026-10-29 re-sweep, `REPOSITORY_AUDIT.md` A23/A24). The root
+  decoy is **gone from disk** and stays gitignored; `apps/web/tsconfig.tsbuildinfo`
+  is gitignored and untracked. The real integrity manifest,
+  `Veylqorix_Diagrams/SHA256SUMS`, was restored as the checksum manifest for
+  the 7 diagram PNGs — `shasum -a 256 -c SHA256SUMS` from inside the directory
+  reports OK for all 7. Purely hygiene, now closed.
 
 ## C. Required maintainer actions (npm side, owner only)
 
@@ -139,12 +152,12 @@ sole blockers to a successful `0.1.1` publish. Single source of truth:
   its first successful publish within 2 days expires and must be deleted and
   re-created.
 - [ ] **C2 — Confirm `@veylqorix` scope ownership + 2FA** on the owning
-  account (`NPM_TRUSTED_PUBLISHING_SETUP.md` §1). The `0.0.1` bootstrap
-  stages (§verified in A above) already require this.
-- [ ] **C3 — Approve or reject the staged `0.0.1` bootstrap versions**
-  (`npm stage approve`/`npm stage reject`) — 2FA-protected owner action,
-  optional (the `0.1.1` release does not depend on the staged `0.0.1`),
-  but the record must exist before C1.
+  account (`NPM_TRUSTED_PUBLISHING_SETUP.md` §1). The `0.0.0-stage`
+  bootstrap placeholders (§verified in A above) already require this.
+- [ ] **C3 — Approve or reject the staged `0.0.0-stage` bootstrap
+  placeholders** (`npm stage approve`/`npm stage reject`) — 2FA-protected
+  owner action, optional (the `0.1.1` release does not depend on the staged
+  placeholder), but the record must exist before C1.
 - [ ] **C4 — Re-trigger the `v0.1.1` release with the fixed workflow** —
   create the **CLI** record (C1), then re-point the tag at the commit that
   carries the fixed `release.yml` (currently `6480b4a`, the release-audit
@@ -157,7 +170,10 @@ sole blockers to a successful `0.1.1` publish. Single source of truth:
   published, re-running *that* commit would hard-fail on the core step with
   `EPUBLISHCONFLICT` and never reach the CLI step. (The tag/version guard
   still passes: the manifests at the new commit declare `0.1.1`.) Do not
-  move or recreate the `v0.1.0` tag.
+  move or recreate the `v0.1.0` tag. There is **no version bump to
+  `0.1.2`** — the tag is re-pointed, and core `0.1.1` is never republished
+  (npm versions are immutable; the workflow's registry-presence pre-check
+  skips it with a notice).
 - [ ] **C5 — Monitor the new `release.yml` run** to green: the new `test`
   job must pass, `pack` must succeed, the core publish step **skips with a
   notice** (already on the registry — the registry-presence pre-check), the
@@ -168,15 +184,19 @@ sole blockers to a successful `0.1.1` publish. Single source of truth:
 
 ## Order of operations
 
-1. C3 (approve/reject staged `0.0.1`, optional) → **C1 (create the CLI
-   trusted-publisher record)** → **C4 (re-point `v0.1.1` at the fixed commit
-   and push, same day)** → C5 (verify).
-2. In parallel: B3 (fill `VALIDATION_REPORT.md`), B5 (hygiene), B7
-   (re-run `cargo audit`), B8 (no action).
+1. C3 (approve/reject the `0.0.0-stage` placeholder, optional) → **C1
+   (create the CLI trusted-publisher record)** → **C4 (re-point `v0.1.1` at
+   the fixed commit and push, same day)** → C5 (verify).
+2. In parallel: B8 (gitleaks digest — no action today). B3, B5, and B7 are
+   already closed (see §B): the validation report is filled in with real
+   results, the stray checkout is gone, and `cargo audit` was re-run
+   (0 vulnerabilities).
 
 The repo-side work is complete and committed: the fixed `release.yml`
 (three jobs `pack`+`test`→`publish`, idempotent re-run guards, registry-
-visibility wait) is on `main` at `6480b4a`. The `v0.1.1` tag still points
+visibility wait) is on `main` at `6480b4a`, and every runnable validation
+command (Rust, TypeScript, package inspection) has been executed locally and
+recorded **PASS** in `VALIDATION_REPORT.md`. The `v0.1.1` tag still points
 at `dd2054f` (pre-fix), so C4's re-point is the one remaining git step.
 `@veylqorix/core@0.1.1` is already published; only `@veylqorix/cli@0.1.1`
 remains, and only C1/C4/C5 — all owner-only — can complete the release from
