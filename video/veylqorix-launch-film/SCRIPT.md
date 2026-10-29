@@ -1,27 +1,51 @@
-# Script — Veylqorix Launch Film (60 s)
+# Script — Veylqorix Launch Film
 
-No voiceover (the request's suggested narration is carried by on-screen titles; a TTS bed would
-need the HeyGen voice pipeline, which is not signed in here — see delivery note).
-The music clock is replaced by the scene grid: hard beats at 5, 12, 19, 31, 40, 49 s; the payoff
-(gate trio) lands at 44 s; the mark lands at 52 s and holds.
+Narration script for the 50–60 second launch film. The narration is sparse and
+confident; most of the film carries its meaning through on-screen copy and motion.
 
-| s   | world | on-screen line (verbatim) | action under it |
-|-----|-------|---------------------------|-----------------|
-| 0.0 | mint  | (still, pixels settling)  | 8 navy pixels drop; code chips rise; grid drifts |
-| 1.6 | mint  | **Every line of code carries a decision.** | line lands word-by-word (blur 6→0, 0.067 s apart); holds to 4.6 |
-| 5.6 | mint  | **But not every change is safe to ship.** | dep-graph draws; coral risk nodes; fragment grows at 11.3 |
-| 12.4| flood | — | 56 px navy fragment → panel grows, colour flood to dark 12.4–13.2 |
-| 13.6| dark  | **Meet Veylqorix.** | logo lockup: teal scanline + 4-slice stagger; light sweep at 14.5 |
-| 15.8| dark  | **No Unsafe Code Gets Through.** | pixel tagline below mark; breathing room to 18.8 |
-| 19.5| screen| `$ veylqorix scan . --json` | types 19.5–21.3; stage modules activate 21.5–26.5 |
-| 22.5| screen| **Inspect.** | module 1–2 (change → discover) |
-| 25.0| screen| **Verify.** | module 3–4 (scan → normalize + redaction chip) |
-| 27.5| screen| **Enforce.** | module 5 (policy) + outcome chips FAIL·1 / PASS·0 |
-| 31.5| mint  | **Independent verification.** | engine hub lands, 5 surface cards draw in under the hum |
-| 34.5| mint  | **Before code ships.** | lines converge to hub; hub pulses once (teal) |
-| 40.5| mint  | **Confidence, built into the workflow.** | system silhouette; gate trio lands 44.0: PASS·0 / FAIL·1 / INCOMPLETE·2 |
-| 49.5| mint  | (clean) | pixel fragments settle; end card lands 52.0: **VEYLQORIX** lockup |
-| 53.0| mint  | **No Unsafe Code Gets Through.** | tagline line under lockup |
-| 55.5| mint  | **Verify before you ship.** | final line; stillness held to 60.0 |
+## Narration lines
 
-SFX map (bundled files in `.media/audio/sfx/`): sfx_002 tick on each title landing (1.6, 5.6, 13.6, 22.5, 25.0, 27.5, 31.5); sfx_003 pop on chips (26.8, 44.0); sfx_005 riser→impact on the s3 reveal (13.4); sfx_004 hum under s5 (31.2); sfx_006 soft tick on end-card landing (52.0). Peaks +1 frame after picture.
+```
+Every change begins with code.
+But before it ships, it deserves verification.
+Dependencies. Secrets. Security. Quality.
+One unified approach to understanding risk and enforcing policy.
+Veylqorix.
+No Unsafe Code Gets Through.
+```
+
+## Caption / timing table
+
+Each narration line maps to scene timecodes (host-timeline seconds).
+
+| Narration line | Timecode | Scene |
+|----------------|----------|-------|
+| `Every change begins with code.` | 0:02 – 0:05 | S1 (0–5s) |
+| `But before it ships, it deserves verification.` | 0:07 – 0:12 | S2 (5–12s) |
+| `Dependencies. Secrets. Security. Quality.` | 0:14 – 0:19 | S3–S4 boundary (12–19s) |
+| `One unified approach to understanding risk and enforcing policy.` | 0:20 – 0:31 | S4 (19–31s) |
+| `Veylqorix.` | 0:32 – 0:36 | S5 (31–40s) |
+| `No Unsafe Code Gets Through.` | 0:44 – 0:49 | S6 (40–49s) |
+
+If the film lands at the 50-second end of the spec rather than 60, compress S7 to
+49–55s and hold the final frame to 55s; the caption table scales proportionally.
+
+## Claims-accuracy verdict (verified 2026-10-28 against the repo)
+
+- "Dependencies. Secrets. Security. Quality." — accurate as written.
+  Dependency audit (npm/pip), secret detection (offline regex rules, values
+  masked at source), and quality checks (ESLint, Ruff, TypeScript, tests)
+  are implemented scanners. "Security" = secret detection + policy
+  evaluation; no SAST scanner (Semgrep/CodeQL) is wired, so do not voice
+  "Security." as a SAST service.
+- "One unified approach to understanding risk and enforcing policy." —
+  accurate: the policy engine is implemented with a default
+  `veylqorix-policy.json` at the repo root.
+- GitHub Actions: the reusable gate workflow exists
+  (`.github/workflows/veylqorix-gate.yml`) but is advisory until branch
+  protection is set by the caller — never voice it as blocking CI.
+- MCP server, CLI, and the Rust engine (`crates/veylqorix-engine`) are real
+  and wired; the film's "static analysis" module maps to ESLint under quality
+  checks, which is a genuine static-analysis tool.
+- `@veylqorix/cli` is not yet published to npm — keep any CLI line scoped to
+  "available via the repo" if it is voiced at all.

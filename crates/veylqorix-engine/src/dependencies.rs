@@ -206,15 +206,37 @@ pub fn cargo_audit(root: &std::path::Path, timeout_ms: u64) -> ScannerResult {
     }
 
     let mut findings: Vec<Finding> = Vec::new();
-    // cargo-audit (0.21 and later) emits `.vulnerabilities.list[]`, each entry
-    // carrying `.advisory`, `.package`, and `.versions`. Parse that shape. If a
-    // differently-shaped payload shows up, the guard above already returned an
-    // ERROR result, so we never turn an unrecognized audit into a pass.
-    if let Some(entries) = parsed
+    let entries_opt = parsed
         .get("vulnerabilities")
         .and_then(|v| v.get("list"))
-        .and_then(|v| v.as_array())
-    {
+        .and_then(|v| v.as_array());
+    // A clean verdict requires the recognizable detail shape: when the tool's
+    // output carried no `list` array at all (a schema change), degrade to
+    // ERROR so an unrecognized audit can never read as a pass. The
+    // missing-`vulnerabilities` case was rejected by the guard above.
+    if entries_opt.is_none() {
+        return ScannerResult {
+            scanner: "dependencies/rust".into(),
+            status: ScannerStatus::Error,
+            findings: Vec::new(),
+            duration_ms: started.elapsed().as_millis() as u64,
+            error: Some(crate::model::ScannerError {
+                message: "cargo audit output had no recognizable vulnerability detail \
+                          list; the tool or its version changed. Treat it as degraded, \
+                          not a pass."
+                    .into(),
+                code: result.code.map(|c| c.to_string()),
+                missing_dependency: None,
+            }),
+            notes: vec![
+                "cargo audit output was missing the vulnerability detail list; the scan \
+                 is degraded, not a pass."
+                    .into(),
+            ],
+            summary: None,
+        };
+    }
+    if let Some(entries) = entries_opt {
         // Cross-check the tool's own `found` verdict against the list so a
         // mismatch can never downgrade a real problem to a pass.
         let found_flag = parsed
@@ -343,6 +365,34 @@ pub fn cargo_audit(root: &std::path::Path, timeout_ms: u64) -> ScannerResult {
                 secret_override: None,
             }));
         }
+    }
+
+    // A non-zero `cargo audit` exit that nonetheless carries no reportable
+    // findings is contradictory: the tool signalled a problem it did not (or
+    // could not) detail. Degrade it to ERROR so a disagreeing tool is never
+    // read as a clean pass. The exit-0 clean path is unaffected (its code is
+    // Some(0), so this guard cannot fire).
+    if result.code != Some(0) && findings.is_empty() {
+        return ScannerResult {
+            scanner: "dependencies/rust".into(),
+            status: ScannerStatus::Error,
+            findings: Vec::new(),
+            duration_ms: started.elapsed().as_millis() as u64,
+            error: Some(crate::model::ScannerError {
+                message: "cargo audit exited non-zero but reported no findings; \
+                          the audit could not be interpreted. Treat it as degraded, \
+                          not a pass."
+                    .into(),
+                code: result.code.map(|c| c.to_string()),
+                missing_dependency: None,
+            }),
+            notes: vec![
+                "cargo audit's exit code contradicted its (empty) findings; the scan \
+                 is degraded, not a pass."
+                    .into(),
+            ],
+            summary: None,
+        };
     }
 
     let status = if findings.is_empty() {

@@ -126,10 +126,15 @@ TypeScript engine-adapter tests spawn the real engine binary at
 
 The gate workflow builds the release engine in the monorepo branch: when
 the CLI is built from source, the engine binary is compiled with
-`cargo build --workspace --release` before the scan runs, so the CLI's
-engine adapter can find it. If the binary is missing, the engine reports
-itself as a skipped scanner in the scan response (never as a non-zero
-exit).
+`cargo build --manifest-path crates/Cargo.toml --workspace --release`
+before the scan runs, so the CLI's engine adapter can find it. If the
+binary is missing, the CLI degrades to the labeled TypeScript engine
+(`docs/cli.md` § "Engine binary"); the scan
+does not fail because of the missing binary — the run carries an explicit
+"degraded compatibility mode" note and still exits `0` on a clean tree.
+Coverage degrades to `INCOMPLETE` (exit `2`) only when a scanner
+separately could not run (offline mode, a missing tool, an errored
+check), which is a distinct, reported reason — never a silent pass.
 
 ## Manual owner step: enforcing the gate
 
@@ -151,9 +156,15 @@ repository settings.
 
 ## Limitations
 
-- `@veylqorix/cli` is not yet published to the npm registry. Non-monorepo
-  callers cannot `npm install` it; the gate fails loudly (NO-SCAN, exit
-  70) rather than silently skipping the scan.
+- `@veylqorix/cli` is not yet published to the npm registry in a working
+  version. `@veylqorix/core@0.1.1` is published (with a provenance
+  attestation), but the CLI still awaits an owner step (register its
+  npm trusted-publisher record, then re-trigger the `v0.1.1` release) — see
+  `docs/engineering/RELEASE_READINESS.md` and
+  `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6. Until the CLI is
+  published, non-monorepo callers cannot `npm install` a usable CLI; the
+  gate fails loudly (NO-SCAN, exit 70) rather than silently skipping the
+  scan.
 - SARIF upload requires `security-events: write`; in configurations where
   it is unavailable, the upload step fails red with context — the gate is
   never reported green on an unposted SARIF.

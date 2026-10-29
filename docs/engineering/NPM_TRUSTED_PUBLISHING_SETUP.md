@@ -191,6 +191,12 @@ records are per-package. Repeat the step below for **both**
 `@veylqorix/core` and `@veylqorix/cli`; configuring one does not authorize
 the other.
 
+**Status as of 2026-10-29:** the `@veylqorix/core` record is **done and
+validated** — `@veylqorix/core@0.1.1` published with a signed provenance
+attestation in run 40558927305. The only record still to create (or fix) is
+the one for `@veylqorix/cli`, with exactly the fields below — the same set
+that just published core. Do not re-create the core record.
+
 For each of `@veylqorix/core` and `@veylqorix/cli`, on the package's npm
 **Publishing → Trusted publishers** settings page, add a trusted publisher
 with exactly these fields:
@@ -364,29 +370,34 @@ Facts npm's current docs state, checked 2026-10-27:
 
 ## 6. Execute the v0.1.1 release (owner, ~2 min, one clean action)
 
-Dated 2026-10-27. The repo side is done: `main` is at `dd2054f`
-("fix(release): publish via ./-prefixed tarball paths"), the `v0.1.1` tag
-points at `dd2054f`, and `v0.1.0` still points at `e768d08` (do not touch
-it). The release workflow triggered by the `v0.1.1` tag failed at the
-`Publish @veylqorix/core` step with `ENEEDAUTH` (run 40558927305,
-<https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>),
-the expected symptom of the two trusted-publisher records not existing
-yet. The configured granular npm token bypasses 2FA and therefore cannot
-create these records (`npm trust` fails with `EOTP 'requires a one-time
-password'`), so the web UI is the only path.
+Dated 2026-10-27, updated 2026-10-28. The repo side is done: `main` is at
+`dd2054f` ("fix(release): publish via ./-prefixed tarball paths"), the `v0.1.1`
+tag points at `dd2054f`, and `v0.1.0` still points at `e768d08` (do not touch
+it).
 
-**STEP 1 — create both trusted-publisher records (required, web UI, 2FA session)**
+**Where the run actually stands now (run 40558927305, confirmed from its logs
+2026-10-28):** `@veylqorix/core@0.1.1` was **published successfully** —
+signed provenance attestation, confirmed on the registry. The run then failed
+only at `Publish @veylqorix/cli` with `ENEEDAUTH`. That is the symptom of a
+missing (or misconfigured / stage-only) **CLI** trusted-publisher record: the
+same OIDC token, repository, and `release.yml` file published core fine, so
+the repository side and the **core record are both proven correct**. The one
+gap is the npm-side record for `@veylqorix/cli`. So this section's work is
+now **CLI-only**: create (or fix) the CLI record with exactly the field set
+that just worked for core, then re-run. Do **not** re-create the core record
+and do **not** republish core.
 
-The bypass-2FA token cannot do this; use the owner's 2FA-enabled npm
-web session. For **BOTH** packages (records are per-package, not
-per-scope — configuring one does not authorize the other), open:
+**STEP 1 — create (or fix) the CLI trusted-publisher record (required, web UI, 2FA session)**
 
-- `@veylqorix/core`: <https://www.npmjs.com/package/@veylqorix/core> →
-  **Publishing → Trusted publishers → Add trusted publisher**
+The bypass-2FA token cannot do this; use the owner's 2FA-enabled npm web
+session. Open:
+
 - `@veylqorix/cli`: <https://www.npmjs.com/package/@veylqorix/cli> →
   **Publishing → Trusted publishers → Add trusted publisher**
 
-Fields for each record:
+Fields — identical to the `@veylqorix/core` record that just published
+`0.1.1` successfully, so you can copy core's existing record and paste it here
+if core's is on screen:
 
 | Field | Value |
 |---|---|
@@ -395,7 +406,24 @@ Fields for each record:
 | Repository | `Veylqorix` |
 | Workflow filename | `release.yml` |
 | Environment | **leave blank** (the workflow declares no `environment:`) |
-| Allowed actions | enable the **direct `npm publish`** action — post-2026-09-03 configs default to stage-only, and `release.yml` runs `npm publish`, so stage-only will be rejected |
+| Allowed actions | enable the **direct `npm publish`** action — post-2026-09-03 configs default to stage-only, and `release.yml` runs `npm publish`, so stage-only is rejected with exactly the `ENEEDAUTH` seen in run 40558927305 |
+
+Before adding, check whether a CLI record already exists and is just
+misconfigured (owner/repo/workflow mismatch, or left stage-only):
+`npm trust list @veylqorix/cli --json` (read-only, no secrets). If it lists a
+record, delete it and recreate it with the fields above — trusted-publisher
+records are not editable in place. If it lists none, that is the gap; just add
+the one above.
+
+Equivalently via the npm CLI (only if a 2FA-capable credential is available;
+the configured bypass-2FA token is rejected with `EOTP`):
+
+```bash
+npm trust github @veylqorix/cli \
+  --file release.yml \
+  --repository soumyachk101/Veylqorix \
+  --allow-publish
+```
 
 **STEP 2 — optional cleanup of the two staged 0.0.1 versions (your call)**
 
@@ -415,37 +443,135 @@ npm stage approve df5d9357-7f6d-4916-8ce6-9aa3fcf6a684   # @veylqorix/cli stage
 
 **STEP 3 — trigger the release (same day as STEP 1)**
 
-After both records exist, re-trigger the `v0.1.1` release. Since `0.1.1`
-is unpublished, the cleanest path is to re-run the existing failed run —
-no new tag is needed (`v0.1.1` already exists and points at the green
-`dd2054f`):
+Two things must be true before the re-trigger:
 
-```bash
-gh run rerun 40558927305
-```
+1. The CLI trusted-publisher record from STEP 1 exists.
+2. The tag points at a commit that carries the **fixed** `release.yml`
+   (the version with the registry-presence pre-checks and the `test`
+   validation job — the one in the working tree of this repo as of the
+   2026-10-28 release-workflow fix). This matters: `gh run rerun`
+   re-executes the workflow file *from the run's commit*. Run
+   40558927305 ran on `dd2054f`, whose workflow is the old one — it has
+   no `test` job and its core publish step would now hard-fail with
+   `EPUBLISHCONFLICT` (core is permanently published), never reaching
+   the CLI step. So the re-trigger must run the new workflow:
 
-(or the "Re-run all jobs" button on the GitHub Actions run page,
-<https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>).
+   ```bash
+   # commit the .github/workflows/release.yml fix to main and push it,
+   # then re-point the tag at that commit (the tag/version guard passes:
+   # the manifests still declare 0.1.1) and push the updated tag.
+   git add .github/workflows/release.yml
+   git commit -m "fix(release): gate publish on a validation job, make re-runs idempotent"
+   git push origin main
+   git tag -f v0.1.1
+   git push -f origin v0.1.1   # triggers a fresh release run on the new commit
+   ```
+
+   If the fixed workflow is already what the tag points at (check with
+   `gh run list --workflow release.yml` and read the head commit), the
+   plain re-run of the newest run works instead — no tag move needed:
+
+   ```bash
+   gh run rerun 40558927305
+   ```
+
+   (or the "Re-run all jobs" button on the GitHub Actions run page,
+   <https://github.com/soumyachk101/Veylqorix/actions/runs/40558927305>).
+
+   Either way the tag must still match the manifests' `0.1.1` (the `pack`
+   job's tag/version guard enforces this before anything publishes).
 
 **STEP 4 — verify**
 
+Core is already verified (published with a signed provenance
+attestation in run 40558927305); this step confirms the CLI publish the
+new run completes:
+
 ```bash
-npm view @veylqorix/core versions --json   # must include 0.1.1
-npm view @veylqorix/cli versions --json     # must include 0.1.1
+npm view @veylqorix/cli versions --json    # must now include 0.1.1
 npm view @veylqorix/cli@0.1.1 dependencies --json   # must show @veylqorix/core at 0.1.1
 ```
 
-Check both package pages show a **Provenance** attestation for `0.1.1`.
-The `0.0.1`/stage entries will NOT have attestations — expected.
+Both package pages should show a **Provenance** attestation for `0.1.1`.
+(The `0.0.0-stage` entries do NOT have attestations — expected; the
+`0.0.1` staged versions still need STEP 2's owner decision if any.)
 
-**CRITICAL TIMING:** each trusted-publisher config must complete its
-first successful publish **within 2 days of creation** or it expires and
-must be deleted and re-created. So create both records in STEP 1 and run
-STEP 3 the same day.
+**CRITICAL TIMING:** the CLI trusted-publisher config (the one created in
+STEP 1) must complete its first successful publish **within 2 days of
+creation** or it expires and must be deleted and re-created. So create
+the record in STEP 1 and run STEP 3 the same day. (The core record
+validated its first publish at run 40558927305, so its window has
+closed on its own.)
 
-**SAFETY:** re-running the `v0.1.1` release is fine **only because 0.1.1
-is unpublished** (verified 2026-10-27: both packages list only
-`0.0.0-stage`; `npm view @veylqorix/core@0.1.1` / `@veylqorix/cli@0.1.1`
-404). Do **not** re-run if `0.1.1` has already been published — a
-duplicate publish fails with `EPUBLISHCONFLICT`, and a version is
-immutable once published.
+**SAFETY:** re-running the `v0.1.1` release with the **fixed** workflow
+is idempotent: each publish step first checks the registry and skips an
+already-published version with a notice. Core `0.1.1` is already on the
+registry, so a re-run skips that step and publishes only the CLI; a
+second re-run skips both. Do **not** run the *old* (pre-fix) workflow
+again after core is published — its non-idempotent core step dies with
+`EPUBLISHCONFLICT` before reaching the CLI.
+
+## 7. Recovery runbook (what to re-run, what to never republish)
+
+The exact field set the **CLI** trusted-publisher record must carry
+(matches the working core record, run 40558927305):
+
+| Field | Value |
+|---|---|
+| Provider | GitHub Actions |
+| GitHub owner/user | `soumyachk101` |
+| Repository | `Veylqorix` |
+| Workflow filename | `release.yml` |
+| Job id | `publish` — only the job that requests `id-token: write` (`pack` and `test` are read-only) |
+| Environment | unset (the workflow declares no `environment:`) |
+| Runner / toolchain | `ubuntu-latest`, Node 24 (the runner's bundled npm 11.19.0), pnpm 11.9.0 (pack job only) |
+| Allowed actions | direct `npm publish` enabled (post-2026-09-03 configs default to stage-only — that is the shape of the failure in run 40558927305) |
+
+Recovery, in order:
+
+1. **npm side (web UI, 2FA session):** create (or delete-and-recreate)
+   the CLI record with the fields above — section 6 STEP 1. Complete it
+   before the re-trigger **the same day**: a fresh record must see its
+   first successful publish within 2 days or it expires.
+2. **GitHub side:** make the `v0.1.1` tag point at a commit that carries
+   the **fixed** `release.yml` — the one with the `test` validation job
+   and the idempotent registry-skip guards (`6480b4a`, "chore:
+   repository audit, hardening fixes, and release readiness"). If
+   remote `main` has since moved, point the tag at the current `main`
+   head instead; the pack job's tag/version guard accepts it (the
+   manifests still declare `0.1.1`):
+
+   ```bash
+   # confirm the tag/version guard will pass (read-only):
+   git show v0.1.1:packages/core/package.json | grep '"version"'
+   # 6480b4a, or the current remote main head, in its place:
+   git tag -f v0.1.1 <sha>
+   git push -f origin v0.1.1   # triggers a fresh release run on the fixed workflow
+   ```
+
+   **Never** re-run run `40558927305` as-is (`gh run rerun`): it re-executes
+   the pre-fix workflow at `dd2054f`, whose core step would now hard-fail
+   with `EPUBLISHCONFLICT` and never reach the CLI step.
+3. **Watch the fresh run:** `Publish @veylqorix/core` must print the
+   already-published skip notice (core is never republished — npm
+   versions are immutable, and this runbook has no republish path),
+   the registry-visibility wait passes, and `Publish @veylqorix/cli`
+   succeeds with a signed provenance attestation.
+4. **Verify on the registry (read-only, no credentials):**
+
+   ```bash
+   npm view @veylqorix/cli versions --json      # must include 0.1.1
+   npm view @veylqorix/cli@0.1.1 dependencies --json  # @veylqorix/core at 0.1.1
+   npm view @veylqorix/cli@0.1.1 dist 2>/dev/null    # tarball present
+   ```
+
+   Both package pages show a **Provenance** attestation for `0.1.1`.
+   The CLI's `npm trust` listing should now show one record for the
+   `publish` job (read-only: `npm trust list @veylqorix/cli --json`).
+
+Never: republish `0.1.1` or any version already on the registry; bump the
+version "to test" authentication (a new version is the *result* of a
+working publish, not a probe); create a second CLI record (one record is
+enough, and records cannot be edited — delete + recreate only). If the
+same-day re-trigger slips past the 2-day window, delete the expired CLI
+record, recreate it (same fields), and re-trigger again.

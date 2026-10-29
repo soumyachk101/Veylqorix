@@ -58,7 +58,7 @@ reported as SKIPPED or ERROR, never as a pass.
 
    | Variable | Default | Effect |
    |----------|---------|--------|
-   | `VEYLQORIX_ROOTS` | none — required | Space/comma-separated absolute roots every tool is confined to. The server refuses to start without it: it never runs unconfined. |
+   | `VEYLQORIX_ROOTS` | none — required | Comma/whitespace/semicolon-separated absolute roots every tool is confined to. The server refuses to start without it: it never runs unconfined. |
    | `VEYLQORIX_OFFLINE` | unset (online) | `1` skips network-dependent scanners (no advisory DB). |
    | `VEYLQORIX_TIMEOUT_MS` | `120000` | Per-scanner timeout in milliseconds. |
 
@@ -111,6 +111,13 @@ Recommended: rotate the key and remove it from source; re-run after the fix.
 
 - Server not appearing in the client: check the path in `.mcp.json` is
   absolute and the `dist/` build exists (`pnpm build`), then restart the client.
+- Server exits 1 at startup: `VEYLQORIX_ROOTS` must list existing absolute
+  directories — a listed root that does not exist (a path that changed or a
+  typo) refuses startup, and the server never falls back to the working
+  directory. Fix the path (or delete the entry), then restart the MCP
+  client. The server has no `--version`/version-reporting flag; check the
+  build you are pointing at (`packages/mcp-server/dist/bin.js`, built by
+  `pnpm build`) and its version in `packages/mcp-server/package.json`.
 - `ENOENT` on scan: the target root is outside `VEYLQORIX_ROOTS` — add it.
 - Gate always INCOMPLETE offline: expected; network-dependent scanners are
   skipped by design.

@@ -24,7 +24,7 @@
 //! in the response carry the decision, and protocol errors are out-of-band,
 //! structurally unable to be read as a pass.
 
-use std::io::{BufRead, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -300,7 +300,15 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
             "`root` is required for the scan command".to_string(),
         )
     })?;
-    let root_path = Path::new(root);
+    let root_path = match std::fs::canonicalize(Path::new(root)) {
+        Ok(p) => p,
+        Err(_) => {
+            return Err((
+                ErrorKind::RootNotFound,
+                format!("audit root '{root}' does not exist or is not a directory"),
+            ));
+        }
+    };
     if !root_path.is_dir() {
         return Err((
             ErrorKind::RootNotFound,
@@ -325,26 +333,36 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
         // Optional gitleaks delegation: the offline rule-set is authoritative
         // for reproducibility; gitleaks, when requested and available, adds
         // its own findings on top. An unavailable gitleaks is recorded, not
-        // silenced.
-        if args.prefer_gitleaks && which("gitleaks") {
-            let res = gitleaks_scan(root_path, timeout_ms);
+        // silenced. Resolve availability once so the delegation gate and the
+        // result's `source` label agree.
+        let gitleaks_available = args.prefer_gitleaks && which("gitleaks");
+        if gitleaks_available {
+            let res = gitleaks_scan(&root_path, timeout_ms);
             notes.push(gitleaks_note(&res));
             if res.status == ScannerStatus::Pass || res.status == ScannerStatus::Fail {
                 engine_results.push(res);
             }
         }
-        let files = collect_files(root_path, &options, &staged).map_err(|e| {
-            (
-                ErrorKind::Internal,
-                format!("secret scan could not read the audit root: {e}"),
-            )
-        })?;
-        let source = if args.prefer_gitleaks && which("gitleaks") {
+        let mut collect_notes: Vec<String> = Vec::new();
+        let files =
+            collect_files(&root_path, &options, &staged, &mut collect_notes).map_err(|e| {
+                (
+                    ErrorKind::Internal,
+                    format!("secret scan could not read the audit root: {e}"),
+                )
+            })?;
+        let source = if gitleaks_available {
             "offline-rules+gitleaks"
         } else {
             "offline-rules"
         };
-        engine_results.push(secret_scanner_result(&files, source));
+        let mut result = secret_scanner_result(&files, source);
+        // Record degraded coverage on the scanner result itself so an
+        // unreadable subdirectory never reads as a clean, complete scan.
+        if !collect_notes.is_empty() {
+            result.notes.extend(collect_notes);
+        }
+        engine_results.push(result);
     }
 
     // The orchestrator (TypeScript adapter) enables cargo audit when it
@@ -352,7 +370,7 @@ fn scan(req: &Request) -> Result<Response, (ErrorKind, String)> {
     // no-lockfile and missing-binary cases inside `cargo_audit` still
     // surface as SKIPPED, never PASS.
     if args.run_cargo_audit {
-        let result = cargo_audit(root_path, timeout_ms);
+        let result = cargo_audit(&root_path, timeout_ms);
         notes.push(cargo_note(&result));
         engine_results.push(result);
     }
@@ -457,6 +475,9 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
         }
         Ok(r) => r,
         Err(e) => {
+            // Only a genuinely missing binary is an installable gap; an I/O
+            // failure must not be mislabeled as "tool missing".
+            let missing = matches!(e, crate::EngineError::MissingTool { .. });
             return ScannerResult {
                 scanner: "secrets/gitleaks".into(),
                 status: ScannerStatus::Skipped,
@@ -464,8 +485,8 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
                 duration_ms: started.elapsed().as_millis() as u64,
                 error: Some(crate::model::ScannerError {
                     message: e.to_string(),
-                    code: Some("ENOENT".into()),
-                    missing_dependency: Some(true),
+                    code: missing.then(|| "ENOENT".into()),
+                    missing_dependency: missing.then_some(true),
                 }),
                 notes: vec![
                     "gitleaks is unavailable; falling back to the built-in offline rule-set."
@@ -475,11 +496,22 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
             };
         }
     };
-    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error. Truncated or
-    // otherwise unparseable stdout degrades to "no leaks" (never a panic and
-    // never a fabricated finding); the non-zero exit still records the error
-    // below.
-    let leaks = parse_gitleaks_stdout(&result.stdout);
+    // gitleaks exits 0 with zero leaks, 1 with leaks, 2 on error. The report
+    // is decoded best-effort: a non-empty stdout that is not the expected
+    // leak-array shape (truncation, schema change) can never be read as a
+    // clean pass, and a "leaks found" exit must be corroborated by decoded
+    // records.
+    let (leaks, decoded) = match serde_json::from_str::<serde_json::Value>(&result.stdout) {
+        Ok(doc) => match doc.as_array() {
+            Some(arr) => (arr.clone(), true),
+            // A JSON document that is not an array of leak records is a shape
+            // we do not recognize: degrade, do not guess.
+            None => (Vec::new(), false),
+        },
+        // Empty stdout is nothing to decode: the exit code carries the
+        // verdict. Non-empty unparseable stdout is a degraded run.
+        Err(_) => (Vec::new(), result.stdout.trim().is_empty()),
+    };
     let mut findings: Vec<Finding> = Vec::new();
     for leak in &leaks {
         let root_str = root.to_string_lossy();
@@ -526,10 +558,18 @@ fn gitleaks_scan(root: &Path, timeout_ms: u64) -> ScannerResult {
             secret_override: None,
         }));
     }
-    let status = if result.code == Some(2) {
+    let status = if result.code == Some(2) || !decoded {
+        // Tool error exit, or a report that did not decode to the expected
+        // shape: degraded coverage, never a pass.
         ScannerStatus::Error
     } else if !findings.is_empty() {
         ScannerStatus::Fail
+    } else if result.code != Some(0) {
+        // The tool claims leaks (exit 1) or was killed (no exit code) but
+        // carried no decodable records: the verdict is unverifiable, so it
+        // degrades like an error, mirroring the cargo-audit found/detail
+        // mismatch handling.
+        ScannerStatus::Error
     } else {
         ScannerStatus::Pass
     };
@@ -576,9 +616,10 @@ fn gitleaks_note(res: &ScannerResult) -> String {
 }
 
 /// Parse gitleaks' JSON stdout into its leak records. Truncated, non-JSON, or
-/// malformed output degrades to an empty list: the caller classifies the
-/// tool's *exit code* (an error exit is an ERROR result, never a pass), and
-/// a parse failure must never panic or fabricate findings.
+/// malformed output degrades to an empty list: a parse failure must never
+/// panic or fabricate findings. (The `gitleaks` path in this module tracks the
+/// parse outcome itself so an undecodable report degrades to ERROR rather
+/// than a pass; this helper exists for callers that only need the records.)
 pub fn parse_gitleaks_stdout(stdout: &str) -> Vec<serde_json::Value> {
     if stdout.trim().is_empty() {
         return Vec::new();
@@ -678,6 +719,45 @@ fn error_frame(kind: ErrorKind, message: String) -> Response {
     }
 }
 
+/// Read one request line from stdin (up to the first `\n` or EOF), enforcing
+/// [`MAX_INPUT_BYTES`] *during* the read so an oversized document is rejected
+/// without buffering the whole payload into memory.
+///
+/// Returns the bytes up to (excluding) the newline, or `None` when the line
+/// exceeded the cap.
+fn read_bounded_line(mut reader: impl Read) -> Result<Option<Vec<u8>>, std::io::Error> {
+    let mut out: Vec<u8> = Vec::with_capacity(4096);
+    let mut chunk = [0u8; 4096];
+    loop {
+        let n = reader.read(&mut chunk)?;
+        if n == 0 {
+            // EOF: the document was under the cap (or empty).
+            if out.len() > MAX_INPUT_BYTES {
+                return Ok(None);
+            }
+            return Ok(Some(out));
+        }
+        let chunk_start = out.len();
+        out.extend_from_slice(&chunk[..n]);
+        // Stop at the first newline in the freshly appended bytes so the
+        // returned slice matches `read_line` semantics (one document only).
+        // The cap check includes the newline, the way the previous
+        // `read_line`-based check did.
+        if let Some(pos) = out[chunk_start..].iter().position(|&b| b == b'\n') {
+            let line_end = chunk_start + pos + 1;
+            out.truncate(chunk_start + pos);
+            if line_end > MAX_INPUT_BYTES {
+                return Ok(None);
+            }
+            return Ok(Some(out));
+        }
+        // No newline yet: reject at the cap instead of buffering more.
+        if out.len() > MAX_INPUT_BYTES {
+            return Ok(None);
+        }
+    }
+}
+
 /// Read one request document from stdin (capped), execute it, and write one
 /// response document to stdout (capped). Used by the binary.
 ///
@@ -685,18 +765,11 @@ fn error_frame(kind: ErrorKind, message: String) -> Response {
 /// On any protocol error the binary writes a structured error frame to
 /// stdout, prints the reason to stderr, and returns the error's exit code.
 pub fn serve() -> i32 {
-    let mut input = String::new();
-    match std::io::stdin().lock().read_line(&mut input) {
-        Ok(0) => {
-            let reason = "veylqorix-engine: empty request; expected one JSON document on stdin";
-            let frame = error_frame(
-                ErrorKind::Malformed,
-                "empty request; expected one JSON document on stdin".into(),
-            );
-            write_error(&frame, reason);
-            return exit::MALFORMED;
-        }
-        Ok(n) if n > MAX_INPUT_BYTES => {
+    // The read is cap-bounded: an oversized payload is rejected at the cap,
+    // not after the whole document has been buffered.
+    let raw = match read_bounded_line(std::io::stdin()) {
+        Ok(Some(bytes)) => bytes,
+        Ok(None) => {
             let reason =
                 format!("veylqorix-engine: request exceeds the {MAX_INPUT_BYTES}-byte input cap");
             let frame = error_frame(
@@ -706,14 +779,23 @@ pub fn serve() -> i32 {
             write_error(&frame, &reason);
             return exit::MALFORMED;
         }
-        Ok(_) => {}
         Err(e) => {
             let reason = format!("veylqorix-engine: failed to read request: {e}");
             let frame = error_frame(ErrorKind::Internal, format!("failed to read request: {e}"));
             write_error(&frame, &reason);
             return exit::INTERNAL;
         }
+    };
+    if raw.is_empty() {
+        let reason = "veylqorix-engine: empty request; expected one JSON document on stdin";
+        let frame = error_frame(
+            ErrorKind::Malformed,
+            "empty request; expected one JSON document on stdin".into(),
+        );
+        write_error(&frame, reason);
+        return exit::MALFORMED;
     }
+    let input = String::from_utf8_lossy(&raw).into_owned();
     let req = match parse_request(&input) {
         Ok(r) => r,
         Err((kind, msg)) => {

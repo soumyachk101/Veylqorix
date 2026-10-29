@@ -38,6 +38,10 @@
     "./report": {
       "types": "./dist/report/index.d.ts",
       "import": "./dist/report/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "import": "./dist/engine/index.js"
     }
   },
   "scripts": {

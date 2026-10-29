@@ -50,11 +50,11 @@ Yes. Matched secret values are redacted (`AKIA…CDEF (20 chars, redacted)`)
 in every output surface: JSON, Markdown, SARIF, the API, and the dashboard.
 Test fixtures contain only fake, well-known placeholder values.
 
-### Why does the dashboard sometimes show demo data?
+### Why does the dashboard sometimes show sample data?
 
-When the API is unreachable the dashboard renders clearly-labeled sample data
-and shows a **DEMO MODE** banner. It never presents the demo as a live
-result. Start the API to get real data — see `docs/dashboard.md`.
+When the API is unreachable the dashboard renders clearly-labeled sample
+data and shows a **SAMPLE DATA** banner. It never presents sample data as
+a live result. Start the API to get real data — see `docs/dashboard.md`.
 
 ### Is the REST API open to the network by default?
 
@@ -88,3 +88,7 @@ manifests. Scanners run where their toolchain is present; where it is not, the
 scanner is skipped and coverage degrades.
 
 For deeper "why did it fail" answers, see `docs/troubleshooting.md`.
+Filing a bug? Collect the fields that bug reporter needs — surface, exact
+command + exit code, the `--json` output with secrets redacted, and the
+version/commit — one-to-one with the bug-report template. The checklist lives
+in `docs/troubleshooting.md` § "Filing a bug: what to attach".

@@ -1,6 +1,8 @@
 # Changelog
 
-All notable changes to Veylqorix are documented here.
+All notable changes to Veylqorix are documented here. Sections are grouped
+by surface (Core, CLI, API, …) rather than by Added/Changed/Fixed — a
+house-style choice; the convention is consistent across releases.
 
 ## Unreleased
 

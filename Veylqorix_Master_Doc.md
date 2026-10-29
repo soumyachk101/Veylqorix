@@ -98,9 +98,13 @@ Other command/engine errors may use `64` for usage or malformed input, `65` for 
 
 # 2. System architecture
 
-![veylqorix system architecture](veylqorix_doc_assets/01_system_architecture.png)
+![veylqorix system architecture](Veylqorix_Diagrams/01_system_architecture.png)
 
-*Figure 1. System architecture. The diagram is a high-level conceptual map; module-level behavior is described below from the repository sources.*
+*Figure 1. System architecture — a high-level conceptual map; solid elements
+are implemented, and the dashed Static-analysis (SAST) box is planned. The
+editable SVG source is `Veylqorix_Diagrams/01_system_architecture.svg`
+(see `Veylqorix_Diagrams/README.md`); module-level behavior is described
+below from the repository sources.*
 
 ## 2.1 Architectural layers
 
@@ -173,9 +177,11 @@ Results are exposed through:
 
 # 3. End-to-end scan lifecycle
 
-![Veylqorix security scan lifecycle](veylqorix_doc_assets/02_scan_lifecycle.png)
+![Veylqorix security scan lifecycle](Veylqorix_Diagrams/02_scan_lifecycle.png)
 
-*Figure 2. From code change to evidence-backed decision and rescan verification.*
+*Figure 2. From code change to evidence-backed decision and rescan
+verification. Every stage reflects shipped behavior; the editable SVG source
+is `Veylqorix_Diagrams/02_scan_lifecycle.svg`.*
 
 ## Step 1 — Accept and validate the target
 
@@ -281,8 +287,7 @@ The repository is a pnpm workspace with TypeScript packages/apps and a Rust work
 
 - Root `package.json` declares the monorepo private and pins `pnpm@11.9.0`.
 - Workspace patterns include `apps/*` and `packages/*`; Rust code is managed separately by Cargo under `crates/`.
-- The core and CLI manifests in the inspected source declare `@veylqorix/core` and `@veylqorix/cli`, public package access settings, and version `0.1.0` in the files read for the release audit.
-- **Documentation discrepancy to verify:** the root README excerpt describes CLI v0.1.1 while the inspected `apps/cli/package.json` declared v0.1.0. For packaging, the committed package manifest at the exact release commit is authoritative, not a hard-coded README badge or prose. Resolve this before a future release.
+- The root manifest, `packages/core`, and `apps/cli` declare version `0.1.1`; `packages/api`, `packages/mcp-server`, `packages/plugin`, `packages/skills`, and `apps/web` still declare `0.1.0` (the version sync is a tracked open item in the README roadmap). For packaging, the committed package manifest at the exact release commit is authoritative, not a hard-coded README badge or prose. The release pipeline's tag guard enforces the tag against the two published packages (`@veylqorix/core`, `@veylqorix/cli`).
 
 ---
 
@@ -350,7 +355,7 @@ The detection object retains the ecosystem, package manager if inferred, relativ
 
 ## 6.3 Dependency scanner
 
-The TypeScript dependency adapter can use `npm audit` for Node projects and `pip-audit` for Python projects. Rust dependency advisories are supported through `cargo audit` in the Rust engine when the relevant path is applicable and the tool is available.
+The TypeScript dependency adapter runs `npm audit` for Node projects (auditing the tree recorded in the lockfile when one is present) and `pip-audit` (against `requirements.txt`) for Python projects. Rust dependency advisories are supported through `cargo audit` in the Rust engine: the TypeScript adapter enables it via `runCargoAudit` when the detected ecosystem is Rust, and the engine reports a missing lockfile or binary as `SKIPPED`, never a pass.
 
 Operational realities:
 
@@ -392,9 +397,11 @@ This wrapper is important because a subprocess failure must not be mistaken for 
 
 # 7. Rust engine and TypeScript adapter
 
-![Veylqorix integration model](veylqorix_doc_assets/04_ai_integrations.png)
+![Veylqorix integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 
-*Figure 3. Multiple integration surfaces feed a shared engine and normalized results.*
+*Figure 3. Multiple integration surfaces feed a shared engine and normalized
+results. Solid elements are implemented; the diagram is the editable SVG
+`Veylqorix_Diagrams/04_ai_integrations.svg`.*
 
 ## 7.1 Engine responsibilities
 
@@ -587,7 +594,7 @@ Legacy command aliases are documented (`audit`, `deps`, `secrets`, `gate` normal
 | `--no-tests` | Skip quality test/build checks; reduces verification scope. |
 | `--scanners dependencies,secrets,licenses` | Select scanner IDs. `quality` is not a scanner ID in the documented CLI; quality checks have separate controls. |
 | `--block-on HIGH,CRITICAL` | Override severity threshold for this invocation. |
-| `--policy FILE` / `--config FILE` | Load policy JSON. |
+| `--policy FILE` | Load policy JSON. (The shared parser in `apps/cli/src/cli-args.ts` also knows a `--config` alias and `--strict`, but the executable parser in `apps/cli/src/index.ts` does not; use `--policy`.) |
 | `--pre-push` | Add pre-push script when generating hooks. |
 | `--yes` / `-y` | Actually write hook files. |
 | `--force` | Back up and replace an existing non-Veylqorix hook. |
@@ -761,7 +768,7 @@ The web application is under `apps/web/` and uses Next.js. The dashboard present
 
 # 14. GitHub Actions and CI enforcement
 
-![GitHub pull-request gate](veylqorix_doc_assets/03_github_security_gate.png)
+![GitHub pull-request gate](Veylqorix_Diagrams/03_github_security_gate.png)
 
 *Figure 4. Local hooks give fast feedback; GitHub Actions is the independent remote check. Repository rules determine whether a failing check actually blocks a merge.*
 
@@ -801,23 +808,30 @@ Before merging a change to scanners, the gate, policy, data model, Rust protocol
 
 | Package | Role | Registry state in the checked record |
 |---|---|---|
-| `@veylqorix/core` | Shared scanner/policy/gate/report library | Package manifest declares public access. The recorded first release failed at this package's publish step because npm Trusted Publishing was not configured. Verify current registry state before publishing. |
-| `@veylqorix/cli` | `veylqorix` executable | Depends on `@veylqorix/core`; must be published after a compatible core version exists. Verify registry state before publishing. |
+| `@veylqorix/core` | Shared scanner/policy/gate/report library | `0.1.1` is **not yet published** — the `v0.1.1` release failed at the trusted-publisher gate before `npm publish` ran; the registry state is recorded as unpublished (`E404`). Until then, use the monorepo workspace build. See §15.3 for the recorded release history. |
+| `@veylqorix/cli` | `veylqorix` executable | `0.1.1` is **not yet published** — publication is gated on the owner registering the trusted-publisher record, then re-triggering the `v0.1.1` release. Until then, run it from the monorepo build (`dist/`). Verify current registry state before publishing. |
 | `@veylqorix/plugin` | Extension SDK | Docs state it is available in monorepo but not yet published. |
 | `@veylqorix/mcp-server` | MCP tool server | Workspace package; its publish readiness must be audited separately before treating it as part of the public npm release. |
 
 ## 15.2 Release workflow design
 
-`.github/workflows/release.yml` is triggered only by a pushed tag matching `v*`. It is structured in two jobs:
+`.github/workflows/release.yml` is triggered only by a pushed tag matching `v*`. It is structured in three jobs:
 
-1. **Pack job** — read-only permissions; checks that the tag matches versions in both package manifests; installs with frozen lockfile; builds core and CLI; packs tarballs using pnpm so the CLI's `workspace:*` dependency is rewritten to a concrete version; uploads artifacts.
-2. **Publish job** — depends on pack; requests `id-token: write`; downloads packed artifacts; publishes core before CLI using npm and provenance. Each publishing step uses fail-fast shell behavior so a core failure prevents CLI publication.
+1. **Pack job** — read-only permissions; checks that the tag matches the versions in both published packages' manifests; installs with frozen lockfile; builds core and CLI; packs tarballs using pnpm so the CLI's `workspace:*` dependency is rewritten to a concrete version; uploads artifacts.
+2. **Test job** — read-only; mirrors `ci.yml`'s quality loop (install, build all packages, Rust fmt/clippy/test/release-build, `pnpm test`, typecheck, lint) so a tag can only publish a commit whose validation passed. It runs in parallel with `pack`.
+3. **Publish job** — needs `pack` and `test`; requests `id-token: write`; downloads packed artifacts; publishes core before CLI using npm and `--provenance`, with a registry-visibility wait between the two. Each publishing step starts with `set -euo pipefail` and is idempotent: it first checks the registry and skips a version that is already published, so a re-run after a partial failure completes the remaining package.
 
 Actions are pinned to immutable SHAs and the workflow avoids an `NPM_TOKEN` secret path. The workflow is designed to fail closed if npm trusted-publisher records are missing.
 
 ## 15.3 Recorded release history and blocker
 
-The engineering commit record checked during document creation says the `v0.1.0` tag existed and had been pushed. The run for that tag built and packed both packages, then failed at `Publish @veylqorix/core` because the npm-side trusted publisher was not configured; the CLI publish step was skipped. The note says nothing was published. Separately, a later CI run on `main` was recorded successful after moving CI to Node 24.
+Per [CHANGELOG.md](CHANGELOG.md) and `docs/engineering/RELEASE_READINESS.md`, the current recorded state is:
+
+- **Nothing was published at `0.1.0`.** The `v0.1.0` tag release run (`40500854557`) failed **before** `npm publish` was ever invoked: the publish job's artifact download unpacked tarballs into a directory the publish steps did not glob (`packaged-tarballs/`), so `npm` was never reached. `0.1.0` remains free on the registry. A later fix moved the download into the matching path and added a registry-visibility wait before publishing the CLI.
+- **Neither `@veylqorix/core@0.1.1` nor `@veylqorix/cli@0.1.1` is published yet.** The `v0.1.1` release run (`40558927305`) failed at the trusted-publisher gate (`ENEEDAUTH`); both `0.1.1` versions are recorded as verified unpublished on the registry (`E404`). Publication of both packages is gated on the owner registering the npm trusted-publisher records and re-triggering the `v0.1.1` release.
+- A `0.0.1` bootstrap of both packages is **staged** on the registry (its approval/rejection is a 2FA-protected owner action, optional, and not required for the `0.1.1` release).
+
+The remaining owner actions (create the two trusted-publisher records, optionally approve/reject the staged `0.0.1` bootstrap, then re-trigger the `v0.1.1` release) are documented in `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md` § 6 and `docs/engineering/RELEASE_READINESS.md`.
 
 See the repository's actual workflow page before acting:
 
@@ -905,7 +919,6 @@ Official guide: <https://docs.npmjs.com/trusted-publishers/>.
 - Local hooks can be bypassed.
 - A plugin author must ensure any secret evidence they produce is redacted before it leaves the plugin.
 - The checked shared Finding schema does not confirm dedicated per-finding rule-version or explicit model-hypothesis provenance fields.
-- Documentation may lag manifests (the README/CLI version discrepancy noted above must be resolved).
 
 ---
 
@@ -1024,13 +1037,13 @@ An installed consumer should separately provision the Rust binary if authoritati
 
 # 20. Architecture figures and their interpretation
 
-![AI agent integration model](veylqorix_doc_assets/04_ai_integrations.png)
+![AI agent integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 
 *Figure 5. AI integrations. Agents call the CLI, MCP or a plugin interface where supported; the shared core remains the source of scan/policy decisions.*
 
-![Release readiness sequence](veylqorix_doc_assets/05_release_readiness.png)
-
-*Figure 6. Release-readiness sequence. This is a checklist-style sequence, not a claim that each step is complete. Resolve CI, package, and trusted-publishing blockers before tagging; verify the actual workflow and npm package pages afterward.*
+The release-readiness sequence previously referenced as "Figure 6" is not a
+diagram in the tree; the checklist content lives in §15 and in
+`docs/engineering/RELEASE_READINESS.md`.
 
 ---
 
