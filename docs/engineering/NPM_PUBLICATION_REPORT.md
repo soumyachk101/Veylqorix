@@ -35,6 +35,17 @@ side; the single remaining blocker is still the npm-side CLI
 trusted-publisher record, with `6480b4a` as the tag target for the
 re-trigger.
 
+**Release COMPLETE (2026-10-29):** the CLI trusted-publisher record was
+created by the owner (web UI, 2FA session, direct `npm publish` allowed,
+environment unset; the core record was already done and not re-created), the
+`v0.1.1` tag was re-pointed to `bee183c3` (the public main head carrying the
+fixed `release.yml`) and pushed, and release run `40932201210` completed
+SUCCESS (pack passed the tag/version guard, test passed, core publish
+skipped with a notice, CLI publish succeeded with `--provenance`).
+`@veylqorix/cli@0.1.1` is now published; the registry lists `0.1.1` for both
+`@veylqorix/core` and `@veylqorix/cli`. The ENEEDAUTH history above is
+retained as history.
+
 **Single source of truth for the release procedure:**
 `docs/engineering/NPM_TRUSTED_PUBLISHING_SETUP.md`. This report is the
 evidence log; that doc is the procedure.
