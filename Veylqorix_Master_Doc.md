@@ -184,6 +184,25 @@ verification. Every stage reflects shipped behavior; the PNG is the
 canonical record and diagram sources are not included in the repository
 (see `Veylqorix_Diagrams/README.md`).*
 
+**Live companion — the animated "how it works" hero (Figure 2a).** The
+repo-root `README.md` opens with an animated version of this exact
+lifecycle, rendered as a self-contained SVG:
+
+![Veylqorix scan lifecycle — animated companion](assets/scan-lifecycle.svg)
+
+*Figure 2a. The same lifecycle as a looping animation: a target is
+accepted, the project is detected, four real scanners run, findings are
+normalized into one schema, and the deterministic gate emits
+`PASS` / `FAIL` / `INCOMPLETE` — the same verdict on every surface. It
+is an explanatory animation, not a second canonical record: it ships at
+the repo root (`assets/scan-lifecycle.svg`) and deliberately lives
+outside `Veylqorix_Diagrams/`, whose PNG-only canonical set is unchanged.
+The animation is SMIL with a `prefers-reduced-motion` fallback (under
+reduced motion the ambient pulses are removed and the full static layout
+remains visible). Every stage it shows is described by Steps 1–8 below;
+this figure is the visual companion, and the steps remain the
+description of record.*
+
 ## Step 1 — Accept and validate the target
 
 The caller supplies a project root. Some paths are constrained further: MCP roots are canonicalized against configured workspace roots; API paths can be restricted by `VEYLQORIX_ALLOWED_ROOTS`; the core also exposes path-validation utilities. The scan should not run on a guessed path or a path outside the caller's permitted area.
@@ -1049,6 +1068,16 @@ An installed consumer should separately provision the Rust binary if authoritati
 ---
 
 # 20. Architecture figures and their interpretation
+
+## Figure index
+
+| Figure | Location | Status |
+|---|---|---|
+| Figure 1 — system architecture | `Veylqorix_Diagrams/01_system_architecture.png` (§2) | Target architecture, PNG canonical record |
+| Figure 2 — scan lifecycle | `Veylqorix_Diagrams/02_scan_lifecycle.png` (§3) | Target/simplified, PNG canonical record |
+| Figure 2a — scan lifecycle (animated) | `assets/scan-lifecycle.svg` (repo root; embedded in the root `README.md` hero and §3 of this document) | Self-contained SMIL animation with a `prefers-reduced-motion` fallback. Explanatory companion to Figure 2, not a second canonical record; lives outside `Veylqorix_Diagrams/` so the PNG-only set there is unchanged |
+| Figure 3 — integration surfaces | `Veylqorix_Diagrams/04_ai_integrations.png` (§7) | Implemented (MCP server + skill) |
+| Figure 4 — local hooks vs. GitHub Actions | `Veylqorix_Diagrams/03_github_security_gate.png` (§14) | Implemented, advisory until a required check is configured |
 
 ![AI agent integration model](Veylqorix_Diagrams/04_ai_integrations.png)
 

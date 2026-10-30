@@ -2,9 +2,9 @@
   <img src="logo.png" alt="Veylqorix — No Unsafe Code Gets Through." width="680">
 </p>
 
-<h1 align="center">Veylqorix</h1>
+<h1 align="center" style="margin-bottom:2px">Veylqorix</h1>
 
-<p align="center"><strong>No Unsafe Code Gets Through.</strong></p>
+<p align="center" style="font-size:1.3em"><strong>No Unsafe Code Gets Through.</strong></p>
 
 <p align="center">
   <a href="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml"><img src="https://github.com/soumyachk101/Veylqorix/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions CI"></a>
@@ -26,10 +26,37 @@
 > **Scope.** Veylqorix reports what its scanners found. It does not certify the
 > absence of vulnerabilities or secrets.
 
+<p align="center">
+  <img src="assets/scan-lifecycle.svg"
+       alt="Animated diagram of the Veylqorix scan lifecycle: target accepted, project detected, real scanners run, findings normalized, and the deterministic gate emitting PASS, FAIL, or INCOMPLETE on every surface."
+       width="820">
+  <br>
+  <sub><em>Live scan lifecycle — target in, real scanner evidence, one deterministic gate out
+  · reduced-motion aware · <a href="Veylqorix_Master_Doc.md#3-end-to-end-scan-lifecycle">full walkthrough in the master doc →</a></em></sub>
+</p>
+
+<table align="center">
+  <tr>
+    <td align="center" width="24%">
+      <sub>✅ <b>Real evidence</b><br><span style="color:#8B96A8">no fabricated findings — a skipped or errored check is <code>SKIPPED</code>/<code>ERROR</code>, never a clean pass</span></sub>
+    </td>
+    <td align="center" width="24%">
+      <sub>⚙️ <b>One core</b><br><span style="color:#8B96A8">CLI, MCP, API, GitHub Actions &amp; skills are thin adapters over a single shared engine</span></sub>
+    </td>
+    <td align="center" width="24%">
+      <sub>🚪 <b>Deterministic gate</b><br><span style="color:#8B96A8">stable exit codes everywhere: <code>0</code> PASS · <code>1</code> FAIL · <code>2</code> INCOMPLETE</span></sub>
+    </td>
+    <td align="center" width="24%">
+      <sub>🔒 <b>Agent-safe policy</b><br><span style="color:#8B96A8">an AI agent can't suppress findings — exceptions are documented, capped &amp; expirable</span></sub>
+    </td>
+  </tr>
+</table>
+
 ---
 
 ## Contents
 
+- [📘 Master technical doc (read first)](Veylqorix_Master_Doc.md)
 - [Why Veylqorix](#why-veylqorix)
 - [How it works](#how-it-works)
 - [Quick start](#quick-start)
@@ -47,6 +74,7 @@
 - [Honest limitations](#honest-limitations)
 - [Roadmap](#roadmap)
 - [Development](#development)
+- [Testing](#testing)
 - [Repository layout](#repository-layout)
 - [Documentation](#documentation)
 - [Community](#community)
@@ -990,6 +1018,18 @@ when it is not.
 
 ## Documentation
 
+<div align="center">
+
+**Reading the whole thing first?** Start here — it's the single source of truth
+for how every part of the system fits together.
+
+[📘 Open the Master Technical Document →](Veylqorix_Master_Doc.md)
+
+*Architecture · end-to-end scan lifecycle · repository map · data model ·
+gate semantics · all surfaces — cross-referenced and current with the code.*
+
+</div>
+
 | Doc | What it covers |
 |-----|----------------|
 | [docs/cli.md](docs/cli.md) | commands, options, exit codes, hooks install |
@@ -1002,7 +1042,7 @@ when it is not.
 | [docs/faq.md](docs/faq.md) | honest limitations and general questions |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | "why did it fail" answers |
 | [Veylqorix_Diagrams/README.md](Veylqorix_Diagrams/README.md) | diagram palette and rendered PNGs |
-| [Veylqorix_Master_Doc.md](Veylqorix_Master_Doc.md) | full engineering master doc |
+| **[Veylqorix_Master_Doc.md](Veylqorix_Master_Doc.md)** | **full engineering master doc — read this first** |
 
 ## Community
 
