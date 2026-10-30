@@ -29,7 +29,22 @@ numbered diagram set (renamed from their raw clipboard names on 2026-10-28).
 - Warm yellow: `#E3BE45`
 - Coral: `#EF8B9B`
 
-Diagram sources are not included in the repo and will not be added. PNG-only is a permanent constraint: the seven PNGs above are the canonical record, and no SVG, Mermaid, or PDF sources and no diagram-generation pipeline are included or planned.
+Diagram sources are not included in the repo and will not be added. PNG-only is a permanent constraint: the seven PNGs above are the canonical record, and no SVG, Mermaid, or PDF sources and no diagram-generation pipeline are included or planned *for this diagram set*.
+
+## Separate animated hero asset (not part of this PNG set)
+
+One explanatory animation lives at the repo root, `assets/scan-lifecycle.svg`
+(a self-contained SMIL SVG with a `prefers-reduced-motion` fallback). It is the
+"how it works" hero in the root `README.md` and an annotated companion to
+Figure 2 (`02_scan_lifecycle.png`) in `Veylqorix_Master_Doc.md` §3/§20. It is
+deliberately **not** a member of the canonical seven-PNG set above and is not
+covered by `SHA256SUMS`. The PNG-only constraint in this directory applies to
+this directory: this SVG lives at the repo root under `assets/`, uses SMIL
+animations only (no scripts, no external assets, no network requests),
+provides baked-in static fallbacks for `prefers-reduced-motion`, and renders
+animated in browsers and on GitHub (SMIL-only SVGs animate even when GitHub
+strips scripts from served SVGs). It stays at the repo root so it does not
+change the canonical record in this directory.
 
 ## Integrity
 

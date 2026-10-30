@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="664" viewBox="0 0 960 664" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="vq-t vq-d" style="display:block;max-width:960px;width:100%;height:auto">
+  <title id="vq-t">Veylqorix — how the gate works</title>
+  <desc id="vq-d">A target is accepted, the project detected, four real scanners run, findings are
+  normalized into one schema, and the deterministic gate returns PASS, FAIL or INCOMPLETE on every surface.</desc>
+
+  <style>
+    .kick   { font:700 11px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; letter-spacing:2.4px; fill:#0a6e6b; }
+    .kickOn { font:700 11px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; letter-spacing:2.4px; fill:#6fe9e2; }
+    .title  { font:700 16px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; fill:#0f2c40; }
+    .sub    { font:400 11px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; fill:#3c5b6a; }
+    .mono   { font:500 11px 'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace; fill:#2e4a58; }
+    .badge  { font:700 11px 'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace; fill:#ffffff; }
+    .big    { font:800 19px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; }
+    .chip   { font:600 10px 'Hanken Grotesk',Inter,-apple-system,'Segoe UI',system-ui,sans-serif; letter-spacing:1.2px; fill:#2e4a58; }
+    .code   { font:500 13px 'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace; }
+    @media (prefers-reduced-motion: reduce){ .anim { display:none; } .still{ display:inline; } }
+  </style>
+
+  <defs>
+    <!-- the site's signature hard pixel shadow: 4px 4px 0 navy @16% -->
+    <filter id="pxsh" x="-15%" y="-15%" width="135%" height="140%" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="4" dy="4" result="offset"/>
+      <feFlood flood-color="#0f2c40" flood-opacity="0.16" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="pxshSm" x="-15%" y="-15%" width="135%" height="140%" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="2" dy="2" result="offset"/>
+      <feFlood flood-color="#0f2c40" flood-opacity="0.16" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowTeal" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#14b3ad" flood-opacity="0.55" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowCoral" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#ef5f5f" flood-opacity="0.5" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowGold" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#f0ac1b" flood-opacity="0.5" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2f9f4"/><stop offset="1" stop-color="#e7f4ec"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f2f9f4"/>
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e2a3d"/><stop offset="1" stop-color="#0c2334"/>
+    </linearGradient>
+    <linearGradient id="tealRail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#14b3ad"/><stop offset="1" stop-color="#6fe9e2"/>
+    </linearGradient>
+    <linearGradient id="scanLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6fe9e2" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#6fe9e2" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#6fe9e2" stop-opacity="0"/>
+    </linearGradient>
+
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#0f2c40" opacity="0.045"/>
+    </pattern>
+    <!-- CRT scanlines, like the site's .crt panels -->
+    <pattern id="crt" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#e9f7f3" opacity="0.05"/>
+    </pattern>
+    <clipPath id="schemaClip"><rect x="44" y="304" width="872" height="84" rx="10"/></clipPath>
+    <clipPath id="termClip"><rect x="44" y="620" width="872" height="30" rx="8"/></clipPath>
+    <clipPath id="acceptTextClip"><rect x="48" y="202" width="164" height="42"/></clipPath>
+    <clipPath id="detectTextClip"><rect x="244" y="202" width="164" height="42"/></clipPath>
+    <clipPath id="normalizeTextClip"><rect x="752" y="202" width="160" height="42"/></clipPath>
+    <clipPath id="passTextClip"><rect x="104" y="474" width="204" height="58"/></clipPath>
+    <clipPath id="failTextClip"><rect x="404" y="474" width="204" height="58"/></clipPath>
+    <clipPath id="incompleteTextClip"><rect x="704" y="474" width="204" height="58"/></clipPath>
+  </defs>
+
+  <!-- ══════════ backdrop ══════════ -->
+  <rect width="960" height="664" fill="url(#bgGrad)"/>
+  <rect width="960" height="664" fill="url(#dots)"/>
+
+  <!-- ══════════ 0 · header console ══════════ -->
+  <g filter="url(#pxsh)">
+    <rect x="40" y="32" width="880" height="60" rx="10" fill="url(#screenGrad)" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <rect x="44" y="36" width="872" height="2" fill="#6fe9e2" opacity="0.35"/>
+  <g filter="url(#pxshSm)">
+    <rect x="62" y="48" width="30" height="30" rx="7" fill="url(#tealRail)"/>
+    <path d="M70 63 l5 5 l9 -10" fill="none" stroke="#0c2334" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="104" y="64" style="font-family:Hanken Grotesk,Inter,-apple-system,Segoe UI,system-ui,sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px" fill="#e9f7f3">Veylqorix</text>
+  <text x="104" y="82" style="font-family:Hanken Grotesk,Inter,-apple-system,Segoe UI,system-ui,sans-serif;font-size:11px;font-weight:400" fill="#7fa6a8">deterministic code-security gate · real evidence, no fabrication</text>
+  <!-- LIVE pill -->
+  <g filter="url(#pxshSm)">
+    <rect x="788" y="48" width="104" height="30" rx="15" fill="#0e2a3d" stroke="#14b3ad" stroke-width="2.5"/>
+  </g>
+  <circle cx="810" cy="63" r="4.5" fill="#6fe9e2"/>
+  <g class="anim"><circle cx="810" cy="63" r="4.5" fill="none" stroke="#6fe9e2" stroke-width="1.5">
+    <animate attributeName="r" values="4.5;13" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.7;0" dur="1.8s" repeatCount="indefinite"/>
+  </circle></g>
+  <text x="826" y="68" style="font-family:Hanken Grotesk,Inter,-apple-system,Segoe UI,system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:2px" fill="#6fe9e2">LIVE</text>
+
+  <!-- ══════════ 1 · the scan rail ══════════ -->
+  <rect x="40" y="124" width="9" height="9" rx="2" fill="#14b3ad"/>
+  <text x="58" y="133" class="kick">THE SCAN</text>
+  <text x="920" y="133" class="sub" text-anchor="end">one target in · one verdict out</text>
+
+  <!-- card 01 · accept -->
+  <g filter="url(#pxsh)">
+    <rect x="40" y="148" width="180" height="104" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <rect x="56" y="164" width="30" height="30" rx="7" fill="#14b3ad"/>
+  <text x="71" y="184" class="badge" text-anchor="middle">01</text>
+  <g clip-path="url(#acceptTextClip)">
+    <text x="56" y="220" class="title">Accept target</text>
+    <text x="56" y="238" class="sub" textLength="148" lengthAdjust="spacingAndGlyphs">repo · path · staged files</text>
+  </g>
+
+  <!-- card 02 · detect -->
+  <g filter="url(#pxsh)">
+    <rect x="236" y="148" width="180" height="104" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <rect x="252" y="164" width="30" height="30" rx="7" fill="#0a6e6b"/>
+  <text x="267" y="184" class="badge" text-anchor="middle">02</text>
+  <g clip-path="url(#detectTextClip)">
+    <text x="252" y="220" class="title">Detect project</text>
+    <text x="252" y="238" class="sub" textLength="148" lengthAdjust="spacingAndGlyphs">manifests · git · rust engine</text>
+  </g>
+
+  <!-- scanners cluster -->
+  <g filter="url(#pxsh)">
+    <rect x="432" y="148" width="296" height="104" rx="10" fill="#f2f9f4" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <text x="448" y="172" class="kick" style="font-size:10px">REAL SCANNERS · RUN IN PARALLEL</text>
+  <!-- tile positions: 2×2, w132 h30, gap 12 -->
+  <g filter="url(#pxshSm)">
+    <rect x="448" y="182" width="132" height="30" rx="6" fill="#dcefe4" stroke="#c5e0d7" stroke-width="2"/>
+    <rect x="592" y="182" width="116" height="30" rx="6" fill="#dcefe4" stroke="#c5e0d7" stroke-width="2"/>
+    <rect x="448" y="216" width="132" height="30" rx="6" fill="#dcefe4" stroke="#c5e0d7" stroke-width="2"/>
+    <rect x="592" y="216" width="116" height="30" rx="6" fill="#dcefe4" stroke="#c5e0d7" stroke-width="2"/>
+  </g>
+  <text x="462" y="201" class="mono">npm audit</text>
+  <text x="606" y="201" class="mono">secrets</text>
+  <text x="462" y="235" class="mono">license</text>
+  <text x="606" y="235" class="mono">quality</text>
+  <circle cx="568" cy="197" r="3.5" fill="#14b3ad"/>
+  <circle cx="694" cy="197" r="3.5" fill="#f0ac1b"/>
+  <circle cx="568" cy="231" r="3.5" fill="#14b3ad"/>
+  <circle cx="694" cy="231" r="3.5" fill="#6fe9e2"/>
+  <g class="anim">
+    <circle cx="568" cy="197" r="3.5" fill="none" stroke="#14b3ad" stroke-width="1">
+      <animate attributeName="r" values="3.5;9" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="694" cy="197" r="3.5" fill="none" stroke="#f0ac1b" stroke-width="1">
+      <animate attributeName="r" values="3.5;9" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0" dur="1.2s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="568" cy="231" r="3.5" fill="none" stroke="#14b3ad" stroke-width="1">
+      <animate attributeName="r" values="3.5;9" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="694" cy="231" r="3.5" fill="none" stroke="#6fe9e2" stroke-width="1">
+      <animate attributeName="r" values="3.5;9" dur="1.2s" begin="0.9s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0" dur="1.2s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- card 03 · normalize -->
+  <g filter="url(#pxsh)">
+    <rect x="744" y="148" width="176" height="104" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <rect x="760" y="164" width="30" height="30" rx="7" fill="#6fe9e2"/>
+  <text x="775" y="184" class="badge" text-anchor="middle" fill="#0c2334">03</text>
+  <g clip-path="url(#normalizeTextClip)">
+    <text x="760" y="220" class="title">Normalize</text>
+    <text x="760" y="238" class="sub">one finding schema</text>
+  </g>
+
+  <!-- flow arrows on the rail -->
+  <g fill="#1f4763">
+    <g class="still"><path d="M234 195 l-8 -6 v12 z" opacity="0.9"/></g>
+    <g class="still"><path d="M428 195 l-8 -6 v12 z" opacity="0.9"/></g>
+    <g class="still"><path d="M742 195 l-8 -6 v12 z" opacity="0.9"/></g>
+  </g>
+  <g class="anim" fill="#14b3ad">
+    <circle r="3.5">
+      <animate attributeName="cx" values="222;234" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="195;195" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.5">
+      <animate attributeName="cx" values="416;428" dur="0.8s" begin="0.25s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="195;195" dur="0.8s" begin="0.25s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="0.8s" begin="0.25s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.5">
+      <animate attributeName="cx" values="730;742" dur="0.8s" begin="0.5s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="195;195" dur="0.8s" begin="0.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="0.8s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- vertical flow: rail → schema -->
+  <g stroke="#1f4763" stroke-width="2.5">
+    <line x1="480" y1="252" x2="480" y2="296"/>
+  </g>
+  <path d="M474 292 l6 8 l6 -8 z" fill="#1f4763"/>
+  <g class="anim"><circle r="3.5" fill="#14b3ad" cx="480" cy="256">
+    <animate attributeName="cy" values="256;290" dur="1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
+  </circle></g>
+
+  <!-- ══════════ 2 · finding schema (dark CRT panel) ══════════ -->
+  <g filter="url(#pxsh)">
+    <rect x="40" y="300" width="880" height="92" rx="12" fill="url(#screenGrad)" stroke="#1f4763" stroke-width="4"/>
+  </g>
+  <rect x="44" y="304" width="872" height="3" fill="url(#tealRail)" opacity="0.8"/>
+  <rect x="44" y="304" width="872" height="84" fill="url(#crt)" clip-path="url(#schemaClip)"/>
+  <text x="64" y="334" class="kickOn">FINDING SCHEMA · v1</text>
+  <text x="896" y="334" class="sub" text-anchor="end" fill="#7fa6a8">stable id · severity · confidence · evidence</text>
+  <text x="64" y="368" class="code">
+    <tspan fill="#7fa6a8">{</tspan>
+    <tspan fill="#6fe9e2"> "id"</tspan><tspan fill="#7fa6a8">: </tspan><tspan fill="#e9f7f3">"VQ-7f3a"</tspan><tspan fill="#7fa6a8">,</tspan>
+    <tspan fill="#6fe9e2"> "severity"</tspan><tspan fill="#7fa6a8">: </tspan><tspan fill="#ef5f5f">"high"</tspan><tspan fill="#7fa6a8">,</tspan>
+    <tspan fill="#6fe9e2"> "scanner"</tspan><tspan fill="#7fa6a8">: </tspan><tspan fill="#f0ac1b">"secrets"</tspan>
+    <tspan fill="#7fa6a8">}</tspan>
+  </text>
+  <g class="anim">
+    <rect x="44" y="304" width="872" height="3" fill="url(#scanLine)" opacity="0.5">
+      <animate attributeName="y" values="304;381;304" dur="4s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- vertical flow: schema → gate -->
+  <line x1="480" y1="392" x2="480" y2="424" stroke="#1f4763" stroke-width="2.5"/>
+  <path d="M474 420 l6 8 l6 -8 z" fill="#1f4763"/>
+  <g class="anim"><circle r="3.5" fill="#14b3ad" cx="480" cy="396">
+    <animate attributeName="cy" values="396;418" dur="1s" begin="0.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.5s" repeatCount="indefinite"/>
+  </circle></g>
+
+  <!-- ══════════ 3 · the gate verdicts ══════════ -->
+  <rect x="40" y="432" width="9" height="9" rx="2" fill="#ef5f5f"/>
+  <text x="58" y="441" class="kick" fill="#a83232">THE GATE · DETERMINISTIC VERDICT</text>
+  <text x="920" y="441" class="sub" text-anchor="end">exit code is the contract · a gap is never a clean pass</text>
+
+  <!-- PASS -->
+  <g filter="url(#pxsh)">
+    <rect x="40" y="452" width="280" height="96" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+    <rect x="40" y="452" width="5" height="96" rx="2.5" fill="#14b3ad"/>
+  </g>
+  <circle cx="80" cy="500" r="17" fill="#14b3ad"/>
+  <path d="M72 500 l6 6 l11 -12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g clip-path="url(#passTextClip)">
+    <text x="108" y="496" class="big" fill="#0a6e6b">PASS</text>
+    <rect x="108" y="508" width="52" height="20" rx="10" fill="#dcefe4" stroke="#c5e0d7" stroke-width="1.5"/>
+    <text x="134" y="522" class="mono" text-anchor="middle" font-weight="700" fill="#0a6e6b">exit 0</text>
+    <text x="170" y="522" class="sub" textLength="138" lengthAdjust="spacingAndGlyphs">clean · all checks ran</text>
+  </g>
+  <!-- cycling ring -->
+  <g class="anim"><rect x="40" y="452" width="280" height="96" rx="10" fill="none" stroke="#14b3ad" stroke-width="3" filter="url(#glowTeal)" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.06;0.14;0.3;0.38;1" dur="6s" repeatCount="indefinite"/>
+  </rect></g>
+
+  <!-- FAIL -->
+  <g filter="url(#pxsh)">
+    <rect x="340" y="452" width="280" height="96" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+    <rect x="340" y="452" width="5" height="96" rx="2.5" fill="#ef5f5f"/>
+  </g>
+  <circle cx="380" cy="500" r="17" fill="#ef5f5f"/>
+  <path d="M374 494 l12 12 M386 494 l-12 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <g clip-path="url(#failTextClip)">
+    <text x="408" y="496" class="big" fill="#a83232">FAIL</text>
+    <rect x="408" y="508" width="52" height="20" rx="10" fill="#dcefe4" stroke="#c5e0d7" stroke-width="1.5"/>
+    <text x="434" y="522" class="mono" text-anchor="middle" font-weight="700" fill="#a83232">exit 1</text>
+    <text x="470" y="522" class="sub" textLength="138" lengthAdjust="spacingAndGlyphs">blocking finding over cap</text>
+  </g>
+  <g class="anim"><rect x="340" y="452" width="280" height="96" rx="10" fill="none" stroke="#ef5f5f" stroke-width="3" filter="url(#glowCoral)" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.36;0.44;0.6;0.68;1" dur="6s" repeatCount="indefinite"/>
+  </rect></g>
+
+  <!-- INCOMPLETE -->
+  <g filter="url(#pxsh)">
+    <rect x="640" y="452" width="280" height="96" rx="10" fill="url(#cardGrad)" stroke="#1f4763" stroke-width="4"/>
+    <rect x="640" y="452" width="5" height="96" rx="2.5" fill="#f0ac1b"/>
+  </g>
+  <circle cx="680" cy="500" r="17" fill="#f0ac1b"/>
+  <text x="680" y="506" text-anchor="middle" style="font-family:Hanken Grotesk,Inter,-apple-system,Segoe UI,system-ui,sans-serif;font-size:17px;font-weight:800" fill="#fff">!</text>
+  <g clip-path="url(#incompleteTextClip)">
+    <text x="708" y="496" class="big" fill="#b97b0b">INCOMPLETE</text>
+    <rect x="708" y="508" width="52" height="20" rx="10" fill="#dcefe4" stroke="#c5e0d7" stroke-width="1.5"/>
+    <text x="734" y="522" class="mono" text-anchor="middle" font-weight="700" fill="#b97b0b">exit 2</text>
+    <text x="770" y="522" class="sub">degraded coverage</text>
+  </g>
+  <g class="anim"><rect x="640" y="452" width="280" height="96" rx="10" fill="none" stroke="#f0ac1b" stroke-width="3" filter="url(#glowGold)" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.66;0.74;0.9;0.98;1" dur="6s" repeatCount="indefinite"/>
+  </rect></g>
+
+  <!-- ══════════ 4 · every surface ══════════ -->
+  <text x="40" y="574" class="sub" style="letter-spacing:2px;font-weight:700" fill="#0a6e6b">ON EVERY SURFACE</text>
+  <!-- chip row: centered, h26 y566 -->
+  <g filter="url(#pxshSm)">
+    <rect x="261" y="582" width="46" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+    <rect x="315" y="582" width="86" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+    <rect x="409" y="582" width="104" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+    <rect x="521" y="582" width="104" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+    <rect x="633" y="582" width="84" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+    <rect x="725" y="582" width="54" height="26" rx="13" fill="#ffffff" stroke="#1f4763" stroke-width="2"/>
+  </g>
+  <text x="284" y="599" class="chip" text-anchor="middle">CLI</text>
+  <text x="358" y="599" class="chip" text-anchor="middle">MCP · 6</text>
+  <text x="461" y="599" class="chip" text-anchor="middle">REST + DASH</text>
+  <text x="573" y="599" class="chip" text-anchor="middle">CI GATE</text>
+  <text x="675" y="599" class="chip" text-anchor="middle">SKILLS</text>
+  <text x="752" y="599" class="chip" text-anchor="middle">SARIF</text>
+
+  <!-- ══════════ 5 · terminal footer ══════════ -->
+  <g filter="url(#pxsh)">
+    <rect x="40" y="620" width="880" height="30" rx="8" fill="url(#screenGrad)" stroke="#1f4763" stroke-width="3"/>
+  </g>
+  <g clip-path="url(#termClip)">
+  <text x="64" y="641" class="code" style="font-size:12px">
+    <tspan fill="#6fe9e2">$</tspan>
+    <tspan fill="#e9f7f3"> veylqorix scan . --json </tspan>
+    <tspan fill="#7fa6a8">→ 23 findings · 2 critical · </tspan>
+    <tspan fill="#ef5f5f" font-weight="700">exit 1</tspan>
+  </text>
+  <g class="anim"><rect x="530" y="630" width="7" height="13" fill="#6fe9e2">
+    <animate attributeName="opacity" values="1;0" dur="1s" repeatCount="indefinite" calcMode="discrete"/>
+  </rect></g>
+  <g class="still"><rect x="530" y="630" width="7" height="13" fill="#6fe9e2" opacity="0.4"/></g>
+  </g>
+</svg>
